@@ -26,8 +26,9 @@ public class VehiculoRequestDTO {
     @NotNull(message = "Tipo de Vehiculo no puede ir vacio")
     private Long idTipoVehiculo;
 
-    @NotNull(message = "El usuario es obligatorio")
     private Long idUsuario;
+
+    private Long idExterno;
 
     @NotNull(message = "La categoria de la persona es obligatoria")
     private CategoriaPersona categoriaPersona;

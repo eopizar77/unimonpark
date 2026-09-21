@@ -52,10 +52,14 @@ public class Vehiculo {
     private CategoriaPersona categoriaPersona;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_usuario", nullable = false)
+    @JoinColumn(name = "id_usuario")
     private Usuario usuario;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_tipo_vehiculo", nullable = false)
     private TipoVehiculo tipoVehiculo;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_externo")
+    private Externo externo;
 }

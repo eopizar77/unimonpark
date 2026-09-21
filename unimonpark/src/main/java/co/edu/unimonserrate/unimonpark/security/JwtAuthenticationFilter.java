@@ -61,6 +61,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         // Token inválido, expirado o corrupto: simplemente no se autentica.
         // No se debe romper la peticion; el resto de la cadena de filtros.
         // decidirá si la ruta requiere qutenticacion o no.
+        System.err.println(">>> JWT FILTER ERROR: " + e.getClass().getName() + " - " + e.getMessage());
+        e.printStackTrace();
         SecurityContextHolder.clearContext();
     }    
 

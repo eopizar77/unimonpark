@@ -22,6 +22,9 @@ public class VehiculoResponseDTO {
     private String nombreTipoVehiculo;
     private Long idUsuario;
     private String nombreUsuario;
+    private Long idExterno;
+    private String nombreExterno;
+    private String documentoExterno;
     private Boolean activo;
     private CategoriaPersona categoriaPersona;
     private LocalDateTime fechaCreacion;
