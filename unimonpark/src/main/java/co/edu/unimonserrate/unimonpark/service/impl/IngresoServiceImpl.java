@@ -29,22 +29,40 @@ public class IngresoServiceImpl implements IngresoService {
     private final VehiculoRepository vehiculoRepository;
     private final EspacioParqueoRepository espacioParqueoRepository;
 
-    public IngresoServiceImpl(IngresoRepository ingresoRepository, VehiculoRepository vehiculoRepository, EspacioParqueoRepository espacioParqueoRepository){
+    public IngresoServiceImpl(IngresoRepository ingresoRepository, VehiculoRepository vehiculoRepository,
+            EspacioParqueoRepository espacioParqueoRepository) {
         this.ingresoRepository = ingresoRepository;
         this.vehiculoRepository = vehiculoRepository;
         this.espacioParqueoRepository = espacioParqueoRepository;
     }
 
     @Override
-    public List<IngresoResponseDTO> listarIngreso(){
+    public List<IngresoResponseDTO> listarIngreso() {
         return ingresoRepository.findAll()
                 .stream()
                 .map(this::convertirADTO)
                 .collect(Collectors.toList());
     }
 
+    public List<IngresoResponseDTO> buscarIngresos(LocalDateTime desde, LocalDateTime hasta, String nombreTipo,
+            String nombreUsuario) {
+        List<Ingreso> base = (desde != null && hasta != null)
+                ? ingresoRepository.findByFechaIngresoBetween(desde, hasta)
+                : ingresoRepository.findAll();
+
+        return base.stream()
+                .filter(i -> nombreTipo == null
+                        || i.getVehiculo().getTipoVehiculo().getNombre().equalsIgnoreCase(nombreTipo))
+                .filter(i -> nombreUsuario == null
+                        || i.getVehiculo().getUsuario().getNombres().toLowerCase().contains(nombreUsuario.toLowerCase())
+                        || i.getVehiculo().getUsuario().getApellidos().toLowerCase()
+                                .contains(nombreUsuario.toLowerCase()))
+                .map(this::convertirADTO)
+                .collect(Collectors.toList());
+    }
+
     @Override
-    public IngresoResponseDTO buscarPorId(Long id){
+    public IngresoResponseDTO buscarPorId(Long id) {
         Ingreso ingreso = ingresoRepository.findById(id)
                 .orElseThrow(() -> new RecursoNoEncontradoException("Ingreso no encontrado con id: " + id));
         return convertirADTO(ingreso);
@@ -52,40 +70,50 @@ public class IngresoServiceImpl implements IngresoService {
 
     @Auditable(tabla = "ingreso", operacion = TipoOperacion.CREAR)
     @Override
-    public IngresoResponseDTO crearIngreso(IngresoRequestDTO dto){
+    public IngresoResponseDTO crearIngreso(IngresoRequestDTO dto) {
 
         Vehiculo vehiculo = vehiculoRepository.findById(dto.getIdVehiculo())
-                .orElseThrow(() -> new RecursoNoEncontradoException("Tipo de Vehiculo no encontrado con el id: " + dto.getIdVehiculo()));
+                .orElseThrow(() -> new RecursoNoEncontradoException(
+                        "Tipo de Vehiculo no encontrado con el id: " + dto.getIdVehiculo()));
 
-        EspacioParqueo espacioParqueo = espacioParqueoRepository.findById(dto.getIdEspacioParqueo())
-                .orElseThrow(() -> new RecursoNoEncontradoException("Tipo de espacio no encontrado con id: " + dto.getIdEspacioParqueo()));
-
-        if (espacioParqueo.getEstado() != EstadoEspacio.DISPONIBLE){
-            throw new RecursoNoDisponibleException("El Espacio de parqueo " + espacioParqueo.getCodigo() + " no está disponible");
+        if (ingresoRepository.existsByVehiculoIdVehiculoAndEstado(
+                vehiculo.getIdVehiculo(), EstadoIngreso.ACTIVO)) {
+            throw new RecursoNoDisponibleException(
+                    "El vehículo " + vehiculo.getPlaca() + " ya tiene un ingreso activo");
         }
 
-            Ingreso ingreso = new Ingreso();
-            ingreso.setFechaIngreso(LocalDateTime.now());
-            ingreso.setLecturaInicialKm(dto.getLecturaInicialKm());
-            ingreso.setTipoIngreso(dto.getTipoIngreso());
-            ingreso.setEstado(EstadoIngreso.ACTIVO);
-            ingreso.setVehiculo(vehiculo);
-            ingreso.setEspacioParqueo(espacioParqueo);
+        EspacioParqueo espacioParqueo = espacioParqueoRepository.findById(dto.getIdEspacioParqueo())
+                .orElseThrow(() -> new RecursoNoEncontradoException(
+                        "Tipo de espacio no encontrado con id: " + dto.getIdEspacioParqueo()));
 
-            Ingreso ingresoActualizado = ingresoRepository.save(ingreso);
-            espacioParqueo.setEstado(EstadoEspacio.OCUPADO);
-            espacioParqueoRepository.save(espacioParqueo);
+        if (espacioParqueo.getEstado() != EstadoEspacio.DISPONIBLE) {
+            throw new RecursoNoDisponibleException(
+                    "El Espacio de parqueo " + espacioParqueo.getCodigo() + " no está disponible");
+        }
 
-            return convertirADTO(ingresoActualizado);
+        Ingreso ingreso = new Ingreso();
+        ingreso.setFechaIngreso(LocalDateTime.now());
+        ingreso.setLecturaInicialKm(dto.getLecturaInicialKm());
+        ingreso.setTipoIngreso(dto.getTipoIngreso());
+        ingreso.setEstado(EstadoIngreso.ACTIVO);
+        ingreso.setVehiculo(vehiculo);
+        ingreso.setEspacioParqueo(espacioParqueo);
+        ingreso.setNumeroFicha(dto.getNumeroFicha());
+
+        Ingreso ingresoActualizado = ingresoRepository.save(ingreso);
+        espacioParqueo.setEstado(EstadoEspacio.OCUPADO);
+        espacioParqueoRepository.save(espacioParqueo);
+
+        return convertirADTO(ingresoActualizado);
     }
 
     @Auditable(tabla = "ingreso", operacion = TipoOperacion.ELIMINAR)
     @Override
-    public void eliminarIngreso(Long id){
+    public void eliminarIngreso(Long id) {
         ingresoRepository.deleteById(id);
     }
 
-    private IngresoResponseDTO convertirADTO(Ingreso ingreso){
+    private IngresoResponseDTO convertirADTO(Ingreso ingreso) {
         IngresoResponseDTO dto = new IngresoResponseDTO();
         dto.setIdIngreso(ingreso.getIdIngreso());
         dto.setFechaIngreso(ingreso.getFechaIngreso());
@@ -96,6 +124,7 @@ public class IngresoServiceImpl implements IngresoService {
         dto.setPlacaVehiculo(ingreso.getVehiculo().getPlaca());
         dto.setIdEspacioParqueo(ingreso.getEspacioParqueo().getIdEspacio());
         dto.setCodigoEspacioParqueo(ingreso.getEspacioParqueo().getCodigo());
+        dto.setNumeroFicha(ingreso.getNumeroFicha());
         return dto;
     }
 }

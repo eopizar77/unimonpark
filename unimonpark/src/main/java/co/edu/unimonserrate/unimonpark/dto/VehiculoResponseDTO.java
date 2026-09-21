@@ -2,6 +2,7 @@ package co.edu.unimonserrate.unimonpark.dto;
 
 import java.time.LocalDateTime;
 
+import co.edu.unimonserrate.unimonpark.enums.CategoriaPersona;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -22,5 +23,6 @@ public class VehiculoResponseDTO {
     private Long idUsuario;
     private String nombreUsuario;
     private Boolean activo;
+    private CategoriaPersona categoriaPersona;
     private LocalDateTime fechaCreacion;
 }

@@ -4,12 +4,14 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 
 import { actualizarVehiculo, crearVehiculo, eliminarVehiculo, listarVehiculos } from "@/api/vehiculos";
+import { obtenerMensajeError } from "@/api/client";
 import { listarTiposVehiculo } from "@/api/tiposVehiculo";
 import { listarUsuarios } from "@/api/usuarios";
 import type { TipoVehiculo } from "@/types/tipoVehiculo";
 import type { Usuario } from "@/types/usuario";
-import type { Vehiculo } from "@/types/vehiculo";
+import type { Vehiculo, VehiculoPayload } from "@/types/vehiculo";
 import { vehiculoSchema, type VehiculoFormValues } from "./vehiculoSchema";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 import {
     AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -25,12 +27,13 @@ import { Switch } from "@/components/ui/switch";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 const valoresIniciales: VehiculoFormValues = {
-    idUsuario: null,
+    idUsuario: 0,
     idTipoVehiculo: 0,
     placa: "",
     marca: "",
     modelo: "",
     color: "",
+    categoriaPersona: "" as VehiculoFormValues["categoriaPersona"],
     activo: true,
 };
 
@@ -46,6 +49,10 @@ export default function VehiculosPage() {
         resolver: zodResolver(vehiculoSchema),
         defaultValues: valoresIniciales,
     });
+
+    const idTipoSeleccionado = form.watch("idTipoVehiculo");
+    const tipoSeleccionado = tipos.find((t) => t.idTipoVehiculo === idTipoSeleccionado);
+    const esBicicleta = tipoSeleccionado?.nombre.toLowerCase() === "bicicleta";
 
     async function cargarDatos() {
         setCargando(true);
@@ -80,23 +87,29 @@ export default function VehiculosPage() {
         form.reset({
             idUsuario: vehiculo.idUsuario,
             idTipoVehiculo: vehiculo.idTipoVehiculo,
-            placa: vehiculo.placa,
+            placa: vehiculo.placa ?? "",
             marca: vehiculo.marca || "",
             modelo: vehiculo.modelo || "",
             color: vehiculo.color || "",
+            categoriaPersona: vehiculo.categoriaPersona ?? ("" as VehiculoFormValues["categoriaPersona"]),
             activo: vehiculo.activo,
         });
         setDialogAbierto(true);
     }
 
     async function onSubmit(valores: VehiculoFormValues) {
-        const payload = {
+        if (!esBicicleta && !valores.placa?.trim()) {
+            toast.error("La placa es obligatoria para este tipo de vehículo");
+            return;
+        }
+        const payload: VehiculoPayload = {
             idUsuario: valores.idUsuario,
             idTipoVehiculo: valores.idTipoVehiculo,
-            placa: valores.placa.trim().toUpperCase(),
+            placa: esBicicleta ? null : (valores.placa?.trim() || null),
             marca: valores.marca ?? "",
             modelo: valores.modelo ?? "",
             color: valores.color ?? "",
+            categoriaPersona: valores.categoriaPersona,
             activo: valores.activo,
         };
 
@@ -110,8 +123,8 @@ export default function VehiculosPage() {
             }
             setDialogAbierto(false);
             await cargarDatos();
-        } catch {
-            toast.error("Ocurrió un error al guardar el vehículo");
+        } catch (error: unknown) {
+            toast.error(obtenerMensajeError(error, "Ocurrió un error al guardar el vehículo"));
         }
     }
 
@@ -125,12 +138,10 @@ export default function VehiculosPage() {
         }
     }
 
-    function nombreUsuario(id: number | null) {
-        if (id === null) return "Sin asignar";
+    function nombreUsuario(id: number) {
         const usuario = usuarios.find((item) => item.idUsuario === id);
         return usuario ? `${usuario.nombres} ${usuario.apellidos}` : "Usuario no encontrado";
     }
-
     function nombreTipo(id: number) {
         return tipos.find((tipo) => tipo.idTipoVehiculo === id)?.nombre ?? "Tipo no encontrado";
     }
@@ -160,7 +171,7 @@ export default function VehiculosPage() {
                     )}
                     {vehiculos.map((vehiculo) => (
                         <TableRow key={vehiculo.idVehiculo}>
-                            <TableCell className="font-medium">{vehiculo.placa}</TableCell>
+                            <TableCell className="font-medium">{vehiculo.placa || "Sin placa"}</TableCell>
                             <TableCell>{nombreTipo(vehiculo.idTipoVehiculo)}</TableCell>
                             <TableCell>{nombreUsuario(vehiculo.idUsuario)}</TableCell>
                             <TableCell>{[vehiculo.marca, vehiculo.modelo].filter(Boolean).join(" / ") || "-"}</TableCell>
@@ -181,7 +192,7 @@ export default function VehiculosPage() {
                                         <AlertDialogHeader>
                                             <AlertDialogTitle>¿Eliminar este vehículo?</AlertDialogTitle>
                                             <AlertDialogDescription>
-                                                Esta acción no se puede deshacer. Se eliminará el vehículo "{vehiculo.placa}".
+                                                Esta acción no se puede deshacer. Se eliminará el vehículo "{vehiculo.placa || "sin placa"}".
                                             </AlertDialogDescription>
                                         </AlertDialogHeader>
                                         <AlertDialogFooter>
@@ -205,6 +216,7 @@ export default function VehiculosPage() {
                     </DialogHeader>
                     <Form {...form}>
                         <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4 sm:grid-cols-2">
+                            {!esBicicleta && (
                             <FormField control={form.control} name="placa" render={({ field }) => (
                                 <FormItem>
                                     <FormLabel>Placa</FormLabel>
@@ -212,6 +224,7 @@ export default function VehiculosPage() {
                                     <FormMessage />
                                 </FormItem>
                             )} />
+                        )}
                             <FormField control={form.control} name="idTipoVehiculo" render={({ field }) => (
                                 <FormItem>
                                     <FormLabel>Tipo de vehículo</FormLabel>
@@ -252,31 +265,50 @@ export default function VehiculosPage() {
                                 </FormItem>
                             )} />
                             <FormField control={form.control} name="idUsuario" render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Usuario</FormLabel>
-                                    <FormControl>
-                                        <select
-                                            className="h-8 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm"
-                                            value={field.value ?? ""}
-                                            onChange={(event) => field.onChange(event.target.value ? Number(event.target.value) : null)}
-                                        >
-                                            <option value="">Sin asignar</option>
-                                            {usuarios.filter((usuario) => usuario.activo || usuario.idUsuario === field.value).map((usuario) => (
-                                                <option key={usuario.idUsuario} value={usuario.idUsuario}>
-                                                    {usuario.nombres} {usuario.apellidos}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )} />
+                            <FormItem>
+                                <FormLabel>Usuario</FormLabel>
+                                <FormControl>
+                                    <select
+                                        className="h-8 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm"
+                                        value={field.value || ""}
+                                        onChange={(event) => field.onChange(Number(event.target.value))}
+                                    >
+                                        <option value="" disabled>Selecciona un usuario</option>
+                                        {usuarios.filter((usuario) => usuario.activo || usuario.idUsuario === field.value).map((usuario) => (
+                                            <option key={usuario.idUsuario} value={usuario.idUsuario}>
+                                                {usuario.nombres} {usuario.apellidos}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )} />
                             <FormField control={form.control} name="activo" render={({ field }) => (
                                 <FormItem className="flex items-center justify-between sm:mt-6">
                                     <FormLabel>Activo</FormLabel>
                                     <FormControl><Switch checked={field.value} onCheckedChange={field.onChange} /></FormControl>
                                 </FormItem>
                             )} />
+                            <FormField control={form.control} name="categoriaPersona" render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Categoría de persona</FormLabel>
+                                        <Select onValueChange={field.onChange} value={field.value ?? ""}>
+                                    <FormControl>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Selecciona una categoría" />
+                                        </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                        <SelectItem value="ESTUDIANTE">Estudiante</SelectItem>
+                                        <SelectItem value="DOCENTE_ADMINISTRATIVO_EXTERNO">Docente / Administrativo / Externo</SelectItem>
+                                        <SelectItem value="CENTRO_OBRERO">Centro Obrero</SelectItem>
+                                    </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                </FormItem>
+  )}
+/>
                             <DialogFooter className="sm:col-span-2">
                                 <Button type="submit">Guardar</Button>
                             </DialogFooter>

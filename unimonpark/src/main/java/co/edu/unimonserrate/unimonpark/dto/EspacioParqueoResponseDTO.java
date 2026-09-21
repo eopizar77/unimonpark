@@ -16,6 +16,6 @@ public class EspacioParqueoResponseDTO {
     private String zona;
     private EstadoEspacio estado;
     private Boolean activo;
-    private String idTipoVehiculo;
+    private Long idTipoVehiculo;
     private String nombreTipoVehiculo;
 }

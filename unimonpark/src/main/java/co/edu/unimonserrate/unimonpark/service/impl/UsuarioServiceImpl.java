@@ -1,6 +1,7 @@
 package co.edu.unimonserrate.unimonpark.service.impl;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -58,19 +59,23 @@ public class UsuarioServiceImpl implements UsuarioService{
         Rol rol = rolRepository.findById(dto.getIdRol())
                 .orElseThrow(() -> new RecursoNoEncontradoException("Rol no encontrado con el id: " + dto.getIdRol()));
 
+        validarCredencialesParaRol(dto, rol);
+
             Usuario usuario = new Usuario();
             usuario.setNombres(dto.getNombres());
             usuario.setApellidos(dto.getApellidos());
             usuario.setDocumento(dto.getDocumento());
             usuario.setCorreo(dto.getCorreo());
             usuario.setTelefono(dto.getTelefono());
-            usuario.setNombreUsuario(dto.getNombreUsuario());
-            usuario.setContrasenaHash(passwordEncoder.encode(dto.getContrasena()));
+            usuario.setNombreUsuario(obtenerNombreUsuario(dto, rol));
+            usuario.setContrasenaHash(obtenerContrasenaHash(dto, rol));
             usuario.setRol(rol);
             usuario.setPerfilUsuarioTarifa(obtenerPerfil(dto.getIdPerfilUsuarioTarifa()));
             usuario.setVoluntarioCentroObrero(Boolean.TRUE.equals(dto.getVoluntarioCentroObrero()));
             usuario.setActivo(dto.getActivo());
             usuario.setFechaCreacion(LocalDateTime.now());
+            usuario.setValorMatricula(dto.getValorMatricula());
+            usuario.setValorSalario(dto.getValorSalario());
             Usuario usuarioGuardado = usuarioRepository.save(usuario);
             return convertirADTO(usuarioGuardado);
     }
@@ -83,13 +88,18 @@ public class UsuarioServiceImpl implements UsuarioService{
 
         Rol rol = rolRepository.findById(dto.getIdRol())
                 .orElseThrow(() -> new RecursoNoEncontradoException("Rol no encontrado con el id: " + dto.getIdRol()));
+        validarCredencialesParaRol(dto, rol);
         usuario.setNombres(dto.getNombres());
         usuario.setApellidos(dto.getApellidos());
         usuario.setDocumento(dto.getDocumento());
         usuario.setCorreo(dto.getCorreo());
         usuario.setTelefono(dto.getTelefono());
-        usuario.setNombreUsuario(dto.getNombreUsuario());
-        usuario.setContrasenaHash(passwordEncoder.encode(dto.getContrasena()));
+        if (!esCliente(rol)) {
+            usuario.setNombreUsuario(dto.getNombreUsuario());
+            if (dto.getContrasena() != null && !dto.getContrasena().isBlank()) {
+                usuario.setContrasenaHash(passwordEncoder.encode(dto.getContrasena()));
+            }
+        }
         usuario.setRol(rol);
         usuario.setPerfilUsuarioTarifa(obtenerPerfil(dto.getIdPerfilUsuarioTarifa()));
         usuario.setVoluntarioCentroObrero(Boolean.TRUE.equals(dto.getVoluntarioCentroObrero()));
@@ -125,6 +135,8 @@ public class UsuarioServiceImpl implements UsuarioService{
         dto.setActivo(usuario.getActivo());
         dto.setFechaCreacion(usuario.getFechaCreacion());
         dto.setFechaActualizacion(usuario.getFechaActualizacion());
+        dto.setValorMatricula(usuario.getValorMatricula());
+        dto.setValorSalario(usuario.getValorSalario());
         return dto;
     }
 
@@ -135,5 +147,37 @@ public class UsuarioServiceImpl implements UsuarioService{
         return perfilUsuarioTarifaRepository.findById(idPerfilUsuarioTarifa)
                 .orElseThrow(() -> new RecursoNoEncontradoException(
                         "Perfil de usuario para tarifa no encontrado con id: " + idPerfilUsuarioTarifa));
+    }
+
+    private void validarCredencialesParaRol(UsuarioRequestDTO dto, Rol rol) {
+        if (esCliente(rol)) {
+            return;
+        }
+        if (dto.getNombreUsuario() == null || dto.getNombreUsuario().isBlank()) {
+            throw new IllegalArgumentException("El nombre de usuario es obligatorio para este rol");
+        }
+        if (dto.getContrasena() == null || dto.getContrasena().length() < 8) {
+            throw new IllegalArgumentException("La contraseña debe tener al menos 8 caracteres para este rol");
+        }
+    }
+
+    private static final java.util.Set<Long> ROLES_SIN_CREDENCIALES = java.util.Set.of(7L, 8L, 9L); // Estudiante, Dae, Centro Obrero
+
+    private boolean esCliente(Rol rol) {
+        return ROLES_SIN_CREDENCIALES.contains(rol.getIdRol());
+}
+
+    private String obtenerNombreUsuario(UsuarioRequestDTO dto, Rol rol) {
+        if (!esCliente(rol)) {
+            return dto.getNombreUsuario();
+        }
+        return "cliente_" + dto.getDocumento() + "_" + UUID.randomUUID().toString().substring(0, 8);
+    }
+
+    private String obtenerContrasenaHash(UsuarioRequestDTO dto, Rol rol) {
+        if (!esCliente(rol)) {
+            return passwordEncoder.encode(dto.getContrasena());
+        }
+        return passwordEncoder.encode(UUID.randomUUID().toString());
     }
 }

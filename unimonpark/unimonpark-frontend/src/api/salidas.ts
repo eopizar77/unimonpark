@@ -8,6 +8,7 @@ function normalizarSalida(item: Salida): Salida {
     return {
         idSalida: Number(registro.idSalida ?? registro.id_salida),
         idIngreso: Number(registro.idIngreso ?? registro.id_ingreso),
+        fechaIngreso: String(registro.fechaIngreso ?? registro.fecha_ingreso ?? ""),
         fechaSalida: String(registro.fechaSalida ?? registro.fecha_salida ?? ""),
         lecturaFinalKm: registro.lecturaFinalKm == null && registro.lectura_final_km == null
             ? null
@@ -19,6 +20,11 @@ function normalizarSalida(item: Salida): Salida {
         observaciones: (registro.observaciones ?? null) as string | null,
         estado: String(registro.estado ?? ""),
         idTarifa: Number(registro.idTarifa ?? registro.id_tarifa),
+        modalidadPago: (registro.modalidadPago ?? registro.modalidad_pago ?? null) as Salida["modalidadPago"],
+        tipoIngreso: (registro.tipoIngreso ?? registro.tipo_ingreso ?? null) as Salida["tipoIngreso"],
+        placaVehiculo: String(registro.placaVehiculo ?? registro.placa_vehiculo ?? ""),
+        tipoVehiculo: String(registro.tipoVehiculo ?? registro.tipo_vehiculo ?? ""),
+        nombreTarifa: String (registro.nombreTarifa ?? registro.nombre_tarifa ?? ""),
     };
 }
 

@@ -1,78 +1,94 @@
-import { Link, Outlet, useNavigate } from "react-router-dom";
+import { Outlet, useNavigate, Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
-import { Button  } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { BarChart3 } from "lucide-react";
 
-type RolUsuario = "ADMINISTRADOR" | "GESTION" | "SUPERVISOR";
+import {
+  Home, ShieldCheck, Tags, Users, Car, MapPin, DollarSign,
+  LogIn, LogOut, Receipt, CreditCard, CalendarCheck, AlertTriangle,
+} from "lucide-react";
 
-interface OpcionMenu {
-    etiqueta: string;
-    ruta: string;
-    roles: RolUsuario[];
+interface NavItem {
+  to: string;
+  label: string;
+  icon: React.ElementType;
+  roles?: string[]; // si no se especifica, cualquier autenticado lo ve
 }
 
-const todosLosRoles: RolUsuario[] = ["ADMINISTRADOR", "GESTION", "SUPERVISOR"];
+const NAV_ITEMS: NavItem[] = [
+  { to: "/dashboard", label: "Inicio", icon: Home },
 
-const opcionesMenu: OpcionMenu[] = [
-    { etiqueta: "Roles", ruta: "/roles", roles: ["ADMINISTRADOR"] },
-    { etiqueta: "Tipos de Vehículo", ruta: "/tipos-vehiculo", roles: ["ADMINISTRADOR", "GESTION"] },
-    { etiqueta: "Usuarios", ruta: "/usuarios", roles: ["ADMINISTRADOR"] },
-    { etiqueta: "Vehículos", ruta: "/vehiculos", roles: ["ADMINISTRADOR", "GESTION", "SUPERVISOR"] },
-    { etiqueta: "Espacios Parqueo", ruta: "/espacios-parqueo", roles: ["ADMINISTRADOR", "GESTION", "SUPERVISOR"] },
-    { etiqueta: "Tarifas", ruta: "/tarifas", roles: ["ADMINISTRADOR", "GESTION"] },
-    { etiqueta: "Ingresos", ruta: "/ingresos", roles: ["ADMINISTRADOR", "GESTION", "SUPERVISOR"] },
-    { etiqueta: "Salidas", ruta: "/salidas", roles: ["ADMINISTRADOR", "GESTION", "SUPERVISOR"] },
-    { etiqueta: "Facturas", ruta: "/facturas", roles: ["ADMINISTRADOR", "GESTION", "SUPERVISOR"] },
-    { etiqueta: "Pagos", ruta: "/pagos", roles: ["ADMINISTRADOR", "GESTION", "SUPERVISOR"] },
+  // Catálogos — solo Administrador
+  { to: "/roles", label: "Roles", icon: ShieldCheck, roles: ["ADMINISTRADOR"] },
+  { to: "/tipos-vehiculo", label: "Tipos de vehículo", icon: Tags, roles: ["ADMINISTRADOR"] },
+  { to: "/usuarios", label: "Usuarios", icon: Users, roles: ["ADMINISTRADOR"] },
+  { to: "/espacios-parqueo", label: "Espacios de parqueo", icon: MapPin, roles: ["ADMINISTRADOR"] },
+  { to: "/tarifas", label: "Tarifas", icon: DollarSign, roles: ["ADMINISTRADOR"] },
+
+  // Operación diaria — Administrador y Gestión
+  { to: "/vehiculos", label: "Vehículos", icon: Car, roles: ["ADMINISTRADOR", "GESTION"] },
+  { to: "/salidas", label: "Salidas", icon: LogOut, roles: ["ADMINISTRADOR", "GESTION"] },
+  { to: "/facturas", label: "Facturas", icon: Receipt, roles: ["ADMINISTRADOR", "GESTION"] },
+  { to: "/pagos", label: "Pagos", icon: CreditCard, roles: ["ADMINISTRADOR", "GESTION"] },
+  { to: "/membresias", label: "Membresías", icon: CalendarCheck, roles: ["ADMINISTRADOR", "GESTION", "SUPERVISOR"] },
+  { to: "/penalizaciones", label: "Penalizaciones", icon: AlertTriangle, roles: ["ADMINISTRADOR", "GESTION", "SUPERVISOR"] },
+
+  // Ingresos — también lo usa Supervisor (autoriza vehículos de terceros)
+  { to: "/ingresos", label: "Ingresos", icon: LogIn, roles: ["ADMINISTRADOR", "GESTION"] },
+  { to: "/reportes", label: "Reportes Unimonpark", icon: BarChart3, roles: ["ADMINISTRADOR", "GESTION"]},
 ];
 
-function normalizarRol(rol: string | null): RolUsuario | null {
-    const valor = (rol ?? "").trim().toUpperCase().replace(/^ROLE_/, "");
-    return todosLosRoles.includes(valor as RolUsuario) ? valor as RolUsuario : null;
-}
-
 export default function AppLayout() {
-    const { nombreUsuario, rol, logout } = useAuth();
-    const navigate = useNavigate();
-    const rolActual = normalizarRol(rol);
-    const opcionesVisibles = opcionesMenu.filter((opcion) => rolActual !== null && opcion.roles.includes(rolActual));
+  const { nombreUsuario, rol, logout } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
 
-    function handleLogout() {
-        logout();
-        navigate("/login");
-    }
+  function handleLogout() {
+    logout();
+    navigate("/login");
+  }
 
-    return (
-        <div className="flex h-screen">
-            {/* Barra Lateral */}
-            <aside className="w-64 border-r bg-muted/40 p-4 flex flex-col">
-                <h1 className="text-lg font-bold mb-6">Unimonpark</h1>
+  const itemsVisibles = NAV_ITEMS.filter((item) => !item.roles || (rol && item.roles.includes(rol)));
 
-                <nav className="flex flex-col gap-1 flex-1">
-                    <Link to="/dashboard" className="rounded px-3 py-2 text-sm hover:bg-muted">
-                        Inicio
-                    </Link>
-                    {opcionesVisibles.map((opcion) => (
-                        <Link key={opcion.ruta} to={opcion.ruta} className="rounded px-3 py-2 text-sm hover:bg-muted">
-                            {opcion.etiqueta}
-                        </Link>
-                    ))}
-                </nav>
+  return (
+    <div className="flex h-screen">
+      <aside className="w-64 border-r bg-muted/40 p-4 flex flex-col">
+        <h1 className="text-lg font-bold mb-6">Unimonpark</h1>
 
-                <Separator className="my-3" />
+        <nav className="flex flex-col gap-1 flex-1">
+          {itemsVisibles.map((item) => {
+            const Icono = item.icon;
+            const activo = location.pathname === item.to;
+            return (
+              <Link
+                key={item.to}
+                to={item.to}
+                className={`flex items-center gap-2 rounded px-3 py-2 text-sm hover:bg-muted ${
+                  activo ? "bg-muted font-medium" : ""
+                }`}
+              >
+                <Icono className="h-4 w-4" />
+                {item.label}
+              </Link>
+            );
+          })}
+        </nav>
 
-                <div className="text-sm">
-                    <p className="font-medium">{nombreUsuario}</p>
-                    <p className="text-muted-foreground">{rol}</p>
-                </div>
-                <Button variant="outline" size="sm" className="mt-3" onClick={handleLogout}>
-                    Cerrar Sesion
-                </Button>            
-            </aside>
-            {/* Contenido de cada una de las pantallas */}
-            <main className="flex-1 overflow-auto p-6">
-                <Outlet />
-            </main>
+        <Separator className="my-3" />
+
+        <div className="text-sm">
+          <p className="font-medium">{nombreUsuario}</p>
+          <p className="text-muted-foreground">{rol}</p>
         </div>
-    );
+        <Button variant="outline" size="sm" className="mt-3" onClick={handleLogout}>
+          Cerrar sesión
+        </Button>
+      </aside>
+
+      <main className="flex-1 overflow-auto p-6">
+        <Outlet />
+      </main>
+    </div>
+  );
 }

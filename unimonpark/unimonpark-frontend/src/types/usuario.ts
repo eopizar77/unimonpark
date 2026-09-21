@@ -5,11 +5,13 @@ export interface Usuario {
     documento: string;
     correo: string;
     telefono: string | null;
-    nombreUsuario: string;
+    nombreUsuario: string | null;
     idRol: number;
     activo: boolean;
     fechaCreacion?: string;
     fechaActualizacion?: string | null;
+    valorMatricula: number | null;
+    valorSalario: number | null;
 }
 
 export interface UsuarioPayload {
@@ -18,8 +20,10 @@ export interface UsuarioPayload {
     documento: string;
     correo: string;
     telefono: string;
-    nombreUsuario: string;
+    nombreUsuario?: string;
     contrasena?: string;
     idRol: number;
     activo: boolean;
+    valorMatricula: number | null;
+    valorSalario: number | null;
 }

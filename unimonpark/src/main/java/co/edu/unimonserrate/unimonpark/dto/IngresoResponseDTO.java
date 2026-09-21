@@ -22,4 +22,5 @@ public class IngresoResponseDTO {
     private String placaVehiculo;
     private Long idEspacioParqueo;
     private String codigoEspacioParqueo;
+    private String numeroFicha;
 }

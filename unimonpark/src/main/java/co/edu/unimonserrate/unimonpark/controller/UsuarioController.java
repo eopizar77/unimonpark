@@ -41,7 +41,7 @@ public class UsuarioController {
             return ResponseEntity.ok(usuarioService.buscarPorId(id));
         }
 
-        @PreAuthorize("hasRole('ADMINISTRADOR')")
+        @PreAuthorize("hasRole('ADMINISTRADOR', 'GESTION')")
         @PostMapping
         public ResponseEntity<UsuarioResponseDTO> crearUsuario(@Valid @RequestBody UsuarioRequestDTO usuarioDTO){
             UsuarioResponseDTO usuarioCreado = usuarioService.crearUsuario(usuarioDTO);

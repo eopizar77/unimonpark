@@ -11,8 +11,13 @@ import IngresosPage from "@/pages/Ingresos/IngresosPage";
 import SalidasPage from "@/pages/Salidas/SalidasPage";
 import FacturasPage from "@/pages/Facturas/FacturasPage";
 import PagosPage from "@/pages/Pagos/PagosPage";
+import MensualidadesPage from "@/pages/Mensualidades/MensualidadesPage";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import AppLayout from "./components/layout/AppLayout";
+import MembresiasPage from "./pages/Membresias/MembresiasPage";
+import PenalizacionesPage from "./pages/Penalizaciones/penalizacionesPage";
+import DashboardPage from "@/pages/Dashboard/DashboardPage";
+import ReportesPage from "./pages/reportes/ReportesPage";
 
 
 function App() {
@@ -28,7 +33,7 @@ function App() {
           </ProtectedRoute>
         }
       >
-        <Route path="/dashboard" element={<div>Dashboard (EN CONSTRUCCION)</div>} />
+        <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/roles" element={<RolesPage />} />
         <Route path="/tipos-vehiculo" element={<TiposVehiculoPage />} />
         <Route path="/usuarios" element={<UsuariosPage />} />
@@ -38,7 +43,11 @@ function App() {
         <Route path="/ingresos" element={<IngresosPage />} />
         <Route path="/salidas" element={<SalidasPage />} />
         <Route path="/facturas" element={<FacturasPage />} />
+        <Route path="/mensualidades" element={<MensualidadesPage />} />
+        <Route path="/membresias" element={<MembresiasPage />} />
+        <Route path="/penalizaciones" element={<PenalizacionesPage />} />
         <Route path="/pagos" element={<PagosPage />} />
+        <Route path="/reportes" element={<ReportesPage />} />
       </Route>
 
       <Route path="/" element={<Navigate to="/login" replace />} />

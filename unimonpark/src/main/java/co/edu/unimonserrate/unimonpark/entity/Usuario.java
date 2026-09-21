@@ -1,5 +1,6 @@
 package co.edu.unimonserrate.unimonpark.entity;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
@@ -67,4 +68,10 @@ public class Usuario {
 
     @Column(name = "fecha_actualizacion")
     private LocalDateTime fechaActualizacion;
+
+    @Column(name = "valor_matricula", precision = 12, scale = 2)
+    private BigDecimal valorMatricula;
+
+    @Column(name = "valor_salario", precision = 12, scale = 2)
+    private BigDecimal valorSalario;
 }

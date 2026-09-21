@@ -4,6 +4,7 @@ public enum EstadoEspacio {
 
     DISPONIBLE,
     OCUPADO,
-    RESERVADO
+    RESERVADO,
+    MANTENIMIENTO
     
 }

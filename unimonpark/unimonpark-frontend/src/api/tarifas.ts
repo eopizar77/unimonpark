@@ -8,18 +8,24 @@ function normalizarTarifa(item: Tarifa): Tarifa {
     return {
         idTarifa: Number(registro.idTarifa ?? registro.id_tarifa),
         idTipoVehiculo: Number(registro.idTipoVehiculo ?? registro.id_tipo_vehiculo),
+        nombreTipoVehiculo: String(registro.nombreTipoVehiculo ?? registro.nombre_tipo_vehiculo ?? ""),
         nombre: String(registro.nombre ?? ""),
-        valorHora: Number(registro.valorHora ?? registro.valor_hora),
-        valorDiurno: registro.valorDiurno == null && registro.valor_diurno == null
+        valorHora: registro.valorHora == null && registro.valor_hora == null
             ? null
-            : Number(registro.valorDiurno ?? registro.valor_diurno),
-        valorNocturno: registro.valorNocturno == null && registro.valor_nocturno == null
+            : Number(registro.valorHora ?? registro.valor_hora),
+        categoriaPersona: (registro.categoriaPersona ?? registro.categoria_persona ?? null) as Tarifa["categoriaPersona"],
+        tipoCalculo: (registro.tipoCalculo ?? registro.tipo_calculo) as Tarifa["tipoCalculo"],
+        horasLimite: registro.horasLimite == null && registro.horas_limite == null
             ? null
-            : Number(registro.valorNocturno ?? registro.valor_nocturno),
-        horaInicioNocturna: (registro.horaInicioNocturna ?? registro.hora_inicio_nocturna ?? null) as string | null,
-        horaFinNocturna: (registro.horaFinNocturna ?? registro.hora_fin_nocturna ?? null) as string | null,
+            : Number(registro.horasLimite ?? registro.horas_limite),
+        valorHastaLimite: registro.valorHastaLimite == null && registro.valor_hasta_limite == null
+            ? null
+            : Number(registro.valorHastaLimite ?? registro.valor_hasta_limite),
+        valorDespuesLimite: registro.valorDespuesLimite == null && registro.valor_despues_limite == null
+            ? null
+            : Number(registro.valorDespuesLimite ?? registro.valor_despues_limite),
+        porcentaje: registro.porcentaje == null ? null : Number(registro.porcentaje),
         activo: Boolean(registro.activo),
-        fechaCreacion: (registro.fechaCreacion ?? registro.fecha_creacion) as string | undefined,
     };
 }
 

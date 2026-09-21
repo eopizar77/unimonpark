@@ -22,6 +22,13 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
+// IDs fijos de roles (tabla `roles`) que no requieren nombre de usuario/contraseña
+// ni tienen ambos campos de mensualidad: Estudiante=7 (matrícula), Dae=8 (salario), Centro Obrero=9 (ninguno)
+const ID_ROL_ESTUDIANTE = 7;
+const ID_ROL_DAE = 8;
+const ID_ROL_CENTRO_OBRERO = 9;
+const ROLES_SIN_CREDENCIALES = new Set([ID_ROL_ESTUDIANTE, ID_ROL_DAE, ID_ROL_CENTRO_OBRERO]);
+
 const valoresIniciales: UsuarioFormValues = {
     nombres: "",
     apellidos: "",
@@ -32,6 +39,8 @@ const valoresIniciales: UsuarioFormValues = {
     contrasena: "",
     idRol: 0,
     activo: true,
+    valorMatricula: null,
+    valorSalario: null,
 };
 
 export default function UsuariosPage() {
@@ -77,23 +86,36 @@ export default function UsuariosPage() {
             documento: usuario.documento,
             correo: usuario.correo,
             telefono: usuario.telefono || "",
-            nombreUsuario: usuario.nombreUsuario,
+            nombreUsuario: usuario.nombreUsuario || "",
             contrasena: "",
             idRol: usuario.idRol,
             activo: usuario.activo,
+            valorMatricula: usuario.valorMatricula ?? null,
+            valorSalario: usuario.valorSalario ?? null,
         });
         setDialogAbierto(true);
     }
 
+    const idRolSeleccionado = form.watch("idRol");
+    const esRolSinCredenciales = ROLES_SIN_CREDENCIALES.has(idRolSeleccionado);
+    const esEstudiante = idRolSeleccionado === ID_ROL_ESTUDIANTE;
+    const esDae = idRolSeleccionado === ID_ROL_DAE;
+
     async function onSubmit(valores: UsuarioFormValues) {
-        if (!usuarioEditando && !valores.contrasena) {
-            form.setError("contrasena", { message: "La contraseña es obligatoria al crear un usuario" });
+        if (!esRolSinCredenciales && !valores.contrasena && !usuarioEditando) {
+            form.setError("contrasena", { message: "La contraseña es obligatoria para este rol" });
+            return;
+        }
+        if (!esRolSinCredenciales && !valores.nombreUsuario) {
+            form.setError("nombreUsuario", { message: "El nombre de usuario es obligatorio para este rol" });
             return;
         }
 
         const payload = {
             ...valores,
             telefono: valores.telefono ?? "",
+            valorMatricula: esEstudiante ? valores.valorMatricula : null,
+            valorSalario: esDae ? valores.valorSalario : null,
             ...(valores.contrasena ? { contrasena: valores.contrasena } : {}),
         };
 
@@ -136,21 +158,23 @@ export default function UsuariosPage() {
                         <TableHead>Usuario</TableHead>
                         <TableHead>Correo</TableHead>
                         <TableHead>Rol</TableHead>
+                        <TableHead>Matrícula / Salario</TableHead>
                         <TableHead>Estado</TableHead>
                         <TableHead className="text-right">Acciones</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {cargando && <TableRow><TableCell colSpan={6}>Cargando...</TableCell></TableRow>}
+                    {cargando && <TableRow><TableCell colSpan={7}>Cargando...</TableCell></TableRow>}
                     {!cargando && usuarios.length === 0 && (
-                        <TableRow><TableCell colSpan={6}>No hay usuarios registrados</TableCell></TableRow>
+                        <TableRow><TableCell colSpan={7}>No hay usuarios registrados</TableCell></TableRow>
                     )}
                     {usuarios.map((usuario) => (
                         <TableRow key={usuario.idUsuario}>
                             <TableCell className="font-medium">{usuario.nombres} {usuario.apellidos}</TableCell>
-                            <TableCell>{usuario.nombreUsuario}</TableCell>
+                            <TableCell>{usuario.nombreUsuario ?? "-"}</TableCell>
                             <TableCell>{usuario.correo}</TableCell>
                             <TableCell>{roles.find((rol) => rol.idRol === usuario.idRol)?.nombre ?? usuario.idRol}</TableCell>
+                            <TableCell>{usuario.valorMatricula ?? usuario.valorSalario ?? "-"}</TableCell>
                             <TableCell>
                                 <Badge variant={usuario.activo ? "default" : "secondary"}>
                                     {usuario.activo ? "Activo" : "Inactivo"}
@@ -168,7 +192,7 @@ export default function UsuariosPage() {
                                         <AlertDialogHeader>
                                             <AlertDialogTitle>¿Eliminar este usuario?</AlertDialogTitle>
                                             <AlertDialogDescription>
-                                                Esta acción no se puede deshacer. Se eliminará "{usuario.nombreUsuario}".
+                                                Esta acción no se puede deshacer. Se eliminará "{usuario.nombreUsuario ?? usuario.nombres}".
                                             </AlertDialogDescription>
                                         </AlertDialogHeader>
                                         <AlertDialogFooter>
@@ -227,22 +251,8 @@ export default function UsuariosPage() {
                                     <FormMessage />
                                 </FormItem>
                             )} />
-                            <FormField control={form.control} name="nombreUsuario" render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Nombre de usuario</FormLabel>
-                                    <FormControl><Input {...field} /></FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )} />
-                            <FormField control={form.control} name="contrasena" render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>{usuarioEditando ? "Nueva contraseña" : "Contraseña"}</FormLabel>
-                                    <FormControl><Input type="password" {...field} /></FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )} />
                             <FormField control={form.control} name="idRol" render={({ field }) => (
-                                <FormItem>
+                                <FormItem className="sm:col-span-2">
                                     <FormLabel>Rol</FormLabel>
                                     <FormControl>
                                         <select
@@ -257,6 +267,46 @@ export default function UsuariosPage() {
                                     <FormMessage />
                                 </FormItem>
                             )} />
+                            {!esRolSinCredenciales && (
+                                <FormField control={form.control} name="nombreUsuario" render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Nombre de usuario</FormLabel>
+                                        <FormControl><Input {...field} /></FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )} />
+                            )}
+                            {!esRolSinCredenciales && (
+                                <FormField control={form.control} name="contrasena" render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>{usuarioEditando ? "Nueva contraseña" : "Contraseña"}</FormLabel>
+                                        <FormControl><Input type="password" {...field} /></FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )} />
+                            )}
+                            {esEstudiante && (
+                                <FormField control={form.control} name="valorMatricula" render={({ field }) => (
+                                    <FormItem className="sm:col-span-2">
+                                        <FormLabel>Valor de la matrícula</FormLabel>
+                                        <FormControl>
+                                            <Input type="number" min="0" step="0.01" value={field.value ?? ""} onChange={(event) => field.onChange(event.target.value === "" ? null : Number(event.target.value))} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )} />
+                            )}
+                            {esDae && (
+                                <FormField control={form.control} name="valorSalario" render={({ field }) => (
+                                    <FormItem className="sm:col-span-2">
+                                        <FormLabel>Valor del salario</FormLabel>
+                                        <FormControl>
+                                            <Input type="number" min="0" step="0.01" value={field.value ?? ""} onChange={(event) => field.onChange(event.target.value === "" ? null : Number(event.target.value))} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )} />
+                            )}
                             <FormField control={form.control} name="activo" render={({ field }) => (
                                 <FormItem className="flex items-center justify-between sm:mt-6">
                                     <FormLabel>Activo</FormLabel>

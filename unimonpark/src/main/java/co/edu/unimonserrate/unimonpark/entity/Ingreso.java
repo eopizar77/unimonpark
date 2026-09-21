@@ -53,5 +53,8 @@ public class Ingreso {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_espacio_parqueo", nullable = false)
-    private EspacioParqueo espacioParqueo;    
+    private EspacioParqueo espacioParqueo;
+
+    @Column(name = "numero_ficha", length = 20)
+    private String numeroFicha;
 }

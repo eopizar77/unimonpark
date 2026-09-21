@@ -1,7 +1,10 @@
 package co.edu.unimonserrate.unimonpark.entity;
 
+import co.edu.unimonserrate.unimonpark.enums.CategoriaPersona;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -31,4 +34,8 @@ public class PerfilUsuarioTarifa {
 
     @Column(nullable = false)
     private Boolean activo = true;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "categoria_persona", nullable = false, length = 35)
+    private CategoriaPersona categoriaPersona;
 }

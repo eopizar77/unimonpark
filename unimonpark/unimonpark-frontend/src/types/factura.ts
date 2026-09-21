@@ -1,6 +1,8 @@
 export interface Factura {
     idFactura: number;
     idUsuario: number;
+    nombres: string;
+    apellidos: string,
     fecha: string;
     subtotal: number;
     descuento: number | null;
@@ -8,14 +10,16 @@ export interface Factura {
     total: number;
     estado: string;
     idSalida: number;
+    idTarifa: string;
+    nombreTarifa: string;
+    placaVehiculo: string;
+    tipoVehiculo: String;
+    categoriaPersona: string;
 }
 
 export interface FacturaPayload {
     idUsuario: number;
-    subtotal: number;
     descuento: number;
     iva: number;
-    total: number;
-    estado: string;
     idSalida: number;
 }

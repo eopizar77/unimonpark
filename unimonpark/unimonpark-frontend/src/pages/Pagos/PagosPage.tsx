@@ -8,6 +8,7 @@ import { listarFacturas } from "@/api/facturas";
 import type { Pago } from "@/types/pago";
 import type { Factura } from "@/types/factura";
 import { pagoSchema, type PagoFormValues } from "./pagoSchema";
+import { BuscadorConFiltro } from "@/components/BuscadorConFiltro";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -17,7 +18,7 @@ import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useAuth } from "@/context/AuthContext";
 
-const rolesConPermiso = new Set(["ADMINISTRADOR", "GESTION", "SUPERVISOR"]);
+const rolesConPermiso = new Set(["ADMINISTRADOR", "GESTION"]);
 const metodosPago = ["efectivo", "tarjeta", "transferencia", "PSE", "otro"];
 const valoresIniciales: PagoFormValues = {
     idFactura: 0,
@@ -85,6 +86,24 @@ export default function PagosPage() {
         return Number.isNaN(fechaFormateada.getTime()) ? fecha : fechaFormateada.toLocaleString("es-CO");
     }
 
+    function obtenerFactura(id: number) {
+        return facturas.find((factura) => factura.idFactura === id);
+    }
+
+    function descripcionFactura(factura: Factura) {
+        return `${factura.placaVehiculo || "Bicicleta"} - ${factura.nombres} ${factura.apellidos} - Factura #${factura.idFactura} - ${formatoMoneda(factura.total)}`;
+    }
+
+    function nombreUsuarioPago(idFactura: number) {
+        const factura = obtenerFactura(idFactura);
+        return factura ? `${factura.nombres} ${factura.apellidos}` : "-";
+    }
+
+    function placaVehiculoPago(idFactura: number) {
+        const factura = obtenerFactura(idFactura);
+        return factura ? (factura.placaVehiculo || "Bicicleta") : "-";
+    }
+
     const pagosRegistrados = new Set(pagos.map((pago) => pago.idFactura));
     const facturasDisponibles = facturas.filter((factura) => !pagosRegistrados.has(factura.idFactura));
 
@@ -100,16 +119,18 @@ export default function PagosPage() {
 
             <Table>
                 <TableHeader><TableRow>
-                    <TableHead>Pago</TableHead><TableHead>Factura</TableHead><TableHead>Fecha</TableHead>
+                    <TableHead>Pago</TableHead><TableHead>Factura</TableHead><TableHead>Usuario</TableHead><TableHead>Vehículo</TableHead><TableHead>Fecha</TableHead>
                     <TableHead>Monto</TableHead><TableHead>Método</TableHead><TableHead>Referencia</TableHead><TableHead>Estado</TableHead>
                 </TableRow></TableHeader>
                 <TableBody>
-                    {cargando && <TableRow><TableCell colSpan={7}>Cargando...</TableCell></TableRow>}
-                    {!cargando && pagos.length === 0 && <TableRow><TableCell colSpan={7}>No hay pagos registrados</TableCell></TableRow>}
+                    {cargando && <TableRow><TableCell colSpan={9}>Cargando...</TableCell></TableRow>}
+                    {!cargando && pagos.length === 0 && <TableRow><TableCell colSpan={9}>No hay pagos registrados</TableCell></TableRow>}
                     {pagos.map((pago) => (
                         <TableRow key={pago.idPago}>
                             <TableCell className="font-medium">#{pago.idPago}</TableCell>
                             <TableCell>#{pago.idFactura}</TableCell>
+                            <TableCell>{nombreUsuarioPago(pago.idFactura)}</TableCell>
+                            <TableCell>{placaVehiculoPago(pago.idFactura)}</TableCell>
                             <TableCell>{formatearFecha(pago.fecha)}</TableCell>
                             <TableCell>{formatoMoneda(pago.monto)}</TableCell>
                             <TableCell>{pago.metodoPago}</TableCell>
@@ -126,20 +147,19 @@ export default function PagosPage() {
                     <Form {...form}>
                         <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-4">
                             <FormField control={form.control} name="idFactura" render={({ field }) => (
-                                <FormItem><FormLabel>Factura</FormLabel><FormControl>
-                                    <select
-                                        className="h-8 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm"
-                                        value={field.value || ""}
-                                        onChange={(event) => {
-                                            const idFactura = Number(event.target.value);
-                                            field.onChange(idFactura);
-                                            const factura = facturasDisponibles.find((item) => item.idFactura === idFactura);
+                                <FormItem><FormLabel>Factura (busca por placa o usuario)</FormLabel><FormControl>
+                                    <BuscadorConFiltro
+                                        items={facturasDisponibles}
+                                        valorSeleccionado={field.value || null}
+                                        obtenerId={(f) => f.idFactura}
+                                        obtenerEtiqueta={descripcionFactura}
+                                        onSeleccionar={(id) => {
+                                            field.onChange(id);
+                                            const factura = facturasDisponibles.find((item) => item.idFactura === id);
                                             form.setValue("monto", factura?.total ?? 0);
                                         }}
-                                    >
-                                        <option value="" disabled>Selecciona una factura pendiente</option>
-                                        {facturasDisponibles.map((factura) => <option key={factura.idFactura} value={factura.idFactura}>Factura #{factura.idFactura} - {formatoMoneda(factura.total)}</option>)}
-                                    </select>
+                                        placeholder={facturasDisponibles.length === 0 ? "No hay facturas pendientes" : "Escribe la placa o el nombre..."}
+                                    />
                                 </FormControl><FormMessage /></FormItem>
                             )} />
                             <FormField control={form.control} name="monto" render={({ field }) => (

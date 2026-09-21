@@ -1,5 +1,6 @@
 package co.edu.unimonserrate.unimonpark.dto;
 
+import co.edu.unimonserrate.unimonpark.enums.CategoriaPersona;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -11,7 +12,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class VehiculoRequestDTO {
 
-    @NotBlank(message = "Informacion de placa es obligatoria")
     private String placa;
 
     @NotBlank(message = "Informacion de marca es obligatoria")
@@ -29,7 +29,9 @@ public class VehiculoRequestDTO {
     @NotNull(message = "El usuario es obligatorio")
     private Long idUsuario;
 
+    @NotNull(message = "La categoria de la persona es obligatoria")
+    private CategoriaPersona categoriaPersona;
+
     @NotNull(message = "El campo activo es obligatorio")
-    private Boolean activo;
-    
+    private Boolean activo;    
 }

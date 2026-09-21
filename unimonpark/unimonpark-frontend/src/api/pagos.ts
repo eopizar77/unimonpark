@@ -27,3 +27,24 @@ export async function crearPago(pago: PagoPayload): Promise<Pago> {
     const response = await apiClient.post<Pago>(ruta, pago);
     return normalizarPago(response.data);
 }
+
+export interface FiltrosPago {
+    desde?: string;
+    hasta?: string;
+    metodoPago?: string;
+    usuario?: string;
+}
+
+export async function buscarPagos(filtros: FiltrosPago): Promise<Pago[]> {
+    const response = await apiClient.get<Pago[] | { data?: Pago[]; content?: Pago[] }>(`${ruta}/buscar`, {
+        params: {
+            desde: filtros.desde ? `${filtros.desde}T00:00:00` : undefined,
+            hasta: filtros.hasta ? `${filtros.hasta}T23:59:59` : undefined,
+            metodoPago: filtros.metodoPago || undefined,
+            usuario: filtros.usuario || undefined,
+        },
+    });
+    const body = response.data;
+    const items = Array.isArray(body) ? body : body.data ?? body.content ?? [];
+    return items.map(normalizarPago);
+}

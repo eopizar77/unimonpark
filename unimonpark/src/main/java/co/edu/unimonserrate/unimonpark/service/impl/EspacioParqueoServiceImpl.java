@@ -94,7 +94,7 @@ public class EspacioParqueoServiceImpl implements EspacioParqueoService{
         dto.setZona(espacioParqueo.getZona());
         dto.setEstado(espacioParqueo.getEstado());
         dto.setActivo(espacioParqueo.getActivo());
-        dto.setIdTipoVehiculo(espacioParqueo.getTipoVehiculo().getNombre());
+        dto.setIdTipoVehiculo(espacioParqueo.getTipoVehiculo().getIdTipoVehiculo());
         dto.setNombreTipoVehiculo(espacioParqueo.getTipoVehiculo().getNombre());
         return dto;
     }

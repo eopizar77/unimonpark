@@ -1,5 +1,6 @@
 package co.edu.unimonserrate.unimonpark.controller;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.http.HttpStatus;
@@ -10,6 +11,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import co.edu.unimonserrate.unimonpark.dto.FacturaRequestDTO;
@@ -44,5 +46,13 @@ public class FacturaController {
         FacturaResponseDTO facturaCreada = facturaService.crearFactura(dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(facturaCreada);
     }
-    
+
+    @GetMapping("/buscar")
+    public ResponseEntity<List<FacturaResponseDTO>> buscarFacturas(
+            @RequestParam(required = false) LocalDateTime desde,
+            @RequestParam(required = false) LocalDateTime hasta,
+            @RequestParam(required = false) String categoriaPersona,
+            @RequestParam(required = false) String usuario) {
+        return ResponseEntity.ok(facturaService.buscarFacturas(desde, hasta, categoriaPersona, usuario));
+    }
 }

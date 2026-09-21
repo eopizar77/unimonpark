@@ -1,9 +1,10 @@
 package co.edu.unimonserrate.unimonpark.dto;
 
+import java.math.BigDecimal;
+
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -28,11 +29,8 @@ public class UsuarioRequestDTO {
 
     private String telefono;
 
-    @NotBlank(message = "El nombre de usuario es obligarotio")
     private String nombreUsuario;
 
-    @NotBlank(message = "La contraseña es obligatoria")
-    @Size(min = 8, message = "La contraseña debe tener al menos 8 caracteres")
     private String contrasena;
 
     @NotNull(message = "El rol es obligatorio")
@@ -44,4 +42,8 @@ public class UsuarioRequestDTO {
 
     @NotNull(message = "el campo activo es obligatorio")
     private Boolean activo;
+
+    private BigDecimal valorMatricula;
+
+    private BigDecimal valorSalario;
 }

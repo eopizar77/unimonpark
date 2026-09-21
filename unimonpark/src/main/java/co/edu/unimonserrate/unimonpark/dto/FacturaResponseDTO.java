@@ -25,6 +25,8 @@ public class FacturaResponseDTO {
     private EstadoFactura estado;
     private Long idSalida;
     private String placaVehiculo;
+    private String tipoVehiculo;
     private Long idTarifa;
     private String nombreTarifa;
+    private String categoriaPersona;
 }

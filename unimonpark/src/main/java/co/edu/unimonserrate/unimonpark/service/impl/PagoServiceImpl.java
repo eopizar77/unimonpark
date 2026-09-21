@@ -19,18 +19,18 @@ import co.edu.unimonserrate.unimonpark.repository.PagoRepository;
 import co.edu.unimonserrate.unimonpark.service.PagoService;
 
 @Service
-public class PagoServiceImpl implements PagoService{
+public class PagoServiceImpl implements PagoService {
 
     private final PagoRepository pagoRepository;
     private final FacturaRepository facturaRepository;
 
-    public PagoServiceImpl(PagoRepository pagoRepository, FacturaRepository facturaRepository){
+    public PagoServiceImpl(PagoRepository pagoRepository, FacturaRepository facturaRepository) {
         this.pagoRepository = pagoRepository;
         this.facturaRepository = facturaRepository;
     }
 
     @Override
-    public List<PagoResponseDTO> listarPagos(){
+    public List<PagoResponseDTO> listarPagos() {
         return pagoRepository.findAll()
                 .stream()
                 .map(this::convertirADTO)
@@ -38,7 +38,7 @@ public class PagoServiceImpl implements PagoService{
     }
 
     @Override
-    public PagoResponseDTO buscarPorId(Long id){
+    public PagoResponseDTO buscarPorId(Long id) {
         Pago pagos = pagoRepository.findById(id)
                 .orElseThrow(() -> new RecursoNoEncontradoException("Pago no registrado con ID: " + id));
         return convertirADTO(pagos);
@@ -46,25 +46,48 @@ public class PagoServiceImpl implements PagoService{
 
     @Auditable(tabla = "pago", operacion = TipoOperacion.CREAR)
     @Override
-    public PagoResponseDTO crearPagos(PagoRequestDTO dto){
+    public PagoResponseDTO crearPagos(PagoRequestDTO dto) {
 
-            Factura factura = facturaRepository.findById(dto.getIdFactura())
-                .orElseThrow(() -> new RecursoNoEncontradoException("Factura no encontrada o registrada ID: " + dto.getIdFactura()));
-                
-                Pago pagos = new Pago();
-                pagos.setFactura(factura);
-                pagos.setFecha(LocalDateTime.now());
-                pagos.setMonto(factura.getTotal());
-                pagos.setMetodoPago(dto.getMetodoPago());
-                pagos.setReferencia(dto.getReferencia());
-                pagos.setEstado(EstadoPago.APROBADO);
+        Factura factura = facturaRepository.findById(dto.getIdFactura())
+                .orElseThrow(() -> new RecursoNoEncontradoException(
+                        "Factura no encontrada o registrada ID: " + dto.getIdFactura()));
 
-                Pago pagoRegistrado = pagoRepository.save(pagos);
+        Pago pagos = new Pago();
+        pagos.setFactura(factura);
+        pagos.setFecha(LocalDateTime.now());
+        pagos.setMonto(factura.getTotal());
+        pagos.setMetodoPago(dto.getMetodoPago());
+        pagos.setReferencia(dto.getReferencia());
+        pagos.setEstado(EstadoPago.APROBADO);
 
-                return convertirADTO(pagoRegistrado);
+        Pago pagoRegistrado = pagoRepository.save(pagos);
+
+        return convertirADTO(pagoRegistrado);
     }
 
-    private PagoResponseDTO convertirADTO(Pago pagos){
+    @Override
+    public List<PagoResponseDTO> buscarPagos(LocalDateTime desde, LocalDateTime hasta,
+            String metodoPago, String usuario) {
+
+        List<Pago> base;
+        if (desde != null && hasta != null && metodoPago != null) {
+            base = pagoRepository.findByMetodoPagoAndFechaBetween(metodoPago, desde, hasta);
+        } else if (desde != null && hasta != null) {
+            base = pagoRepository.findByFechaBetween(desde, hasta);
+        } else {
+            base = pagoRepository.findAll();
+        }
+
+        return base.stream()
+                .filter(p -> metodoPago == null || p.getMetodoPago().equalsIgnoreCase(metodoPago))
+                .filter(p -> usuario == null
+                        || p.getFactura().getUsuario().getNombres().toLowerCase().contains(usuario.toLowerCase())
+                        || p.getFactura().getUsuario().getApellidos().toLowerCase().contains(usuario.toLowerCase()))
+                .map(this::convertirADTO)
+                .collect(Collectors.toList());
+    }
+
+    private PagoResponseDTO convertirADTO(Pago pagos) {
         PagoResponseDTO dto = new PagoResponseDTO();
         dto.setIdPago(pagos.getIdPago());
         dto.setIdFactura(pagos.getFactura().getIdFactura());

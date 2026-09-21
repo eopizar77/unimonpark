@@ -10,6 +10,7 @@ import type { Factura } from "@/types/factura";
 import type { Salida } from "@/types/salida";
 import type { Usuario } from "@/types/usuario";
 import { facturaSchema, type FacturaFormValues } from "./facturaSchema";
+import { BuscadorConFiltro } from "@/components/BuscadorConFiltro";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -19,11 +20,10 @@ import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useAuth } from "@/context/AuthContext";
 
-const rolesConPermiso = new Set(["ADMINISTRADOR", "GESTION", "SUPERVISOR"]);
+const rolesConPermiso = new Set(["ADMINISTRADOR", "GESTION"]);
 const valoresIniciales: FacturaFormValues = {
     idUsuario: 0,
     idSalida: 0,
-    subtotal: 0,
     descuento: 0,
     iva: 0,
 };
@@ -46,9 +46,11 @@ export default function FacturasPage() {
         resolver: zodResolver(facturaSchema),
         defaultValues: valoresIniciales,
     });
-    const subtotal = form.watch("subtotal");
+    const idSalidaSeleccionada = form.watch("idSalida");
     const descuento = form.watch("descuento");
     const iva = form.watch("iva");
+    const salidaSeleccionada = salidas.find((salida) => salida.idSalida === idSalidaSeleccionada);
+    const subtotal = salidaSeleccionada?.valorTotal ?? 0;
     const totalCalculado = Math.max(0, subtotal - descuento + iva);
 
     async function cargarDatos() {
@@ -81,9 +83,10 @@ export default function FacturasPage() {
     async function onSubmit(valores: FacturaFormValues) {
         try {
             await crearFactura({
-                ...valores,
-                total: Math.max(0, valores.subtotal - valores.descuento + valores.iva),
-                estado: "generada",
+                idUsuario: valores.idUsuario,
+                idSalida: valores.idSalida,
+                descuento: valores.descuento,
+                iva: valores.iva,
             });
             toast.success("Factura generada correctamente");
             setDialogAbierto(false);
@@ -93,14 +96,12 @@ export default function FacturasPage() {
         }
     }
 
-    function nombreUsuario(id: number) {
-        const usuario = usuarios.find((item) => item.idUsuario === id);
-        return usuario ? `${usuario.nombres} ${usuario.apellidos}` : "Usuario no encontrado";
+    function nombreUsuarioSelect(usuario: Usuario) {
+        return `${usuario.nombres} ${usuario.apellidos}`;
     }
 
-    function descripcionSalida(id: number) {
-        const salida = salidas.find((item) => item.idSalida === id);
-        return salida ? `Salida #${salida.idSalida} - ${formatoMoneda(salida.valorTotal)}` : "Salida no encontrada";
+    function descripcionSalida(salida: Salida) {
+        return `${salida.placaVehiculo || "Bicicleta"} - Salida #${salida.idSalida} - ${formatoMoneda(salida.valorTotal)}`;
     }
 
     function formatearFecha(fecha: string) {
@@ -125,7 +126,7 @@ export default function FacturasPage() {
             <Table>
                 <TableHeader><TableRow>
                     <TableHead>Factura</TableHead><TableHead>Fecha</TableHead><TableHead>Usuario</TableHead>
-                    <TableHead>Salida</TableHead><TableHead>Subtotal</TableHead><TableHead>Total</TableHead><TableHead>Estado</TableHead>
+                    <TableHead>Vehículo</TableHead><TableHead>Subtotal</TableHead><TableHead>Total</TableHead><TableHead>Estado</TableHead>
                 </TableRow></TableHeader>
                 <TableBody>
                     {cargando && <TableRow><TableCell colSpan={7}>Cargando...</TableCell></TableRow>}
@@ -134,8 +135,8 @@ export default function FacturasPage() {
                         <TableRow key={factura.idFactura}>
                             <TableCell className="font-medium">#{factura.idFactura}</TableCell>
                             <TableCell>{formatearFecha(factura.fecha)}</TableCell>
-                            <TableCell>{nombreUsuario(factura.idUsuario)}</TableCell>
-                            <TableCell>{descripcionSalida(factura.idSalida)}</TableCell>
+                            <TableCell>{factura.nombres} {factura.apellidos}</TableCell>
+                            <TableCell>{factura.placaVehiculo || "Bicicleta"}</TableCell>
                             <TableCell>{formatoMoneda(factura.subtotal)}</TableCell>
                             <TableCell>{formatoMoneda(factura.total)}</TableCell>
                             <TableCell><Badge variant="secondary">{factura.estado}</Badge></TableCell>
@@ -150,24 +151,33 @@ export default function FacturasPage() {
                     <Form {...form}>
                         <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-4">
                             <FormField control={form.control} name="idUsuario" render={({ field }) => (
-                                <FormItem><FormLabel>Usuario</FormLabel><FormControl>
-                                    <select className="h-8 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm" value={field.value || ""} onChange={(event) => field.onChange(Number(event.target.value))}>
-                                        <option value="" disabled>Selecciona un usuario</option>
-                                        {usuariosActivos.map((usuario) => <option key={usuario.idUsuario} value={usuario.idUsuario}>{usuario.nombres} {usuario.apellidos}</option>)}
-                                    </select>
+                                <FormItem><FormLabel>Usuario (busca por nombre)</FormLabel><FormControl>
+                                    <BuscadorConFiltro
+                                        items={usuariosActivos}
+                                        valorSeleccionado={field.value || null}
+                                        obtenerId={(u) => u.idUsuario}
+                                        obtenerEtiqueta={nombreUsuarioSelect}
+                                        onSeleccionar={(id) => field.onChange(id)}
+                                        placeholder="Escribe el nombre..."
+                                    />
                                 </FormControl><FormMessage /></FormItem>
                             )} />
                             <FormField control={form.control} name="idSalida" render={({ field }) => (
-                                <FormItem><FormLabel>Salida</FormLabel><FormControl>
-                                    <select className="h-8 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm" value={field.value || ""} onChange={(event) => field.onChange(Number(event.target.value))}>
-                                        <option value="" disabled>Selecciona una salida sin factura</option>
-                                        {salidasDisponibles.map((salida) => <option key={salida.idSalida} value={salida.idSalida}>{descripcionSalida(salida.idSalida)}</option>)}
-                                    </select>
+                                <FormItem><FormLabel>Salida (busca por placa)</FormLabel><FormControl>
+                                    <BuscadorConFiltro
+                                        items={salidasDisponibles}
+                                        valorSeleccionado={field.value || null}
+                                        obtenerId={(s) => s.idSalida}
+                                        obtenerEtiqueta={descripcionSalida}
+                                        onSeleccionar={(id) => field.onChange(id)}
+                                        placeholder={salidasDisponibles.length === 0 ? "No hay salidas sin facturar" : "Escribe la placa..."}
+                                    />
                                 </FormControl><FormMessage /></FormItem>
                             )} />
-                            <FormField control={form.control} name="subtotal" render={({ field }) => (
-                                <FormItem><FormLabel>Subtotal</FormLabel><FormControl><Input type="number" min="0" step="0.01" value={field.value} onChange={(event) => field.onChange(Number(event.target.value))} /></FormControl><FormMessage /></FormItem>
-                            )} />
+                            <div className="rounded-lg border bg-muted/30 p-3 text-sm">
+                                <p><strong>Subtotal de la salida:</strong> {salidaSeleccionada ? formatoMoneda(subtotal) : "Selecciona una salida"}</p>
+                                <p className="text-muted-foreground">El subtotal se toma automáticamente del valor calculado al cerrar la salida.</p>
+                            </div>
                             <FormField control={form.control} name="descuento" render={({ field }) => (
                                 <FormItem><FormLabel>Descuento</FormLabel><FormControl><Input type="number" min="0" step="0.01" value={field.value} onChange={(event) => field.onChange(Number(event.target.value))} /></FormControl><FormMessage /></FormItem>
                             )} />

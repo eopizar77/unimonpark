@@ -37,7 +37,7 @@ public class IngresoController {
         return ResponseEntity.ok(ingresoService.buscarPorId(id));
     }
 
-    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'GESTION', 'SUPERVISOR')")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'GESTION')")
     @PostMapping
     public ResponseEntity<IngresoResponseDTO> crearIngreso(@Valid @RequestBody IngresoRequestDTO ingresoDTO){
         IngresoResponseDTO ingresoCreado = ingresoService.crearIngreso(ingresoDTO);

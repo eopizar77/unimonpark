@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import co.edu.unimonserrate.unimonpark.aspect.Auditable;
 import co.edu.unimonserrate.unimonpark.dto.TarifaRequestDTO;
@@ -18,7 +19,7 @@ import co.edu.unimonserrate.unimonpark.repository.TipoVehiculoRepository;
 import co.edu.unimonserrate.unimonpark.service.TarifaService;
 
 @Service
-public class TarifaServiceImpl implements TarifaService{
+public class TarifaServiceImpl implements TarifaService {
 
     private final TarifaRepository tarifaRepository;
     private final TipoVehiculoRepository tipoVehiculoRepository;
@@ -29,6 +30,7 @@ public class TarifaServiceImpl implements TarifaService{
     }
     
     @Override
+    @Transactional(readOnly = true)
     public List<TarifaResponseDTO> listarTarifa(){
         return tarifaRepository.findAll()
                 .stream()
@@ -37,33 +39,38 @@ public class TarifaServiceImpl implements TarifaService{
     }
 
     @Override
+    @Transactional(readOnly = true)
     public TarifaResponseDTO buscarPorId(Long id){
         Tarifa tarifa = tarifaRepository.findById(id)
                 .orElseThrow(() -> new RecursoNoEncontradoException("Tarifa no encontrada con id: " + id));
-            return convertirADTO(tarifa);
+        return convertirADTO(tarifa);
     }
 
-    
-    @Auditable(tabla = "tarifa", operacion = TipoOperacion.CREAR)
+    @Auditable(tabla = "tarifas", operacion = TipoOperacion.CREAR)
     @Override
+    @Transactional
     public TarifaResponseDTO crearTarifa(TarifaRequestDTO dto){
-
         TipoVehiculo tipoVehiculo = tipoVehiculoRepository.findById(dto.getIdTipoVehiculo())
                 .orElseThrow(() -> new RecursoNoEncontradoException("Tipo de Vehiculo no encontrado con id: " + dto.getIdTipoVehiculo()));
 
-            Tarifa tarifa = new Tarifa();
-            tarifa.setNombre(dto.getNombre());
-            tarifa.setValorHora(dto.getValorHora());
-            tarifa.setActivo(dto.getActivo());
-            tarifa.setTipoVehiculo(tipoVehiculo);
-            tarifa.setFechaCreacion(LocalDateTime.now());
-            Tarifa tarifaGuardado = tarifaRepository.save(tarifa);
-            return convertirADTO(tarifaGuardado);
+        Tarifa tarifa = new Tarifa();
+        tarifa.setNombre(dto.getNombre());
+        tarifa.setValorHora(dto.getValorHora());
+        tarifa.setActivo(dto.getActivo());
+        tarifa.setTipoVehiculo(tipoVehiculo);
+        tarifa.setCategoriaPersona(dto.getCategoriaPersona());
+        tarifa.setTipoCalculo(dto.getTipoCalculo());
+        tarifa.setHorasLimite(dto.getHorasLimite());
+        tarifa.setValorHastaLimite(dto.getValorHastaLimite());
+        tarifa.setValorDespuesLimite(dto.getValorDespuesLimite());
+        tarifa.setFechaCreacion(LocalDateTime.now());
+
+        return convertirADTO(tarifaRepository.save(tarifa));
     }
 
-    
-    @Auditable(tabla = "tarifa", operacion = TipoOperacion.ACTUALIZAR)
+    @Auditable(tabla = "tarifas", operacion = TipoOperacion.ACTUALIZAR)
     @Override
+    @Transactional
     public TarifaResponseDTO actualizarTarifa(Long id, TarifaRequestDTO dto){
         Tarifa tarifa = tarifaRepository.findById(id)
             .orElseThrow(() -> new RecursoNoEncontradoException("Tarifa no encontrada con id: " + id));
@@ -71,19 +78,32 @@ public class TarifaServiceImpl implements TarifaService{
         TipoVehiculo tipoVehiculo = tipoVehiculoRepository.findById(dto.getIdTipoVehiculo())
             .orElseThrow(() -> new RecursoNoEncontradoException("Tipo de vehiculo no encontrado con id: " + dto.getIdTipoVehiculo()));
 
-        tarifa.setNombre(dto.getNombre());
+        tarifa.setNombre(dto.getNombre().trim());
         tarifa.setValorHora(dto.getValorHora());
         tarifa.setActivo(dto.getActivo());
         tarifa.setTipoVehiculo(tipoVehiculo);
-
-        Tarifa tarifaActualizado = tarifaRepository.save(tarifa);
-        return convertirADTO(tarifaActualizado);
+        tarifa.setCategoriaPersona(dto.getCategoriaPersona());
+        tarifa.setTipoCalculo(dto.getTipoCalculo());
+        tarifa.setHorasLimite(dto.getHorasLimite());
+        tarifa.setValorHastaLimite(dto.getValorHastaLimite());
+        tarifa.setValorDespuesLimite(dto.getValorDespuesLimite());
+        
+        return convertirADTO(tarifaRepository.save(tarifa));
     }
 
-    @Auditable(tabla = "tarifa", operacion = TipoOperacion.ELIMINAR)
+    @Auditable(tabla = "tarifas", operacion = TipoOperacion.ELIMINAR)
     @Override
+    @Transactional
     public void eliminarTarifa(Long id){
-        tarifaRepository.deleteById(id);
+        Tarifa tarifa = tarifaRepository.findById(id)
+                .orElseThrow(() -> new RecursoNoEncontradoException("Tarifa no encontrada con id: " + id));
+        try {
+            tarifaRepository.delete(tarifa);
+            tarifaRepository.flush();
+        } catch (Exception e) {
+            tarifa.setActivo(false);
+            tarifaRepository.save(tarifa);
+        }
     }
 
     private TarifaResponseDTO convertirADTO(Tarifa tarifa){
@@ -94,6 +114,12 @@ public class TarifaServiceImpl implements TarifaService{
         dto.setActivo(tarifa.getActivo());
         dto.setIdTipoVehiculo(tarifa.getTipoVehiculo().getIdTipoVehiculo());
         dto.setNombreTipoVehiculo(tarifa.getTipoVehiculo().getNombre());
+        dto.setCategoriaPersona(tarifa.getCategoriaPersona());
+        dto.setTipoCalculo(tarifa.getTipoCalculo());
+        dto.setHorasLimite(tarifa.getHorasLimite());
+        dto.setValorHastaLimite(tarifa.getValorHastaLimite());
+        dto.setValorDespuesLimite(tarifa.getValorDespuesLimite());
+        
         return dto;
     }
 }

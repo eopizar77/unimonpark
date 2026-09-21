@@ -4,7 +4,7 @@ export const espacioParqueoSchema = z.object({
     codigo: z.string().trim().min(1, "El código es obligatorio").max(255),
     piso: z.string().max(255).optional(),
     zona: z.string().max(255).optional(),
-    estado: z.string().trim().min(1, "El estado es obligatorio").max(20),
+    estado: z.enum(["DISPONIBLE", "OCUPADO", "RESERVADO", "MANTENIMIENTO"]),
     activo: z.boolean(),
     idTipoVehiculo: z.number().int().positive("Selecciona un tipo de vehículo"),
 });

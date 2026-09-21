@@ -1,5 +1,6 @@
 package co.edu.unimonserrate.unimonpark.dto;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 import lombok.AllArgsConstructor;
@@ -25,5 +26,7 @@ public class UsuarioResponseDTO {
     private Boolean voluntarioCentroObrero;
     private Boolean activo;
     private LocalDateTime fechaCreacion;
-    private LocalDateTime fechaActualizacion;    
+    private LocalDateTime fechaActualizacion; 
+    private BigDecimal valorMatricula;
+    private BigDecimal valorSalario;
 }

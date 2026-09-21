@@ -1,0 +1,351 @@
+Definición de métodos de consulta
+El proxy del repositorio tiene dos formas de derivar una consulta específica de la tienda a partir del nombre del método:
+
+Al derivar la consulta directamente del nombre del método.
+
+Mediante el uso de una consulta definida manualmente.
+
+Las opciones disponibles dependen de la tienda en cuestión. Sin embargo, debe existir una estrategia que determine qué consulta se genera. La siguiente sección describe las opciones disponibles.
+
+Estrategias de búsqueda de consultas
+Las siguientes estrategias están disponibles para que la infraestructura del repositorio resuelva la consulta. Con la configuración XML, puede configurar la estrategia en el espacio de nombres mediante el query-lookup-strategyatributo. Para la configuración Java, puede usar el queryLookupStrategyatributo de la EnableJpaRepositoriesanotación. Es posible que algunas estrategias no sean compatibles con determinados almacenes de datos.
+
+CREATEIntenta construir una consulta específica de la tienda a partir del nombre del método de consulta. El enfoque general consiste en eliminar un conjunto dado de prefijos conocidos del nombre del método y analizar el resto del método. Puede leer más sobre la construcción de consultas en “ Creación de consultas ”.
+
+USE_DECLARED_QUERYIntenta encontrar una consulta declarada y lanza una excepción si no la encuentra. La consulta puede definirse mediante una anotación o declararse por otros medios. Consulte la documentación del almacén específico para conocer las opciones disponibles. Si la infraestructura del repositorio no encuentra una consulta declarada para el método durante el arranque, falla.
+
+CREATE_IF_NOT_FOUND(Por defecto) combina CREATEy USE_DECLARED_QUERY. Primero busca una consulta declarada y, si no encuentra ninguna, crea una consulta personalizada basada en el nombre del método. Esta es la estrategia de búsqueda predeterminada y, por lo tanto, se utiliza si no se configura nada explícitamente. Permite definir consultas rápidamente mediante nombres de métodos, pero también personalizarlas introduciendo consultas declaradas según sea necesario.
+
+Creación de consultas
+El mecanismo de construcción de consultas integrado en la infraestructura del repositorio de Spring Data resulta útil para construir consultas con restricciones sobre las entidades del repositorio.
+
+El siguiente ejemplo muestra cómo crear varias consultas:
+
+Creación de consultas a partir de nombres de métodos
+interface PersonRepository extends Repository<Person, Long> {
+
+  List<Person> findByEmailAddressAndLastname(EmailAddress emailAddress, String lastname);
+
+  // Enables the distinct flag for the query
+  List<Person> findDistinctPeopleByLastnameOrFirstname(String lastname, String firstname);
+  List<Person> findPeopleDistinctByLastnameOrFirstname(String lastname, String firstname);
+
+  // Enabling ignoring case for an individual property
+  List<Person> findByLastnameIgnoreCase(String lastname);
+  // Enabling ignoring case for all suitable properties
+  List<Person> findByLastnameAndFirstnameAllIgnoreCase(String lastname, String firstname);
+
+  // Enabling static ORDER BY for a query
+  List<Person> findByLastnameOrderByFirstnameAsc(String lastname);
+  List<Person> findByLastnameOrderByFirstnameDesc(String lastname);
+}
+El análisis de los nombres de los métodos de consulta se divide en sujeto y predicado. La primera parte ( find…By, exists…By) define el sujeto de la consulta, la segunda parte forma el predicado. La cláusula introductoria (sujeto) puede contener expresiones adicionales. Cualquier texto entre find(u otras palabras clave introductorias) y Byse considera descriptivo a menos que se utilice una de las palabras clave de limitación de resultados, como Distinctpara establecer una bandera distinta en la consulta que se va a crear o Top/ Firstpara limitar los resultados de la consulta .
+
+El apéndice contiene la lista completa de palabras clave de sujeto del método de consulta y palabras clave de predicado del método de consulta, incluidos los modificadores de ordenación y mayúsculas/minúsculas . Sin embargo, el primero Byactúa como un delimitador para indicar el inicio del predicado de criterios real. A un nivel muy básico, puede definir condiciones en las propiedades de la entidad y concatenarlas con Andy Or.
+
+El resultado real del análisis del método depende del sistema de almacenamiento persistente para el que se crea la consulta. Sin embargo, hay algunos aspectos generales a tener en cuenta:
+
+Las expresiones suelen ser recorridos de propiedades combinados con operadores que se pueden concatenar. Puede combinar expresiones de propiedades con ANDy OR. También se admite el uso de operadores como Between, LessThan, GreaterThan, y Likepara las expresiones de propiedades. Los operadores admitidos pueden variar según el almacén de datos, por lo que debe consultar la sección correspondiente de su documentación de referencia.
+
+El analizador de métodos admite establecer un IgnoreCaseindicador para propiedades individuales (por ejemplo, findByLastnameIgnoreCase(…)) o para todas las propiedades de un tipo que admita ignorar mayúsculas y minúsculas (normalmente Stringinstancias — por ejemplo, findByLastnameAndFirstnameAllIgnoreCase(…)). La compatibilidad con la omisión de mayúsculas y minúsculas puede variar según el almacén, por lo que se recomienda consultar las secciones pertinentes de la documentación de referencia del método de consulta específico del almacén.
+
+Puede aplicar un ordenamiento estático agregando una OrderBycláusula al método de consulta que haga referencia a una propiedad y proporcionando una dirección de ordenamiento ( Asco Desc). Para crear un método de consulta que admita ordenamiento dinámico, consulte “ Paginación, iteración de resultados grandes, ordenamiento y limitación ”.
+
+Nombres de métodos reservados
+Si bien los métodos de repositorio derivados se vinculan a las propiedades por nombre, existen algunas excepciones a esta regla cuando se trata de ciertos nombres de métodos heredados del repositorio base que apuntan a la propiedad identificadora . Esos métodos reservados como CrudRepository#findById(o simplemente findById) apuntan a la propiedad identificadora independientemente del nombre real de la propiedad utilizado en el método declarado.
+
+Considere el siguiente tipo de dominio que contiene una propiedad pkmarcada como identificador mediante @Idy una propiedad llamada id. En este caso, debe prestar mucha atención a la nomenclatura de sus métodos de búsqueda, ya que pueden entrar en conflicto con firmas predefinidas:
+
+class User {
+  @Id Long pk;                          
+
+  Long id;                              
+
+  // …
+}
+
+interface UserRepository extends Repository<User, Long> {
+
+  Optional<User> findById(Long id);     
+
+  Optional<User> findByPk(Long pk);     
+
+  Optional<User> findUserById(Long id); 
+}
+La propiedad identificadora (clave primaria).
+Una propiedad con nombre id, pero no el identificador.
+Se dirige a la pkpropiedad (la marcada con @Idque se considera el identificador) ya que hace referencia a un CrudRepositorymétodo base del repositorio. Por lo tanto, no es una consulta derivada que utilice idcomo sugeriría el nombre de la propiedad porque es uno de los métodos reservados .
+Se dirige a la pkpropiedad por su nombre, ya que se trata de una consulta derivada.
+Se dirige a la idpropiedad utilizando el token descriptivo entre findy bypara evitar colisiones con métodos reservados .
+Este comportamiento especial no solo afecta a los métodos de búsqueda, sino que también se aplica a los métodos de búsqueda existsy deleteconsulta. Consulte las " Palabras clave de consulta del repositorio " para obtener la lista de métodos.
+
+Expresiones de propiedad
+Las expresiones de propiedad solo pueden hacer referencia a una propiedad directa de la entidad administrada, como se muestra en el ejemplo anterior. Al crear la consulta, ya se garantiza que la propiedad analizada sea una propiedad de la clase de dominio administrada. Sin embargo, también se pueden definir restricciones recorriendo propiedades anidadas. Considere la siguiente firma de método:
+
+List<Person> findByAddressZipCode(ZipCode zipCode);
+Supongamos que Persontiene un Addresscon un ZipCode. En ese caso, el método crea el x.address.zipCoderecorrido de propiedades. El algoritmo de resolución comienza interpretando toda la parte ( AddressZipCode) como la propiedad y verifica la clase de dominio para una propiedad con ese nombre (sin mayúscula). Si el algoritmo tiene éxito, usa esa propiedad. Si no, el algoritmo divide la fuente en las partes camel case del lado derecho en una cabeza y una cola e intenta encontrar la propiedad correspondiente — en nuestro ejemplo, AddressZipy Code. Si el algoritmo encuentra una propiedad con esa cabeza, toma la cola y continúa construyendo el árbol hacia abajo desde allí, dividiendo la cola hacia arriba de la manera que se acaba de describir. Si la primera división no coincide, el algoritmo mueve el punto de división a la izquierda ( Address, ZipCode) y continúa.
+
+Aunque esto debería funcionar en la mayoría de los casos, es posible que el algoritmo seleccione la propiedad incorrecta. Supongamos que la Personclase addressZiptambién tiene una propiedad. El algoritmo coincidiría en la primera ronda de división, elegiría la propiedad incorrecta y fallaría (ya que el tipo addressZipprobablemente no tiene ninguna codepropiedad).
+
+Para resolver esta ambigüedad, puede usar _dentro del nombre de su método para definir manualmente los puntos de recorrido. Por lo tanto, el nombre de nuestro método sería el siguiente:
+
+List<Person> findByAddress_ZipCode(ZipCode zipCode);
+Dado que tratamos los guiones bajos ( _) como un carácter reservado, recomendamos encarecidamente seguir las convenciones de nomenclatura estándar de Java (es decir, no usar guiones bajos en los nombres de las propiedades, sino aplicar la notación camel case).
+
+Nombres de campos que comienzan con guion bajo:
+Los nombres de los campos pueden comenzar con guiones bajos como String _name. Asegúrese de conservar el _como en _namey use doble _para dividir rutas anidadas como user__name.
+
+Nombres de campos en mayúsculas:
+Los nombres de campo que estén todos en mayúsculas se pueden usar como tales. Las rutas anidadas, si corresponde, requieren división mediante _como en USER_name.
+
+Nombres de campos con la segunda letra en mayúscula:
+Los nombres de campo que constan de una letra minúscula inicial seguida de una mayúscula, como String qCodese puede resolver comenzando con dos letras mayúsculas, como en QCode. Tenga en cuenta las posibles ambigüedades en la ruta.
+
+Ambigüedades de ruta:
+En el siguiente ejemplo, la disposición de las propiedades qCodey q, que qcontiene una propiedad llamada code, crea una ambigüedad para la ruta QCode.
+
+record Container(String qCode, Code q) {}
+record Code(String code) {}
+Dado que se considera primero una coincidencia directa en una propiedad, no se tendrán en cuenta las posibles rutas anidadas y el algoritmo selecciona el qCodecampo. Para seleccionar el codecampo, se requiere qla notación de guion bajo .Q_Code
+
+Métodos de repositorio que devuelven colecciones o iterables
+Los métodos de consulta que devuelven múltiples resultados pueden usar Java estándar Iterable, Listy Set. Además, admitimos la devolución de Spring Data Streamable, una extensión personalizada de Iterable, así como los tipos de colección proporcionados por Vavr . Consulte el apéndice que explica todos los posibles tipos de retorno de los métodos de consulta .
+
+Uso de Streamable como tipo de retorno del método de consulta
+Puede utilizarlo Streamablecomo alternativa a Iterablecualquier tipo de colección. Proporciona métodos convenientes para acceder a un no paralelo Stream(que falta en Iterable) y la capacidad de directamente ….filter(…)y ….map(…)sobre los elementos y concatenarlos Streamablea otros:
+
+Utilizar Streamable para combinar los resultados de los métodos de consulta.
+interface PersonRepository extends Repository<Person, Long> {
+  Streamable<Person> findByFirstnameContaining(String firstname);
+  Streamable<Person> findByLastnameContaining(String lastname);
+}
+
+Streamable<Person> result = repository.findByFirstnameContaining("av")
+  .and(repository.findByLastnameContaining("ea"));
+Devolución de tipos de contenedores Streamable personalizados
+Proporcionar tipos envoltorio dedicados para colecciones es un patrón común para ofrecer una API para el resultado de una consulta que devuelve múltiples elementos. Normalmente, estos tipos se utilizan invocando un método del repositorio que devuelve un tipo similar a una colección y creando manualmente una instancia del tipo envoltorio. Puede evitar este paso adicional, ya que Spring Data permite usar estos tipos envoltorio como tipos de retorno de métodos de consulta si cumplen los siguientes criterios:
+
+El tipo implementa Streamable.
+
+El tipo expone un constructor o un método de fábrica estático llamado of(…)o valueOf(…)que toma Streamablecomo argumento.
+
+El siguiente listado muestra un ejemplo:
+
+class Product {                                         
+  MonetaryAmount getPrice() { … }
+}
+
+@RequiredArgsConstructor(staticName = "of")
+class Products implements Streamable<Product> {         
+
+  private final Streamable<Product> streamable;
+
+  public MonetaryAmount getTotal() {                    
+    return streamable.stream()
+      .map(Product::getPrice)
+      .reduce(Money.of(0), MonetaryAmount::add);
+  }
+
+
+  @Override
+  public Iterator<Product> iterator() {                 
+    return streamable.iterator();
+  }
+}
+
+interface ProductRepository extends Repository<Product, Long> {
+  Products findAllByDescriptionContaining(String text); 
+}
+Una Productentidad que expone una API para acceder al precio del producto.
+Un tipo envoltorio para Streamable<Product>que se puede construir usando Products.of(…)(método de fábrica creado con la anotación Lombok). Un constructor estándar que tome el Streamable<Product>también funcionará.
+El tipo contenedor expone una API adicional, calculando nuevos valores en el Streamable<Product>.
+Implementar la Streamableinterfaz y delegar en el resultado real.
+Ese tipo de contenedor Productsse puede usar directamente como tipo de retorno de un método de consulta. No es necesario devolverlo Streamable<Product>ni encapsularlo manualmente después de la consulta en el cliente del repositorio.
+Compatibilidad con colecciones Vavr
+Vavr es una biblioteca que incorpora conceptos de programación funcional en Java. Incluye un conjunto personalizado de tipos de colección que se pueden usar como tipos de retorno de métodos de consulta, como se muestra en la siguiente tabla:
+
+Tipo de colección Vavr	Tipo de implementación Vavr utilizado	Tipos de código fuente Java válidos
+io.vavr.collection.Seq
+
+io.vavr.collection.List
+
+java.util.Iterable
+
+io.vavr.collection.Set
+
+io.vavr.collection.LinkedHashSet
+
+java.util.Iterable
+
+io.vavr.collection.Map
+
+io.vavr.collection.LinkedHashMap
+
+java.util.Map
+
+Puedes usar los tipos de la primera columna (o subtipos de los mismos) como tipos de retorno del método de consulta y obtener los tipos de la segunda columna usados ​​como tipo de implementación, dependiendo del tipo Java del resultado real de la consulta (tercera columna). Alternativamente, puedes declarar Traversable(el Iterableequivalente de Vavr), y luego derivamos la clase de implementación del valor de retorno real. Es decir, un java.util.Listse convierte en un Vavr Listo Seq, un java.util.Setse convierte en un Vavr LinkedHashSet Set, y así sucesivamente.
+
+Resultados de consulta en tiempo real
+Puede procesar los resultados de los métodos de consulta de forma incremental utilizando un Stream<T>tipo de retorno. En lugar de encapsular los resultados de la consulta en un Stream, se utilizan métodos específicos del almacén de datos para realizar la transmisión, como se muestra en el siguiente ejemplo:
+
+Transmitir el resultado de una consulta con Java 8Stream<T>
+@Query("select u from User u")
+Stream<User> findAllByCustomQueryAndStream();
+
+Stream<User> readAllByFirstnameNotNull();
+
+@Query("select u from User u")
+Stream<User> streamAllPaged(Pageable pageable);
+Un Streamobjeto potencialmente encapsula recursos específicos del almacén de datos subyacente y, por lo tanto, debe cerrarse después de su uso. Puede cerrarlo manualmente Streammediante el close()método o mediante un trybloque -with-resources, como se muestra en el siguiente ejemplo:
+Trabajar con un Stream<T>resultado en un try-with-resourcesbloque
+try (Stream<User> stream = repository.findAllByCustomQueryAndStream()) {
+  stream.forEach(…);
+}
+No todos los módulos de Spring Data actualmente admiten Stream<T>como tipo de retorno.
+Resultados de consulta asíncrona
+Puedes ejecutar consultas de repositorio de forma asíncrona utilizando la funcionalidad de ejecución de métodos asíncronos de Spring . Esto significa que el método devuelve TaskExecutorun valor inmediatamente después de su invocación, mientras que la consulta real se ejecuta en una tarea que se ha enviado a Spring. Las consultas asíncronas se diferencian de las reactivas y no deben mezclarse. Consulta la documentación específica del almacén para obtener más detalles sobre la compatibilidad con consultas reactivas. El siguiente ejemplo muestra varias consultas asíncronas:
+
+@Async
+Future<User> findByFirstname(String firstname);               
+
+@Async
+CompletableFuture<User> findOneByFirstname(String firstname); 
+Utilizar java.util.concurrent.Futurecomo tipo de retorno.
+Utilizar java.util.concurrent.CompletableFuturecomo tipo de retorno.
+Paginación, iteración de resultados grandes, ordenación y limitación.
+Para gestionar los parámetros de su consulta, defina los parámetros del método como ya se ha visto en los ejemplos anteriores. Además, la infraestructura reconoce ciertos tipos específicos como Pageable, Sorty Limit, para aplicar paginación, ordenación y limitación a sus consultas de forma dinámica. El siguiente ejemplo demuestra estas características:
+
+Utilizando Pageable, Slice, Sorty Limiten métodos de consulta
+Page<User> findByLastname(String lastname, Pageable pageable);
+
+Slice<User> findByLastname(String lastname, Pageable pageable);
+
+List<User> findByLastname(String lastname, Sort sort);
+
+List<User> findByLastname(String lastname, Sort sort, Limit limit);
+
+List<User> findByLastname(String lastname, Pageable pageable);
+Las API aceptan Sorty esperan que se pasen valores distintos de a Pageablelos métodos. Si no desea aplicar ninguna ordenación o paginación, utilice y .LimitnullSort.unsorted()Pageable.unpaged()Limit.unlimited()
+El primer método permite pasar una org.springframework.data.domain.Pageableinstancia al método de consulta para agregar paginación dinámicamente a la consulta definida estáticamente. PageConoce el número total de elementos y páginas disponibles. Lo hace mediante la infraestructura que activa una consulta de conteo para calcular el número total. Como esto puede ser costoso (dependiendo del almacén utilizado), en su lugar se puede devolver un Slice. SliceSolo sabe si Slicehay un siguiente disponible, lo cual puede ser suficiente al recorrer un conjunto de resultados más grande.
+
+Las opciones de ordenación también se gestionan a través de la Pageableinstancia. Si solo necesita ordenar, añada un org.springframework.data.domain.Sortparámetro a su método. Como puede ver, Listtambién es posible devolver un valor. En este caso, no se crean los metadatos adicionales necesarios para construir la Pageinstancia (lo que, a su vez, significa que no se ejecuta la consulta de recuento adicional que habría sido necesaria). En cambio, restringe la consulta para que busque únicamente en el rango de entidades especificado.
+
+Para saber cuántas páginas obtienes con una consulta completa, debes ejecutar una consulta de conteo adicional. Por defecto, esta consulta se deriva de la consulta que ejecutas.
+Los parámetros especiales solo pueden utilizarse una vez dentro de un método de consulta.
+Algunos de los parámetros especiales descritos anteriormente son mutuamente excluyentes. Consulte la siguiente lista de combinaciones de parámetros no válidas.
+
+Parámetros	Ejemplo	Motivo
+PageableySort
+
+findBy…​(Pageable page, Sort sort)
+
+Pageableya está definidoSort
+
+PageableyLimit
+
+findBy…​(Pageable page, Limit limit)
+
+Pageableya define un límite.
+
+La Toppalabra clave se puede usar junto con Pageable: Topdefine el número máximo total de resultados, mientras que el Pageableparámetro puede reducir aún más este número.
+
+¿Qué método es el más adecuado?
+El valor que aportan las abstracciones de Spring Data se muestra quizás mejor mediante los posibles tipos de retorno del método de consulta que se describen en la siguiente tabla. La tabla muestra qué tipos puede devolver un método de consulta.
+
+Tabla 1. Consumo de resultados de consultas grandes
+Método	Cantidad de datos recuperados	Estructura de consulta	Restricciones
+List<T>
+
+Todos los resultados
+
+Consulta única
+
+Los resultados de las consultas pueden agotar toda la memoria. La recuperación de todos los datos puede consumir mucho tiempo.
+
+Streamable<T>
+
+Todos los resultados
+
+Consulta única
+
+Los resultados de las consultas pueden agotar toda la memoria. La recuperación de todos los datos puede consumir mucho tiempo.
+
+Stream<T>
+
+Dividido en porciones (una a una o en lotes) según el Streamconsumo.
+
+Consulta única que normalmente utiliza cursores.
+
+Las transmisiones deben cerrarse después de su uso para evitar fugas de recursos.
+
+Flux<T>
+
+Dividido en porciones (una a una o en lotes) según el Fluxconsumo.
+
+Consulta única que normalmente utiliza cursores.
+
+El módulo de tienda debe proporcionar una infraestructura reactiva.
+
+Slice<T>
+
+Pageable.getPageSize() + 1enPageable.getOffset()
+
+Una a muchas consultas que obtienen datos comenzando al Pageable.getOffset()aplicar limitaciones.
+
+A Slicesolo puede navegar al siguiente Slice.
+
+SliceProporciona detalles sobre si hay más datos para obtener.
+
+Las consultas basadas en desplazamientos se vuelven ineficientes cuando el desplazamiento es demasiado grande, ya que la base de datos aún tiene que materializar el resultado completo.
+
+Page<T>
+
+Pageable.getPageSize() enPageable.getOffset()
+
+Consultas de uno a muchos que comienzan con Pageable.getOffset()la aplicación de limitaciones. Además, COUNT(…)puede ser necesaria una consulta para determinar el número total de elementos.
+
+Con frecuencia, COUNT(…)se requieren consultas que resultan costosas.
+
+Las consultas basadas en desplazamientos se vuelven ineficientes cuando el desplazamiento es demasiado grande, ya que la base de datos aún tiene que materializar el resultado completo.
+
+Paginación y ordenación
+Puedes definir expresiones de ordenación sencillas utilizando nombres de propiedades. Puedes concatenar expresiones para combinar varios criterios en una sola.
+
+Definición de expresiones de ordenación
+Sort sort = Sort.by("firstname").ascending()
+  .and(Sort.by("lastname").descending());
+Para definir expresiones de ordenación de una manera más segura en cuanto a tipos, comience con el tipo para el cual se va a definir la expresión de ordenación y utilice referencias a métodos para definir las propiedades según las cuales se realizará la ordenación.
+
+Definición de expresiones de ordenación mediante la API con tipado seguro
+TypedSort<Person> person = Sort.sort(Person.class);
+
+Sort sort = person.by(Person::getFirstname).ascending()
+  .and(person.by(Person::getLastname).descending());
+TypedSort.by(…)Utiliza proxies en tiempo de ejecución (normalmente) mediante CGlib, lo que puede interferir con la compilación de imágenes nativas al usar herramientas como GraalVM Native Image.
+Si la implementación de su tienda admite Querydsl, también puede utilizar los tipos de metamodelo generados para definir expresiones de ordenación:
+
+Definición de expresiones de ordenación mediante la API Querydsl
+QSort sort = QSort.by(QPerson.firstname.asc())
+  .and(QSort.by(QPerson.lastname.desc()));
+Limitar los resultados de la consulta
+Además de la paginación, es posible limitar el tamaño del resultado mediante un Limitparámetro específico. También puede limitar los resultados de los métodos de consulta utilizando las palabras clave First`or` Top, que puede usar indistintamente, pero no debe combinarse con un Limitparámetro. Puede agregar un valor numérico opcional a Top`or` Firstpara especificar el tamaño máximo del resultado que se devolverá. Si se omite el número, se asume un tamaño de resultado de 1. El siguiente ejemplo muestra cómo limitar el tamaño de la consulta:
+
+Limitar el tamaño del resultado de una consulta con TopyFirst
+List<User> findByLastname(String lastname, Limit limit);
+
+User findFirstByOrderByLastnameAsc();
+
+User findTopByLastnameOrderByAgeDesc(String lastname);
+
+Page<User> queryFirst10ByLastname(String lastname, Pageable pageable);
+
+Slice<User> findTop3By(Pageable pageable);
+
+List<User> findFirst10ByLastname(String lastname, Sort sort);
+
+List<User> findTop10ByLastname(String lastname, Pageable pageable);
+Las expresiones de limitación también admiten la palabra clave para almacenes de datos que admiten consultas distintas. Además, para las consultas que limitan el conjunto de resultados a una sola instancia, se admite Distinctencapsular el resultado con la palabra clave.Optional
+
+Si se aplica paginación o segmentación a una paginación de consulta limitante (y al cálculo del número de páginas disponibles), se aplica dentro del resultado limitado.
+
+Limitar los resultados en combinación con la ordenación dinámica mediante el uso de un Sortparámetro permite expresar métodos de consulta tanto para los 'K' elementos más pequeños como para los 'K' elementos más grandes.

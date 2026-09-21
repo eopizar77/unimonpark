@@ -9,6 +9,7 @@ import {
     eliminarEspacioParqueo,
     listarEspaciosParqueo,
 } from "@/api/espaciosParqueo";
+import { obtenerMensajeError } from "@/api/client";
 import { listarTiposVehiculo } from "@/api/tiposVehiculo";
 import type { TipoVehiculo } from "@/types/tipoVehiculo";
 import type { EspacioParqueo } from "@/types/espacioParqueo";
@@ -27,13 +28,13 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
-const estadosDisponibles = ["disponible", "ocupado", "reservado", "mantenimiento"];
+const estadosDisponibles = ["DISPONIBLE", "OCUPADO", "RESERVADO", "MANTENIMIENTO"] as const;
 
 const valoresIniciales: EspacioParqueoFormValues = {
     codigo: "",
     piso: "",
     zona: "",
-    estado: "disponible",
+    estado: "DISPONIBLE",
     activo: true,
     idTipoVehiculo: 0,
 };
@@ -104,7 +105,7 @@ export default function EspaciosParqueoPage() {
             codigo: valores.codigo.trim().toUpperCase(),
             piso: valores.piso ?? "",
             zona: valores.zona ?? "",
-            estado: valores.estado.trim().toLowerCase(),
+            estado: valores.estado,
             activo: valores.activo,
             idTipoVehiculo: valores.idTipoVehiculo,
         };
@@ -119,8 +120,8 @@ export default function EspaciosParqueoPage() {
             }
             setDialogAbierto(false);
             await cargarDatos();
-        } catch {
-            toast.error("Ocurrió un error al guardar el espacio de parqueo");
+        } catch (error: unknown) {
+            toast.error(obtenerMensajeError(error, "Ocurrió un error al guardar el espacio de parqueo"));
         }
     }
 
