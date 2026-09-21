@@ -1,6 +1,5 @@
 package co.edu.unimonserrate.unimonpark.dto;
 
-import java.math.BigDecimal;
 
 import co.edu.unimonserrate.unimonpark.enums.EstadoIngreso;
 import co.edu.unimonserrate.unimonpark.enums.TipoIngreso;
