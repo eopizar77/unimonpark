@@ -52,6 +52,13 @@ public class Usuario {
     @JoinColumn(name = "id_rol", nullable = false)
     private Rol rol;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_perfil_usuario_tarifa")
+    private PerfilUsuarioTarifa perfilUsuarioTarifa;
+
+    @Column(name = "voluntario_centro_obrero", nullable = false)
+    private Boolean voluntarioCentroObrero = false;
+
     @Column(nullable = false)
     private Boolean activo;
 

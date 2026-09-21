@@ -38,6 +38,10 @@ public class UsuarioRequestDTO {
     @NotNull(message = "El rol es obligatorio")
     private Long idRol;
 
+    private Long idPerfilUsuarioTarifa;
+
+    private Boolean voluntarioCentroObrero = false;
+
     @NotNull(message = "el campo activo es obligatorio")
     private Boolean activo;
 }

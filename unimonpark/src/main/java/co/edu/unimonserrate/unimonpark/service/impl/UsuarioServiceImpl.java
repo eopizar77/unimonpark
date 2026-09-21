@@ -12,10 +12,12 @@ import co.edu.unimonserrate.unimonpark.dto.UsuarioRequestDTO;
 import co.edu.unimonserrate.unimonpark.dto.UsuarioResponseDTO;
 import co.edu.unimonserrate.unimonpark.entity.Rol;
 import co.edu.unimonserrate.unimonpark.entity.Usuario;
+import co.edu.unimonserrate.unimonpark.entity.PerfilUsuarioTarifa;
 import co.edu.unimonserrate.unimonpark.enums.TipoOperacion;
 import co.edu.unimonserrate.unimonpark.exception.RecursoNoEncontradoException;
 import co.edu.unimonserrate.unimonpark.repository.RolRepository;
 import co.edu.unimonserrate.unimonpark.repository.UsuarioRepository;
+import co.edu.unimonserrate.unimonpark.repository.PerfilUsuarioTarifaRepository;
 import co.edu.unimonserrate.unimonpark.service.UsuarioService;
 
 @Service
@@ -24,11 +26,15 @@ public class UsuarioServiceImpl implements UsuarioService{
     private final UsuarioRepository usuarioRepository;
     private final RolRepository rolRepository;
     private final PasswordEncoder passwordEncoder;
+    private final PerfilUsuarioTarifaRepository perfilUsuarioTarifaRepository;
 
-    public UsuarioServiceImpl(UsuarioRepository usuarioRepository, RolRepository rolRepository, PasswordEncoder passwordEncoder){
+    public UsuarioServiceImpl(UsuarioRepository usuarioRepository, RolRepository rolRepository,
+                              PasswordEncoder passwordEncoder,
+                              PerfilUsuarioTarifaRepository perfilUsuarioTarifaRepository){
         this.usuarioRepository = usuarioRepository;
         this.rolRepository = rolRepository;
         this.passwordEncoder = passwordEncoder;
+        this.perfilUsuarioTarifaRepository = perfilUsuarioTarifaRepository;
     }
 
     @Override
@@ -61,6 +67,8 @@ public class UsuarioServiceImpl implements UsuarioService{
             usuario.setNombreUsuario(dto.getNombreUsuario());
             usuario.setContrasenaHash(passwordEncoder.encode(dto.getContrasena()));
             usuario.setRol(rol);
+            usuario.setPerfilUsuarioTarifa(obtenerPerfil(dto.getIdPerfilUsuarioTarifa()));
+            usuario.setVoluntarioCentroObrero(Boolean.TRUE.equals(dto.getVoluntarioCentroObrero()));
             usuario.setActivo(dto.getActivo());
             usuario.setFechaCreacion(LocalDateTime.now());
             Usuario usuarioGuardado = usuarioRepository.save(usuario);
@@ -83,6 +91,8 @@ public class UsuarioServiceImpl implements UsuarioService{
         usuario.setNombreUsuario(dto.getNombreUsuario());
         usuario.setContrasenaHash(passwordEncoder.encode(dto.getContrasena()));
         usuario.setRol(rol);
+        usuario.setPerfilUsuarioTarifa(obtenerPerfil(dto.getIdPerfilUsuarioTarifa()));
+        usuario.setVoluntarioCentroObrero(Boolean.TRUE.equals(dto.getVoluntarioCentroObrero()));
         usuario.setActivo(dto.getActivo());
         usuario.setFechaActualizacion(LocalDateTime.now());
 
@@ -107,9 +117,23 @@ public class UsuarioServiceImpl implements UsuarioService{
         dto.setNombreUsuario(usuario.getNombreUsuario());
         dto.setIdRol(usuario.getRol().getIdRol());
         dto.setNombreRol(usuario.getRol().getNombre());
+        if (usuario.getPerfilUsuarioTarifa() != null) {
+            dto.setIdPerfilUsuarioTarifa(usuario.getPerfilUsuarioTarifa().getIdPerfilUsuarioTarifa());
+            dto.setNombrePerfilUsuarioTarifa(usuario.getPerfilUsuarioTarifa().getNombre());
+        }
+        dto.setVoluntarioCentroObrero(usuario.getVoluntarioCentroObrero());
         dto.setActivo(usuario.getActivo());
         dto.setFechaCreacion(usuario.getFechaCreacion());
         dto.setFechaActualizacion(usuario.getFechaActualizacion());
         return dto;
-    }    
+    }
+
+    private PerfilUsuarioTarifa obtenerPerfil(Long idPerfilUsuarioTarifa) {
+        if (idPerfilUsuarioTarifa == null) {
+            return null;
+        }
+        return perfilUsuarioTarifaRepository.findById(idPerfilUsuarioTarifa)
+                .orElseThrow(() -> new RecursoNoEncontradoException(
+                        "Perfil de usuario para tarifa no encontrado con id: " + idPerfilUsuarioTarifa));
+    }
 }

@@ -20,6 +20,9 @@ public class UsuarioResponseDTO {
     private String nombreUsuario;
     private Long idRol;
     private String nombreRol;
+    private Long idPerfilUsuarioTarifa;
+    private String nombrePerfilUsuarioTarifa;
+    private Boolean voluntarioCentroObrero;
     private Boolean activo;
     private LocalDateTime fechaCreacion;
     private LocalDateTime fechaActualizacion;    
