@@ -19,8 +19,7 @@ import PenalizacionesPage from "./pages/Penalizaciones/penalizacionesPage";
 import DashboardPage from "@/pages/Dashboard/DashboardPage";
 import ReportesPage from "./pages/reportes/ReportesPage";
 import UnauthorizedPage from "./pages/Unauthorized/UnauthorizedPage";
-
-
+import ExternosPage from "./pages/Externos/ExternosPage";
 
 function App() {
   return (
@@ -40,6 +39,7 @@ function App() {
         <Route path="/roles" element={<RolesPage />} />
         <Route path="/tipos-vehiculo" element={<TiposVehiculoPage />} />
         <Route path="/usuarios" element={<UsuariosPage />} />
+        <Route path="/externos" element={<ExternosPage />} />
         <Route path="/vehiculos" element={<VehiculosPage />} />
         <Route path="/espacios-parqueo" element={<EspaciosParqueoPage />} />
         <Route path="/tarifas" element={<TarifasPage />} />

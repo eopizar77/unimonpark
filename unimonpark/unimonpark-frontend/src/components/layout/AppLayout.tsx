@@ -5,7 +5,7 @@ import { Separator } from "@/components/ui/separator";
 import { BarChart3 } from "lucide-react";
 
 import {
-  Home, ShieldCheck, Tags, Users, Car, MapPin, DollarSign,
+  Home, ShieldCheck, Tags, Users, UserCheck, Car, MapPin, DollarSign,
   LogIn, LogOut, Receipt, CreditCard, CalendarCheck, AlertTriangle,
 } from "lucide-react";
 
@@ -23,6 +23,7 @@ const NAV_ITEMS: NavItem[] = [
   { to: "/roles", label: "Roles", icon: ShieldCheck, roles: ["ADMINISTRADOR"] },
   { to: "/tipos-vehiculo", label: "Tipos de vehículo", icon: Tags, roles: ["ADMINISTRADOR"] },
   { to: "/usuarios", label: "Usuarios", icon: Users, roles: ["ADMINISTRADOR"] },
+  { to: "/externos", label: "Externos", icon: UserCheck, roles: ["ADMINISTRADOR", "GESTION"] },
   { to: "/espacios-parqueo", label: "Espacios de parqueo", icon: MapPin, roles: ["ADMINISTRADOR"] },
   { to: "/tarifas", label: "Tarifas", icon: DollarSign, roles: ["ADMINISTRADOR"] },
 

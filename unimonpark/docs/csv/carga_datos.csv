@@ -1,0 +1,45 @@
+﻿tipo,documento,nombres,apellidos,correo,telefono,rol_o_empresa,tipo_vehiculo,placa,marca,modelo,color
+Externo,12195866,LUIS,BERNAL,luis.bernal@externos.com,3100000001,Visitante Independiente,Bicicleta,2,GW,Hyena,Negro
+Institucional,79735940,OSCAR OSWALDO,BENAVIDES VELASQUEZ,oscar.benavides79735940@unimonserrate.edu.co,3107973594,Docente/Administrativo,Bicicleta,4,GW,Alligator,Negro
+Institucional,79575682,ELVER,PIZA,elver.piza79575682@unimonserrate.edu.co,3107957568,Docente/Administrativo,Bicicleta,6,Venzo,Loki,Azul
+Institucional,80412388,VICTOR ANDRES,LINARES RODRIGUEZ,victor.linares80412388@unimonserrate.edu.co,3108041238,Docente/Administrativo,Bicicleta,7,Specialized,Rockhopper,Rojo
+Institucional,79400382,OSCAR LIBARDO,MALDONADO TORRES,oscar.maldonado79400382@unimonserrate.edu.co,3107940038,Docente/Administrativo,Bicicleta,8,Trek,Marlin 5,Gris
+Institucional,1031640283,CAMILO,LARA,camilo.lara1031640283@unimonserrate.edu.co,3110316402,Estudiante,Bicicleta,1,Scott,Aspect 950,Negro/Verde
+Institucional,1141317540,SARA,JIMENEZ,sara.jimenez1141317540@unimonserrate.edu.co,3111413175,Estudiante,Bicicleta,3,GW,Flamma,Blanco
+Institucional,1019989502,JEAN PIERRE,CARBAL PINILLA,jean.carbal1019989502@unimonserrate.edu.co,3110199895,Estudiante,Bicicleta,14,Giant,ATX,Naranja
+Institucional,1145224818,JULIAN FERNANDO,CARO TABARES,julian.caro1145224818@unimonserrate.edu.co,3111452248,Estudiante,Bicicleta,5,Venzo,Primal,Gris
+Institucional,1023381076,ISABELLA,MARENTEZ,isabella.marentez1023381076@unimonserrate.edu.co,3110233810,Estudiante,Bicicleta,9,GW,Scorpion,Morado
+Institucional,1257747,LIRIANGEL,MOLLEDA CRESPO,liriangel.molleda1257747@unimonserrate.edu.co,3101257747,Estudiante,Bicicleta,10,Ontrail,Hedge,Negro
+Institucional,1029281222,JUAN DAVID,PINEDA,juan.pineda1029281222@unimonserrate.edu.co,3110292812,Estudiante,Bicicleta,11,Trek,Dual Sport,Azul Marino
+Institucional,1001116317,BRAYAN ESTIVEN,RAMIREZ NIVIAYO,brayan.ramirez1001116317@unimonserrate.edu.co,3110011163,Estudiante,Bicicleta,12,Specialized,Pitch,Amarillo
+Institucional,1023949916,ALEJANDRA DEL,USAQUEN CABALLERO,alejandra.usaquen1023949916@unimonserrate.edu.co,3110239499,Estudiante,Bicicleta,13,Scott,Contessa,Fucsia
+Institucional,19332350,JORGE ELIECER,CALDERÓN GUZMÁN,jorge.calderon19332350@unimonserrate.edu.co,3101933235,Docente/Administrativo,Carro,HJW017,Renault,Duster 2020,Gris Cometa
+Institucional,80878863,MIGUEL JOSE,CUCAITA DIAZ,miguel.cucaita80878863@unimonserrate.edu.co,3108087886,Docente/Administrativo,Carro,BKH806,Chevrolet,Onix 2019,Rojo
+Institucional,11314375,WILLIAM EDUARDO,MOSQUERA,william.mosquera11314375@unimonserrate.edu.co,3101131437,Docente/Administrativo,Carro,FYR389,Kia,Picanto 2021,Plata
+Institucional,79657135,SOCRATES,ROJAS AMADOR,socrates.rojas79657135@unimonserrate.edu.co,3107965713,Docente/Administrativo,Carro,CDP627,Mazda,3 2018,Blanco
+Institucional,1012353440,NIKOL TATIANA,ROJAS SANCHEZ,nikol.rojas1012353440@unimonserrate.edu.co,3110123534,Estudiante,Carro,JLZ478,Nissan,Versa 2022,Azul
+Institucional,1012333904,JHOAN ANDRES,ANDRES GALARZA,jhoan.galarza1012333904@unimonserrate.edu.co,3110123339,Estudiante,Moto,GHE10F,Yamaha,FZ 2.0 2021,Negro
+Institucional,1000706853,JULIAN,AREVALO RINCON,julian.arevalo1000706853@unimonserrate.edu.co,3110007068,Estudiante,Moto,DLV18G,Bajaj,Pulsar NS200 2022,Rojo/Negro
+Institucional,11231119,MARIO EDGAR,EDGAR RINCON,mario.rincon11231119@unimonserrate.edu.co,3101123111,Docente/Administrativo,Carro,RMQ068,Volkswagen,Gol 2017,Gris
+Institucional,52778241,CLAUDIA MARCELA,MILA RIOS,claudia.mila52778241@unimonserrate.edu.co,3105277824,Docente/Administrativo,Carro,IWR120,Ford,Fiesta 2016,Negro
+Institucional,1010960675,ISABELLA,GONZALEZ LOPEZ,isabella.gonzalez1010960675@unimonserrate.edu.co,3110109606,Docente/Administrativo,Carro,NUR430,Hyundai,Grand i10 2020,Blanco
+Institucional,52097718,YENNY ROCIO,PEREZ BERNATE,yenny.perez52097718@unimonserrate.edu.co,3105209771,Docente/Administrativo,Carro,MKT456,Toyota,Corolla 2021,Plata
+Institucional,1006068306,FELIPE,LASSO,felipe.lasso1006068306@unimonserrate.edu.co,3110060683,Docente/Administrativo,Moto,TQZ90D,AKT,NKD 125 2020,Negro Mate
+Institucional,1030523558,JOHN JAVIER,JAVIER SANCHEZ,john.sanchez1030523558@unimonserrate.edu.co,3110305235,Docente/Administrativo,Moto,NSS18D,Suzuki,Gixxer 150 2019,Azul
+Institucional,79619465,JORGE URIEL,GALVIS JIMENEZ,jorge.galvis79619465@unimonserrate.edu.co,3107961946,Docente/Administrativo,Moto,CXL49F,Honda,CB190R 2021,Rojo
+Institucional,1022431563,MIGUEL ANGEL,PINZON MUÑOZ,miguel.pinzon1022431563@unimonserrate.edu.co,3110224315,Docente/Administrativo,Moto,OBM58G,KTM,Duke 200 2022,Naranja
+Institucional,1032472546,SAMIR FRANCISCO,RIOS MONTAÑEZ,samir.rios1032472546@unimonserrate.edu.co,3110324725,Docente/Administrativo,Moto,BDV05H,Yamaha,NMAX 155 2023,Gris
+Institucional,80156109,HARRY ALEXANDER,VELANDIA BERMUDEZ,harry.velandia80156109@unimonserrate.edu.co,3108015610,Docente/Administrativo,Moto,VJT32G,Bajaj,Dominar 400 2021,Verde
+Institucional,1022993216,LIZETH JULISA,CAMPIÑO SANTOS,lizeth.campino1022993216@unimonserrate.edu.co,3110229932,Docente/Administrativo,Moto,XWE50E,Auteco,Victory Black 2020,Negro
+Institucional,1014304848,MARÍA ALEJANDRA,GUTIÉRREZ CRISTANCHO,maria.gutierrez1014304848@unimonserrate.edu.co,3110143048,Docente/Administrativo,Moto,KUE63H,Suzuki,GN 125 2022,Rojo
+Institucional,1007296585,JEFERSON CAMILO,HERNANDEZ GALEANO,jeferson.hernandez1007296585@unimonserrate.edu.co,3110072965,Docente/Administrativo,Moto,APM98G,Honda,XR 150L 2021,Blanco
+Institucional,1015476215,LEONARDO ANDRES,RUBIANO RODRIGUEZ,leonardo.rubiano1015476215@unimonserrate.edu.co,3110154762,Docente/Administrativo,Moto,SMX57F,Yamaha,Crypton 115 2020,Azul
+Institucional,1013124729,ANGEL THOMAS,THOMAS BALLESTEROS,angel.thomas1013124729@unimonserrate.edu.co,3110131247,Estudiante,Moto,QWC03C,AKT,Dynamic Pro 125 2019,Blanco/Azul
+Institucional,1028484980,JOSE ALEJANDRO,ALEJANDRO MORENO,jose.moreno1028484980@unimonserrate.edu.co,3110284849,Estudiante,Moto,FCW85I,Bajaj,Discover 125 2023,Negro
+Institucional,1016833366,JUAN PABLO,PABLO GUTIERREZ,juan.gutierrez1016833366@unimonserrate.edu.co,3110168333,Estudiante,Moto,LEK88F,Yamaha,XTZ 125 2021,Azul
+Institucional,1014477565,LAURA XIMENA,XIMENA BOHORQUEZ,laura.bohorquez1014477565@unimonserrate.edu.co,3110144775,Estudiante,Moto,UHM70H,Honda,Navi 110 2022,Rojo
+Institucional,1001346876,LAURA DANIELA,DANIELA MUÑOZ,laura.munoz1001346876@unimonserrate.edu.co,3110013468,Estudiante,Moto,XED50D,Suzuki,Address 110 2020,Plata
+Institucional,1025530698,LILI YERALDY,YERALDY SOTO,lili.soto1025530698@unimonserrate.edu.co,3110255306,Estudiante,Moto,JAN68D,Kymco,Agility RS 125 2018,Negro Mate
+Institucional,1014669034,SAMUEL,VALENCIA,samuel.valencia1014669034@unimonserrate.edu.co,3110146690,Estudiante,Moto,DVQ24G,Hero,Eco Deluxe 2022,Rojo
+Institucional,1016943473,STEPHANIE,CARRANZA,stephanie.carranza1016943473@unimonserrate.edu.co,3110169434,Estudiante,Moto,JHK48H,TVS,Apache RTR 160 2023,Negro/Rojo
+Institucional,1027402197,SHARAY GISETH,FRANCO FLOREZ,sharay.franco1027402197@unimonserrate.edu.co,3110274021,Estudiante,Moto,XGB13G,Yamaha,R15 V3 2022,Azul Racing

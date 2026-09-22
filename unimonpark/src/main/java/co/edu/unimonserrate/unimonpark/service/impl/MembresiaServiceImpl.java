@@ -81,6 +81,10 @@ public class MembresiaServiceImpl implements MembresiaService {
         // calcula sobre matrícula/salario
         if (tarifa.getPorcentaje() != null) {
             Usuario usuario = vehiculo.getUsuario();
+            if (usuario == null) {
+                throw new RecursoNoDisponibleException(
+                        "Las membresías con porcentaje solo aplican para usuarios del sistema, no para externos");
+            }
             BigDecimal base = vehiculo.getCategoriaPersona() == CategoriaPersona.ESTUDIANTE
                     ? usuario.getValorMatricula()
                     : usuario.getValorSalario();
@@ -89,7 +93,8 @@ public class MembresiaServiceImpl implements MembresiaService {
                 throw new RecursoNoDisponibleException(
                         "El usuario no tiene valor de matrícula/salario registrado, necesario para calcular la mensualidad");
             }
-            return base.multiply(tarifa.getPorcentaje()).divide(BigDecimal.valueOf(100));
+            BigDecimal calculado = base.multiply(tarifa.getPorcentaje()).divide(BigDecimal.valueOf(100));
+            return redondearMultiplo10000(calculado);
         }
 
         // Prioridad 2: si no tiene porcentaje, se usa el valor fijo (ej. motos)
@@ -98,6 +103,14 @@ public class MembresiaServiceImpl implements MembresiaService {
         }
 
         throw new RecursoNoDisponibleException("La tarifa mensual no tiene porcentaje ni valor fijo configurado");
+    }
+
+    /** Redondea hacia arriba al múltiplo de 10.000 más cercano */
+    private BigDecimal redondearMultiplo10000(BigDecimal valor) {
+        BigDecimal multiplo = BigDecimal.valueOf(10000);
+        // divide → redondea ceiling → multiplica de vuelta
+        return valor.divide(multiplo, 0, java.math.RoundingMode.CEILING)
+                .multiply(multiplo);
     }
 
     private MembresiaResponseDTO convertirADTO(Membresia m) {
@@ -113,4 +126,5 @@ public class MembresiaServiceImpl implements MembresiaService {
         dto.setActiva(m.getFechaFin().isAfter(LocalDateTime.now()));
         return dto;
     }
+
 }

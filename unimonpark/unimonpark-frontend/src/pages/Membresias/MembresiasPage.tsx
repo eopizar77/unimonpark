@@ -23,6 +23,15 @@ const valoresIniciales: MembresiaFormValues = {
   idTarifa: 0,
 };
 
+function formatearMoneda(valor: number | null | undefined): string {
+  if (valor == null) return "$ 0";
+  return new Intl.NumberFormat("es-CO", {
+    style: "currency",
+    currency: "COP",
+    maximumFractionDigits: 0,
+  }).format(valor);
+}
+
 export default function MembresiasPage() {
   const [membresias, setMembresias] = useState<Membresia[]>([]);
   const [vehiculos, setVehiculos] = useState<Vehiculo[]>([]);
@@ -44,7 +53,7 @@ export default function MembresiasPage() {
         listarTarifas(),
       ]);
       setMembresias(membresiasData);
-      setVehiculos(vehiculosData);
+      setVehiculos(vehiculosData.filter((v) => v.activo));
       setTarifas(tarifasData);
     } catch {
       toast.error("No se pudieron cargar las membresías");
@@ -74,13 +83,27 @@ export default function MembresiasPage() {
   }
 
   function formatearFecha(fecha: string) {
-    return new Date(fecha).toLocaleDateString("es-CO", { year: "numeric", month: "short", day: "numeric" });
+    return new Date(fecha).toLocaleDateString("es-CO", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
   }
+
+  // Filtrar tarifas que aplican para cobro mensual
+  const tarifasMensuales = tarifas.filter(
+    (t) => t.activo && (t.tipoCalculo === "MENSUAL" || t.tipoCalculo === "PLANA")
+  );
 
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold">Membresías</h2>
+        <div>
+          <h2 className="text-2xl font-bold">Membresías</h2>
+          <p className="text-sm text-muted-foreground">
+            Suscripciones mensuales de parqueo para vehículos autorizados.
+          </p>
+        </div>
         <Button onClick={abrirCrear}>Nueva membresía</Button>
       </div>
 
@@ -96,17 +119,23 @@ export default function MembresiasPage() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {cargando && <TableRow><TableCell colSpan={6}>Cargando...</TableCell></TableRow>}
+          {cargando && (
+            <TableRow>
+              <TableCell colSpan={6}>Cargando...</TableCell>
+            </TableRow>
+          )}
           {!cargando && membresias.length === 0 && (
-            <TableRow><TableCell colSpan={6}>No hay membresías registradas</TableCell></TableRow>
+            <TableRow>
+              <TableCell colSpan={6}>No hay membresías registradas</TableCell>
+            </TableRow>
           )}
           {membresias.map((m) => (
             <TableRow key={m.idMembresia}>
-              <TableCell className="font-medium">{m.placaVehiculo}</TableCell>
+              <TableCell className="font-medium">{m.placaVehiculo || "Sin placa"}</TableCell>
               <TableCell>{m.nombreTarifa}</TableCell>
               <TableCell>{formatearFecha(m.fechaInicio)}</TableCell>
               <TableCell>{formatearFecha(m.fechaFin)}</TableCell>
-              <TableCell>${m.montoPagado}</TableCell>
+              <TableCell className="font-semibold">{formatearMoneda(m.montoPagado)}</TableCell>
               <TableCell>
                 <Badge variant={m.activa ? "default" : "secondary"}>
                   {m.activa ? "Activa" : "Vencida"}
@@ -120,47 +149,80 @@ export default function MembresiasPage() {
       <Dialog open={dialogAbierto} onOpenChange={setDialogAbierto}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Nueva membresía</DialogTitle>
+            <DialogTitle>Nueva membresía mensual</DialogTitle>
           </DialogHeader>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-4">
-              <FormField control={form.control} name="idVehiculo" render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Vehículo</FormLabel>
-                  <FormControl>
-                    <select
-                      className="h-8 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm"
-                      value={field.value || ""}
-                      onChange={(e) => field.onChange(Number(e.target.value))}
-                    >
-                      <option value="" disabled>Selecciona un vehículo</option>
-                      {vehiculos.map((v) => (
-                        <option key={v.idVehiculo} value={v.idVehiculo}>{v.placa}</option>
-                      ))}
-                    </select>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )} />
+              <FormField
+                control={form.control}
+                name="idVehiculo"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Vehículo y Propietario</FormLabel>
+                    <FormControl>
+                      <select
+                        className="h-8 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm"
+                        value={field.value || ""}
+                        onChange={(e) => field.onChange(Number(e.target.value))}
+                      >
+                        <option value="" disabled>
+                          Selecciona un vehículo
+                        </option>
+                        {vehiculos.map((v) => {
+                          const propietario =
+                            v.nombreUsuario ||
+                            (v.nombreExterno ? `${v.nombreExterno} (Externo)` : "Sin propietario");
+                          const etiqueta = v.placa ? `${v.placa} — ${propietario}` : `Vehículo #${v.idVehiculo} — ${propietario}`;
+                          return (
+                            <option key={v.idVehiculo} value={v.idVehiculo}>
+                              {etiqueta}
+                            </option>
+                          );
+                        })}
+                      </select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-              <FormField control={form.control} name="idTarifa" render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Tarifa (mensual)</FormLabel>
-                  <FormControl>
-                    <select
-                      className="h-8 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm"
-                      value={field.value || ""}
-                      onChange={(e) => field.onChange(Number(e.target.value))}
-                    >
-                      <option value="" disabled>Selecciona una tarifa</option>
-                      {tarifas.map((t) => (
-                        <option key={t.idTarifa} value={t.idTarifa}>{t.nombre}</option>
-                      ))}
-                    </select>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )} />
+              <FormField
+                control={form.control}
+                name="idTarifa"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Tarifa mensual</FormLabel>
+                    <FormControl>
+                      <select
+                        className="h-8 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm"
+                        value={field.value || ""}
+                        onChange={(e) => field.onChange(Number(e.target.value))}
+                      >
+                        <option value="" disabled>
+                          Selecciona una tarifa mensual
+                        </option>
+                        {(tarifasMensuales.length > 0 ? tarifasMensuales : tarifas).map((t) => {
+                          const detalle =
+                            t.porcentaje != null
+                              ? `${t.porcentaje}% matrícula/salario`
+                              : t.valorHora != null
+                              ? formatearMoneda(t.valorHora)
+                              : "";
+                          return (
+                            <option key={t.idTarifa} value={t.idTarifa}>
+                              {t.nombre} {detalle ? `(${detalle})` : ""}
+                            </option>
+                          );
+                        })}
+                      </select>
+                    </FormControl>
+                    <p className="text-xs text-muted-foreground">
+                      El monto se calculará y redondeará automáticamente hacia arriba en múltiplos de $10.000.
+                    </p>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               <DialogFooter>
                 <Button type="submit">Crear membresía</Button>
