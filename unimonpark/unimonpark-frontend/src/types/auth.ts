@@ -5,8 +5,8 @@ export interface LoginRequest {
 
 export interface LoginResponse {
     token: string;
-    nombreUsuario: String;
-    rol: String;
+    nombreUsuario: string;
+    rol: string;
 }
 
 export interface UsuarioSesion{

@@ -18,6 +18,8 @@ import MembresiasPage from "./pages/Membresias/MembresiasPage";
 import PenalizacionesPage from "./pages/Penalizaciones/penalizacionesPage";
 import DashboardPage from "@/pages/Dashboard/DashboardPage";
 import ReportesPage from "./pages/reportes/ReportesPage";
+import UnauthorizedPage from "./pages/Unauthorized/UnauthorizedPage";
+
 
 
 function App() {
@@ -26,6 +28,7 @@ function App() {
     <Toaster richColors position="top-right" />
     <Routes>
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/unauthorized" element={<UnauthorizedPage />} />
       <Route
         element={
           <ProtectedRoute>
@@ -51,6 +54,7 @@ function App() {
       </Route>
 
       <Route path="/" element={<Navigate to="/login" replace />} />
+      <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
       </>
   );

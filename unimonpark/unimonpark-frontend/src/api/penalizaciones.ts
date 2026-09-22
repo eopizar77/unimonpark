@@ -4,8 +4,10 @@ import type { Penalizacion, PenalizacionPayload } from "@/types/penalizaciones";
 const ruta = "/penalizaciones";
 
 export async function listarPenalizaciones(): Promise<Penalizacion[]> {
-  const response = await apiClient.get<Penalizacion[]>(ruta);
-  return response.data;
+  const response = await apiClient.get<Penalizacion[] | { data?: Penalizacion[]; content?: Penalizacion[] }>(ruta);
+  const body = response.data;
+  const items = Array.isArray(body) ? body : body.data ?? body.content ?? [];
+  return items;
 }
 
 export async function crearPenalizacion(p: PenalizacionPayload): Promise<Penalizacion> {

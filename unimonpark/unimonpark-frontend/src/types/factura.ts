@@ -13,7 +13,7 @@ export interface Factura {
     idTarifa: string;
     nombreTarifa: string;
     placaVehiculo: string;
-    tipoVehiculo: String;
+    tipoVehiculo: string;
     categoriaPersona: string;
 }
 
