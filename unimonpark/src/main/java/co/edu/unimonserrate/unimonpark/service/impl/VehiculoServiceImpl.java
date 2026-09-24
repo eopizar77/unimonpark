@@ -176,7 +176,7 @@ public class VehiculoServiceImpl implements VehiculoService {
 
         if (vehiculo.getUsuario() != null) {
             dto.setIdUsuario(vehiculo.getUsuario().getIdUsuario());
-            dto.setNombreUsuario(vehiculo.getUsuario().getNombreUsuario());
+            dto.setNombreUsuario(vehiculo.getUsuario().getNombres() + " " + vehiculo.getUsuario().getApellidos());
         }
 
         if (vehiculo.getExterno() != null) {

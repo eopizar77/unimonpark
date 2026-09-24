@@ -7,4 +7,7 @@ import lombok.*;
 public class MembresiaRequestDTO {
     @NotNull private Long idVehiculo;
     @NotNull private Long idTarifa;
+    private java.time.LocalDateTime fechaInicio;
+    private java.time.LocalDateTime fechaFin;
+    private java.math.BigDecimal montoPagadoManual;
 }

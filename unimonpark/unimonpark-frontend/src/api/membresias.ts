@@ -14,3 +14,8 @@ export async function crearMembresia(membresia: MembresiaPayload): Promise<Membr
   const response = await apiClient.post<Membresia>(ruta, membresia);
   return response.data;
 }
+
+export async function editarMembresia(id: number, membresia: MembresiaPayload): Promise<Membresia> {
+  const response = await apiClient.put<Membresia>(`${ruta}/${id}`, membresia);
+  return response.data;
+}

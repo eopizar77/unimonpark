@@ -1,6 +1,7 @@
 export interface Factura {
     idFactura: number;
-    idUsuario: number;
+    idUsuario?: number | null;
+    idExterno?: number | null;
     nombres: string;
     apellidos: string,
     fecha: string;
@@ -18,7 +19,8 @@ export interface Factura {
 }
 
 export interface FacturaPayload {
-    idUsuario: number;
+    idUsuario?: number | null;
+    idExterno?: number | null;
     descuento: number;
     iva: number;
     idSalida: number;

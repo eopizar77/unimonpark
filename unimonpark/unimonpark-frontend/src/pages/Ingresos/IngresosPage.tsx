@@ -9,6 +9,7 @@ import { listarVehiculos } from "@/api/vehiculos";
 import { listarEspaciosParqueo } from "@/api/espaciosParqueo";
 import { listarTiposVehiculo } from "@/api/tiposVehiculo";
 import { listarUsuarios } from "@/api/usuarios";
+import { listarExternos } from "@/api/externos";
 import { listarMembresias } from "@/api/membresias";
 
 import type { Ingreso } from "@/types/ingreso";
@@ -16,6 +17,7 @@ import type { Vehiculo } from "@/types/vehiculo";
 import type { EspacioParqueo } from "@/types/espacioParqueo";
 import type { TipoVehiculo } from "@/types/tipoVehiculo";
 import type { Usuario } from "@/types/usuario";
+import type { Externo } from "@/types/externo";
 import type { Membresia } from "@/types/membresia";
 
 import { ingresoSchema, type IngresoFormValues } from "./ingresoSchema";
@@ -46,6 +48,7 @@ export default function IngresosPage() {
     const [espacios, setEspacios] = useState<EspacioParqueo[]>([]);
     const [tipos, setTipos] = useState<TipoVehiculo[]>([]);
     const [usuarios, setUsuarios] = useState<Usuario[]>([]);
+    const [externos, setExternos] = useState<Externo[]>([]);
     const [membresias, setMembresias] = useState<Membresia[]>([]);
     const [cargando, setCargando] = useState(true);
     const [dialogAbierto, setDialogAbierto] = useState(false);
@@ -58,12 +61,13 @@ export default function IngresosPage() {
     async function cargarDatos() {
         setCargando(true);
         try {
-            const [ingresosData, vehiculosData, espaciosData, tiposData, usuariosData, membresiasData] = await Promise.all([
+            const [ingresosData, vehiculosData, espaciosData, tiposData, usuariosData, externosData, membresiasData] = await Promise.all([
                 listarIngresos(),
                 listarVehiculos(),
                 listarEspaciosParqueo(),
                 listarTiposVehiculo(),
                 listarUsuarios(),
+                listarExternos(),
                 listarMembresias(),
             ]);
             setIngresos(ingresosData);
@@ -71,6 +75,7 @@ export default function IngresosPage() {
             setEspacios(espaciosData);
             setTipos(tiposData);
             setUsuarios(usuariosData);
+            setExternos(externosData);
             setMembresias(membresiasData);
         } catch {
             toast.error("No se pudieron cargar los ingresos");
@@ -89,9 +94,19 @@ export default function IngresosPage() {
     }
 
     async function onSubmit(valores: IngresoFormValues) {
-        if (esBicicletaIngreso && !valores.numeroFicha?.trim()) {
-            toast.error("El número de ficha es obligatorio para bicicletas");
-            return;
+        if (esBicicletaIngreso) {
+            const ficha = valores.numeroFicha?.trim();
+            if (!ficha) {
+                toast.error("El número de ficha es obligatorio para bicicletas");
+                return;
+            }
+            const fichaEnUso = ingresos.some(
+                (ing) => ing.estado === "ACTIVO" && ing.numeroFicha === ficha
+            );
+            if (fichaEnUso) {
+                toast.error(`El número de ficha ${ficha} ya se encuentra asignado a una bicicleta adentro.`);
+                return;
+            }
         }
         try {
             await crearIngreso({
@@ -109,14 +124,48 @@ export default function IngresosPage() {
 
     function etiquetaVehiculo(vehiculo: Vehiculo) {
         const identificador = vehiculo.placa || "Bicicleta";
-        const propietario = usuarios.find((u) => u.idUsuario === vehiculo.idUsuario);
-        const nombreCompleto = propietario ? `${propietario.nombres} ${propietario.apellidos}` : "";
+        let nombreCompleto = "";
+        
+        if (vehiculo.idExterno) {
+            const ext = externos.find((e) => e.idExterno === vehiculo.idExterno);
+            nombreCompleto = ext ? `${ext.nombres} ${ext.apellidos} (Ext)` : (vehiculo.nombreExterno ? `${vehiculo.nombreExterno} (Ext)` : "");
+        } else if (vehiculo.idUsuario) {
+            const propietario = usuarios.find((u) => u.idUsuario === vehiculo.idUsuario);
+            nombreCompleto = propietario ? `${propietario.nombres} ${propietario.apellidos}` : (vehiculo.nombreUsuario || "");
+        } else if (vehiculo.nombreExterno) {
+            nombreCompleto = `${vehiculo.nombreExterno} (Ext)`;
+        } else if (vehiculo.nombreUsuario) {
+            nombreCompleto = vehiculo.nombreUsuario;
+        }
+
         return `${identificador} - ${nombreCompleto ? `${nombreCompleto} ` : ""}(${vehiculo.marca || "Vehículo"})`;
+    }
+
+    function renderEtiquetaVehiculo(vehiculo: Vehiculo) {
+        const etiqueta = etiquetaVehiculo(vehiculo);
+        if (etiqueta.includes("(Ext)")) {
+            const parts = etiqueta.split("(Ext)");
+            return (
+                <div className="flex items-center gap-1.5 flex-wrap">
+                    <span>{parts[0]}</span>
+                    <Badge variant="outline" className="text-[10px] bg-amber-500/10 text-amber-600 border-amber-300 py-0 h-4">
+                        EXTERNO
+                    </Badge>
+                    <span>{parts[1]}</span>
+                </div>
+            );
+        }
+        return <span>{etiqueta}</span>;
     }
 
     function descripcionVehiculo(id: number) {
         const vehiculo = vehiculos.find((item) => item.idVehiculo === id);
         return vehiculo ? etiquetaVehiculo(vehiculo) : "Vehículo no encontrado";
+    }
+
+    function renderDescripcionVehiculo(id: number) {
+        const vehiculo = vehiculos.find((item) => item.idVehiculo === id);
+        return vehiculo ? renderEtiquetaVehiculo(vehiculo) : "Vehículo no encontrado";
     }
 
     function descripcionEspacio(id: number) {
@@ -183,6 +232,15 @@ export default function IngresosPage() {
         }
     }, [idVehiculoSeleccionado, tipoVehiculoSeleccionado]);
 
+    const [busqueda, setBusqueda] = useState("");
+
+    const ingresosFiltrados = ingresos.filter((ingreso) => {
+        const dVehiculo = descripcionVehiculo(ingreso.idVehiculo).toLowerCase();
+        const numFicha = (ingreso.numeroFicha || "").toLowerCase();
+        const search = busqueda.toLowerCase();
+        return dVehiculo.includes(search) || numFicha.includes(search);
+    });
+
     return (
         <div className="flex flex-col gap-4">
             <div className="flex items-center justify-between">
@@ -191,6 +249,16 @@ export default function IngresosPage() {
                     <p className="text-sm text-muted-foreground">Registro histórico de entradas al parqueadero</p>
                 </div>
                 {puedeCrear && <Button onClick={abrirCrear}>Registrar ingreso</Button>}
+            </div>
+
+            <div className="flex items-center mb-2">
+                <Input 
+                    type="search" 
+                    placeholder="Buscar por placa, ficha o usuario..." 
+                    className="max-w-md" 
+                    value={busqueda} 
+                    onChange={(e) => setBusqueda(e.target.value)} 
+                />
             </div>
 
             <Table>
@@ -205,11 +273,11 @@ export default function IngresosPage() {
                 </TableRow></TableHeader>
                 <TableBody>
                     {cargando && <TableRow><TableCell colSpan={7}>Cargando...</TableCell></TableRow>}
-                    {!cargando && ingresos.length === 0 && <TableRow><TableCell colSpan={7}>No hay ingresos registrados</TableCell></TableRow>}
-                    {ingresos.map((ingreso) => (
+                    {!cargando && ingresosFiltrados.length === 0 && <TableRow><TableCell colSpan={7}>No hay ingresos registrados</TableCell></TableRow>}
+                    {ingresosFiltrados.map((ingreso) => (
                         <TableRow key={ingreso.idIngreso}>
                             <TableCell>{formatearFecha(ingreso.fechaIngreso)}</TableCell>
-                            <TableCell>{descripcionVehiculo(ingreso.idVehiculo)}</TableCell>
+                            <TableCell>{renderDescripcionVehiculo(ingreso.idVehiculo)}</TableCell>
                             <TableCell>{ingreso.numeroFicha ?? "-"}</TableCell>
                             <TableCell>{descripcionEspacio(ingreso.idEspacioParqueo)}</TableCell>
                             <TableCell>{ingreso.tipoIngreso}</TableCell>
@@ -232,6 +300,7 @@ export default function IngresosPage() {
                                         valorSeleccionado={field.value || null}
                                         obtenerId={(v) => v.idVehiculo}
                                         obtenerEtiqueta={etiquetaVehiculo}
+                                        renderEtiqueta={renderEtiquetaVehiculo}
                                         onSeleccionar={(id) => field.onChange(id)}
                                         placeholder={vehiculosDisponibles.length === 0 ? "No hay vehículos pendientes de ingreso" : "Escribe la placa o nombre del propietario..."}
                                     />

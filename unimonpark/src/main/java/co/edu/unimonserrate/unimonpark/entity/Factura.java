@@ -37,8 +37,12 @@ public class Factura {
     private Salida salida;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_usuario", nullable = false)
+    @JoinColumn(name = "id_usuario")
     private Usuario usuario;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_externo")
+    private Externo externo;
 
     @Column(nullable = false)
     private LocalDateTime fecha;

@@ -15,6 +15,7 @@ public class FacturaResponseDTO {
 
     private Long idFactura;
     private Long idUsuario;
+    private Long idExterno;
     private String nombres;
     private String apellidos;
     private LocalDateTime fecha;

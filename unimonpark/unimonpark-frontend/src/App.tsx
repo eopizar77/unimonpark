@@ -1,5 +1,7 @@
-import { Routes, Route, Navigate } from "react-router-dom";
+﻿import { Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "@/components/ui/sonner"
+import ForgotPasswordPage from "@/pages/Login/ForgotPasswordPage";
+import ResetPasswordPage from "@/pages/Login/ResetPasswordPage";
 import LoginPage from "@/pages/Login/LoginPage";
 import RolesPage from "@/pages/Roles/RolesPage";
 import TiposVehiculoPage from "@/pages/TiposVehiculo/TiposVehiculoPage";
@@ -27,6 +29,8 @@ function App() {
     <Toaster richColors position="top-right" />
     <Routes>
       <Route path="/login" element={<LoginPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
       <Route path="/unauthorized" element={<UnauthorizedPage />} />
       <Route
         element={

@@ -8,4 +8,5 @@ public interface MembresiaService {
     List<MembresiaResponseDTO> listarMembresias();
     MembresiaResponseDTO buscarPorId(Long id);
     MembresiaResponseDTO crearMembresia(MembresiaRequestDTO dto);
+    MembresiaResponseDTO actualizarMembresia(Long id, MembresiaRequestDTO dto);
 }

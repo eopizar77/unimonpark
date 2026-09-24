@@ -63,6 +63,7 @@ public class TarifaServiceImpl implements TarifaService {
         tarifa.setHorasLimite(dto.getHorasLimite());
         tarifa.setValorHastaLimite(dto.getValorHastaLimite());
         tarifa.setValorDespuesLimite(dto.getValorDespuesLimite());
+        tarifa.setPorcentaje(dto.getPorcentaje());
         tarifa.setFechaCreacion(LocalDateTime.now());
 
         return convertirADTO(tarifaRepository.save(tarifa));
@@ -87,6 +88,7 @@ public class TarifaServiceImpl implements TarifaService {
         tarifa.setHorasLimite(dto.getHorasLimite());
         tarifa.setValorHastaLimite(dto.getValorHastaLimite());
         tarifa.setValorDespuesLimite(dto.getValorDespuesLimite());
+        tarifa.setPorcentaje(dto.getPorcentaje());
         
         return convertirADTO(tarifaRepository.save(tarifa));
     }
@@ -119,6 +121,7 @@ public class TarifaServiceImpl implements TarifaService {
         dto.setHorasLimite(tarifa.getHorasLimite());
         dto.setValorHastaLimite(tarifa.getValorHastaLimite());
         dto.setValorDespuesLimite(tarifa.getValorDespuesLimite());
+        dto.setPorcentaje(tarifa.getPorcentaje());
         
         return dto;
     }

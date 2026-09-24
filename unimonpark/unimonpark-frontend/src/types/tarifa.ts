@@ -1,5 +1,11 @@
 export type TipoCalculoTarifa = "POR_HORA" | "POR_TRAMOS" | "PLANA" | "MENSUAL";
-export type CategoriaPersona = "ESTUDIANTE" | "DOCENTE_ADMINISTRATIVO_EXTERNO" | "CENTRO_OBRERO";
+export type CategoriaPersona = 
+    | "ESTUDIANTE" 
+    | "DOCENTE_ADMINISTRATIVO" 
+    | "DOCENTE_ADMINISTRATIVO_EXTERNO" 
+    | "CENTRO_OBRERO" 
+    | "EXTERNO";
+
 export type TarifaPayload = Omit<Tarifa, "idTarifa" | "nombreTipoVehiculo">;
 
 export interface Tarifa {

@@ -11,6 +11,7 @@ import co.edu.unimonserrate.unimonpark.aspect.Auditable;
 import co.edu.unimonserrate.unimonpark.dto.FacturaRequestDTO;
 import co.edu.unimonserrate.unimonpark.dto.FacturaResponseDTO;
 import co.edu.unimonserrate.unimonpark.entity.Factura;
+import co.edu.unimonserrate.unimonpark.entity.Externo;
 import co.edu.unimonserrate.unimonpark.entity.Ingreso;
 import co.edu.unimonserrate.unimonpark.entity.Salida;
 import co.edu.unimonserrate.unimonpark.entity.Usuario;
@@ -22,6 +23,7 @@ import co.edu.unimonserrate.unimonpark.exception.RecursoNoEncontradoException;
 import co.edu.unimonserrate.unimonpark.repository.FacturaRepository;
 import co.edu.unimonserrate.unimonpark.repository.SalidaRepository;
 import co.edu.unimonserrate.unimonpark.repository.UsuarioRepository;
+import co.edu.unimonserrate.unimonpark.repository.ExternoRepository;
 import co.edu.unimonserrate.unimonpark.service.FacturaService;
 
 @Service
@@ -29,13 +31,16 @@ public class FacturaServiceImpl implements FacturaService {
 
         private final FacturaRepository facturaRepository;
         private final UsuarioRepository usuarioRepository;
+        private final ExternoRepository externoRepository;
         private final SalidaRepository salidaRepository;
 
         public FacturaServiceImpl(FacturaRepository facturaRepository,
                         UsuarioRepository usuarioRepository,
+                        ExternoRepository externoRepository,
                         SalidaRepository salidaRepository) {
                 this.facturaRepository = facturaRepository;
                 this.usuarioRepository = usuarioRepository;
+                this.externoRepository = externoRepository;
                 this.salidaRepository = salidaRepository;
         }
 
@@ -59,9 +64,23 @@ public class FacturaServiceImpl implements FacturaService {
         @Override
         public FacturaResponseDTO crearFactura(FacturaRequestDTO dto) {
 
-                Usuario usuario = usuarioRepository.findById(dto.getIdUsuario())
-                                .orElseThrow(() -> new RecursoNoEncontradoException(
-                                                "El usuario no existe con el id: " + dto.getIdUsuario()));
+                if (dto.getIdUsuario() == null && dto.getIdExterno() == null) {
+                        throw new RecursoNoDisponibleException("Debe indicar un usuario o un visitante externo");
+                }
+
+                Usuario usuario = null;
+                if (dto.getIdUsuario() != null) {
+                        usuario = usuarioRepository.findById(dto.getIdUsuario())
+                                        .orElseThrow(() -> new RecursoNoEncontradoException(
+                                                        "El usuario no existe con el id: " + dto.getIdUsuario()));
+                }
+
+                Externo externo = null;
+                if (dto.getIdExterno() != null) {
+                        externo = externoRepository.findById(dto.getIdExterno())
+                                        .orElseThrow(() -> new RecursoNoEncontradoException(
+                                                        "El visitante externo no existe con el id: " + dto.getIdExterno()));
+                }
 
                 Salida salida = salidaRepository.findById(dto.getIdSalida())
                                 .orElseThrow(() -> new RecursoNoEncontradoException(
@@ -78,6 +97,7 @@ public class FacturaServiceImpl implements FacturaService {
                 Factura factura = new Factura();
                 factura.setFecha(LocalDateTime.now());
                 factura.setUsuario(usuario);
+                factura.setExterno(externo);
                 factura.setSalida(salida);
                 factura.setSubtotal(subtotal);
                 factura.setDescuento(descuento);
@@ -92,7 +112,7 @@ public class FacturaServiceImpl implements FacturaService {
 
         @Override
         public List<FacturaResponseDTO> buscarFacturas(LocalDateTime desde, LocalDateTime hasta,
-                        String categoriaPersona, String usuario) {
+                        String categoriaPersona, String busquedaCliente) {
 
                 List<Factura> base = (desde != null && hasta != null)
                                 ? facturaRepository.findByFechaBetween(desde, hasta)
@@ -103,13 +123,19 @@ public class FacturaServiceImpl implements FacturaService {
                                                 || f.getSalida().getIngreso().getVehiculo().getCategoriaPersona().name()
                                                                 .equalsIgnoreCase(categoriaPersona))
                                 .filter(f -> {
-                                        if (usuario == null)
+                                        if (busquedaCliente == null)
                                                 return true;
                                         if (f.getUsuario() != null) {
                                                 return f.getUsuario().getNombres().toLowerCase()
-                                                                .contains(usuario.toLowerCase())
+                                                                .contains(busquedaCliente.toLowerCase())
                                                                 || f.getUsuario().getApellidos().toLowerCase()
-                                                                                .contains(usuario.toLowerCase());
+                                                                                .contains(busquedaCliente.toLowerCase());
+                                        }
+                                        if (f.getExterno() != null) {
+                                                return f.getExterno().getNombres().toLowerCase()
+                                                                .contains(busquedaCliente.toLowerCase())
+                                                                || f.getExterno().getApellidos().toLowerCase()
+                                                                                .contains(busquedaCliente.toLowerCase());
                                         }
                                         return false;
                                 })
@@ -120,9 +146,17 @@ public class FacturaServiceImpl implements FacturaService {
         private FacturaResponseDTO convertirADTO(Factura factura) {
                 FacturaResponseDTO dto = new FacturaResponseDTO();
                 dto.setIdFactura(factura.getIdFactura());
-                dto.setIdUsuario(factura.getUsuario().getIdUsuario());
-                dto.setNombres(factura.getUsuario().getNombres());
-                dto.setApellidos(factura.getUsuario().getApellidos());
+                
+                if (factura.getUsuario() != null) {
+                        dto.setIdUsuario(factura.getUsuario().getIdUsuario());
+                        dto.setNombres(factura.getUsuario().getNombres());
+                        dto.setApellidos(factura.getUsuario().getApellidos());
+                } else if (factura.getExterno() != null) {
+                        dto.setIdExterno(factura.getExterno().getIdExterno());
+                        dto.setNombres(factura.getExterno().getNombres());
+                        dto.setApellidos(factura.getExterno().getApellidos());
+                }
+
                 dto.setFecha(factura.getFecha());
                 dto.setSubtotal(factura.getSubtotal());
                 dto.setDescuento(factura.getDescuento());

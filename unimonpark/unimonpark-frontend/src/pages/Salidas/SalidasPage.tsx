@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
@@ -9,12 +9,14 @@ import { listarTarifas } from "@/api/tarifas";
 import { listarVehiculos } from "@/api/vehiculos";
 import { listarEspaciosParqueo } from "@/api/espaciosParqueo";
 import { listarTiposVehiculo } from "@/api/tiposVehiculo";
+import { listarMembresias } from "@/api/membresias";
 import type { Salida } from "@/types/salida";
 import type { Ingreso } from "@/types/ingreso";
 import type { Tarifa } from "@/types/tarifa";
 import type { Vehiculo } from "@/types/vehiculo";
 import type { EspacioParqueo } from "@/types/espacioParqueo";
 import type { TipoVehiculo } from "@/types/tipoVehiculo";
+import type { Membresia } from "@/types/membresia";
 import { salidaSchema, type SalidaFormValues } from "./salidaSchema";
 import { BuscadorConFiltro } from "@/components/BuscadorConFiltro";
 
@@ -48,6 +50,7 @@ export default function SalidasPage() {
     const [vehiculos, setVehiculos] = useState<Vehiculo[]>([]);
     const [espacios, setEspacios] = useState<EspacioParqueo[]>([]);
     const [tipos, setTipos] = useState<TipoVehiculo[]>([]);
+    const [membresias, setMembresias] = useState<Membresia[]>([]);
     const [cargando, setCargando] = useState(true);
     const [dialogAbierto, setDialogAbierto] = useState(false);
     const [ahora, setAhora] = useState(() => Date.now());
@@ -60,13 +63,14 @@ export default function SalidasPage() {
     async function cargarDatos() {
         setCargando(true);
         try {
-            const [salidasData, ingresosData, tarifasData, vehiculosData, espaciosData, tiposData] = await Promise.all([
+            const [salidasData, ingresosData, tarifasData, vehiculosData, espaciosData, tiposData, membresiasData] = await Promise.all([
                 listarSalidas(),
                 listarIngresos(),
                 listarTarifas(),
                 listarVehiculos(),
                 listarEspaciosParqueo(),
                 listarTiposVehiculo(),
+                listarMembresias(),
             ]);
             setSalidas(salidasData);
             setIngresos(ingresosData);
@@ -74,6 +78,7 @@ export default function SalidasPage() {
             setVehiculos(vehiculosData);
             setEspacios(espaciosData);
             setTipos(tiposData);
+            setMembresias(membresiasData);
         } catch {
             toast.error("No se pudieron cargar las salidas");
         } finally {
@@ -97,11 +102,11 @@ export default function SalidasPage() {
     }
 
     async function onSubmit(valores: SalidaFormValues) {
-    if (!esBicicletaSalida && !valores.idTarifa) {
-        toast.error("Selecciona una tarifa para este vehículo");
+    if (!esBicicletaSalida && !membresiaActiva && !valores.idTarifa) {
+        toast.error("Selecciona una tarifa para este vehÃ­culo");
         return;
     }
-    const idTarifaFinal: number | null = esBicicletaSalida ? null : ((valores.idTarifa as number | null) ?? null);
+    const idTarifaFinal: number | null = (esBicicletaSalida || membresiaActiva) ? null : ((valores.idTarifa as number | null) ?? null);
     try {
         await crearSalida({
             ...valores,
@@ -121,9 +126,9 @@ export default function SalidasPage() {
     }
 
     function identificadorVehiculo(vehiculo: Vehiculo | undefined, ingreso: Ingreso | undefined) {
-        if (vehiculo?.placa) return vehiculo.placa;
-        if (ingreso?.numeroFicha) return `Ficha ${ingreso.numeroFicha}`;
-        return "Vehículo";
+        const idBase = vehiculo?.placa ? vehiculo.placa : (ingreso?.numeroFicha ? `${ingreso.numeroFicha}` : "Vehículo");
+        const propietario = vehiculo ? (vehiculo.nombreUsuario || (vehiculo.nombreExterno ? `${vehiculo.nombreExterno} (Ext)` : "")) : "";
+        return propietario ? `${idBase} ${propietario}` : idBase;
     }
 
     function descripcionIngreso(id: number) {
@@ -136,6 +141,22 @@ export default function SalidasPage() {
 
     function descripcionIngresoActivo(ingreso: Ingreso) {
         return `${descripcionIngreso(ingreso.idIngreso)} - ingreso ${formatearFecha(ingreso.fechaIngreso)}`;
+    }
+
+    function renderDescripcionIngreso(texto: string) {
+        if (texto.includes("(Ext)")) {
+            const parts = texto.split("(Ext)");
+            return (
+                <div className="flex items-center gap-1.5 flex-wrap">
+                    <span>{parts[0]}</span>
+                    <Badge variant="outline" className="text-[10px] bg-amber-500/10 text-amber-600 border-amber-300 py-0 h-4">
+                        EXTERNO
+                    </Badge>
+                    <span>{parts[1]}</span>
+                </div>
+            );
+        }
+        return <span>{texto}</span>;
     }
 
     function formatearFecha(fecha: string) {
@@ -162,17 +183,21 @@ export default function SalidasPage() {
         : undefined;
     const esBicicletaSalida = tipoVehiculoSeleccionado?.nombre.toLowerCase() === "bicicleta";
 
-    // Tarifas que aplican al vehículo del ingreso seleccionado (por tipo de vehículo + categoría de persona).
+    const membresiaActiva = vehiculoSeleccionado
+        ? membresias.find(m => m.idVehiculo === vehiculoSeleccionado.idVehiculo && m.activa)
+        : undefined;
+
+    // Tarifas que aplican al vehÃ­culo del ingreso seleccionado (por tipo de vehÃ­culo + categorÃ­a de persona).
     const tarifasSugeridas = vehiculoSeleccionado
         ? tarifas.filter((tarifa) => tarifa.activo
             && tarifa.idTipoVehiculo === vehiculoSeleccionado.idTipoVehiculo
             && (tarifa.categoriaPersona === vehiculoSeleccionado.categoriaPersona || tarifa.categoriaPersona == null))
         : [];
 
-    // Preselecciona automáticamente la primera tarifa sugerida cuando cambia el ingreso elegido.
-    // Las bicicletas no requieren tarifa (el ingreso es gratuito), así que se deja en null.
+    // Preselecciona automÃ¡ticamente la primera tarifa sugerida cuando cambia el ingreso elegido.
+    // Las bicicletas no requieren tarifa (el ingreso es gratuito), asÃ­ que se deja en null.
     useEffect(() => {
-        if (esBicicletaSalida) {
+        if (esBicicletaSalida || membresiaActiva) {
             form.setValue("idTarifa", null);
         } else if (tarifasSugeridas.length > 0) {
             form.setValue("idTarifa", tarifasSugeridas[0].idTarifa);
@@ -180,9 +205,17 @@ export default function SalidasPage() {
             form.setValue("idTarifa", null);
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [idIngresoSeleccionado, esBicicletaSalida]);
+    }, [idIngresoSeleccionado, esBicicletaSalida, membresiaActiva]);
 
     const ingresosActivos = ingresos.filter((ingreso) => ingreso.estado.toLowerCase() === "activo");
+
+    const [busqueda, setBusqueda] = useState("");
+
+    const salidasFiltradas = salidas.filter((salida) => {
+        const dIngreso = descripcionIngreso(salida.idIngreso).toLowerCase();
+        const search = busqueda.toLowerCase();
+        return dIngreso.includes(search);
+    });
 
     return (
         <div className="flex flex-col gap-4">
@@ -194,6 +227,16 @@ export default function SalidasPage() {
                 {puedeCrear && <Button onClick={abrirCrear}>Registrar salida</Button>}
             </div>
 
+            <div className="flex items-center mb-2">
+                <Input 
+                    type="search" 
+                    placeholder="Buscar por placa, vehículo o ingreso..." 
+                    className="max-w-md" 
+                    value={busqueda} 
+                    onChange={(e) => setBusqueda(e.target.value)} 
+                />
+            </div>
+
             <Table>
                 <TableHeader><TableRow>
                     <TableHead>Fecha</TableHead><TableHead>Ingreso / vehículo</TableHead><TableHead>Tipo ingreso</TableHead><TableHead>Tarifa / modalidad</TableHead>
@@ -201,11 +244,11 @@ export default function SalidasPage() {
                 </TableRow></TableHeader>
                 <TableBody>
                     {cargando && <TableRow><TableCell colSpan={7}>Cargando...</TableCell></TableRow>}
-                    {!cargando && salidas.length === 0 && <TableRow><TableCell colSpan={7}>No hay salidas registradas</TableCell></TableRow>}
-                    {salidas.map((salida) => (
+                    {!cargando && salidasFiltradas.length === 0 && <TableRow><TableCell colSpan={7}>No hay salidas registradas</TableCell></TableRow>}
+                    {salidasFiltradas.map((salida) => (
                         <TableRow key={salida.idSalida}>
                             <TableCell>{formatearFecha(salida.fechaSalida)}</TableCell>
-                            <TableCell>{descripcionIngreso(salida.idIngreso)}</TableCell>
+                            <TableCell>{renderDescripcionIngreso(descripcionIngreso(salida.idIngreso))}</TableCell>
                             <TableCell>{salida.tipoIngreso ?? "-"}</TableCell>
                             <TableCell>{tarifas.find((tarifa) => tarifa.idTarifa === salida.idTarifa)?.nombre ?? "Sin tarifa (bicicleta)"} ({salida.modalidadPago ?? "LEGACY"})</TableCell>
                             <TableCell>{salida.tiempoPermanencia ?? "-"} min</TableCell>
@@ -228,15 +271,20 @@ export default function SalidasPage() {
                                         valorSeleccionado={field.value || null}
                                         obtenerId={(i) => i.idIngreso}
                                         obtenerEtiqueta={descripcionIngresoActivo}
+                                        renderEtiqueta={(i) => renderDescripcionIngreso(descripcionIngresoActivo(i))}
                                         onSeleccionar={(id) => field.onChange(id)}
                                         placeholder={ingresosActivos.length === 0 ? "No hay vehículos pendientes de salida" : "Escribe la placa o ficha..."}
                                     />
                                 </FormControl><FormMessage /></FormItem>
                             )} />
 
-                            {esBicicletaSalida ? (
+                            {membresiaActiva ? (
+                                <div className="rounded-lg border border-blue-500/50 bg-blue-500/10 px-2.5 py-2 text-sm text-blue-700 font-medium">
+                                    Usuario con membresía mensual activa válida hasta {formatearFecha(membresiaActiva.fechaFin)}. El sistema generará salida gratuita (valor $0).
+                                </div>
+                            ) : esBicicletaSalida ? (
                                 <div className="rounded-lg border border-emerald-500/50 bg-emerald-500/10 px-2.5 py-2 text-sm text-emerald-700">
-                                    Bicicleta — ingreso gratuito, no requiere tarifa.
+                                    Bicicleta ingreso gratuito, no requiere tarifa.
                                 </div>
                             ) : (
                                 <FormField control={form.control} name="idTarifa" render={({ field }) => (
@@ -293,3 +341,7 @@ export default function SalidasPage() {
         </div>
     );
 }
+
+
+
+

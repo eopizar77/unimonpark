@@ -5,7 +5,7 @@ export const tarifaSchema = z.object({
   valorHora: z.number().nullable(),
   activo: z.boolean(),
   idTipoVehiculo: z.number({ message: "El tipo de vehículo es obligatorio" }),
-  categoriaPersona: z.enum(["ESTUDIANTE", "DOCENTE_ADMINISTRATIVO_EXTERNO", "CENTRO_OBRERO"]).nullable(),
+  categoriaPersona: z.enum(["ESTUDIANTE", "DOCENTE_ADMINISTRATIVO", "DOCENTE_ADMINISTRATIVO_EXTERNO", "CENTRO_OBRERO", "EXTERNO"]).nullable(),
   tipoCalculo: z.enum(["POR_HORA", "POR_TRAMOS", "PLANA", "MENSUAL"], {
     message: "El tipo de cálculo es obligatorio",
   }),

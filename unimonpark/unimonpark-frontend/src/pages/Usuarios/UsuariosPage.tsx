@@ -43,6 +43,26 @@ const valoresIniciales: UsuarioFormValues = {
     valorSalario: null,
 };
 
+const formatoMoneda = new Intl.NumberFormat("es-CO", {
+    style: "currency",
+    currency: "COP",
+    maximumFractionDigits: 0,
+});
+
+function formatCurrencyValue(value: number | null | undefined): string {
+    if (value == null) return "";
+    return formatoMoneda.format(value).replace(/\s/g, " ");
+}
+
+function handleCurrencyChange(e: React.ChangeEvent<HTMLInputElement>, onChange: (v: number | null) => void) {
+    const digits = e.target.value.replace(/\D/g, "");
+    if (!digits) {
+        onChange(null);
+    } else {
+        onChange(Number(digits));
+    }
+}
+
 export default function UsuariosPage() {
     const [usuarios, setUsuarios] = useState<Usuario[]>([]);
     const [roles, setRoles] = useState<Rol[]>([]);
@@ -290,7 +310,7 @@ export default function UsuariosPage() {
                                     <FormItem className="sm:col-span-2">
                                         <FormLabel>Valor de la matrícula</FormLabel>
                                         <FormControl>
-                                            <Input type="number" min="0" step="0.01" value={field.value ?? ""} onChange={(event) => field.onChange(event.target.value === "" ? null : Number(event.target.value))} />
+                                            <Input type="text" value={formatCurrencyValue(field.value)} onChange={(e) => handleCurrencyChange(e, field.onChange)} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -301,7 +321,7 @@ export default function UsuariosPage() {
                                     <FormItem className="sm:col-span-2">
                                         <FormLabel>Valor del salario</FormLabel>
                                         <FormControl>
-                                            <Input type="number" min="0" step="0.01" value={field.value ?? ""} onChange={(event) => field.onChange(event.target.value === "" ? null : Number(event.target.value))} />
+                                            <Input type="text" value={formatCurrencyValue(field.value)} onChange={(e) => handleCurrencyChange(e, field.onChange)} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>

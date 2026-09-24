@@ -17,8 +17,9 @@ public class FacturaRequestDTO {
     @NotNull(message = "La salida a facturar es obligatoria")
     private Long idSalida;
 
-    @NotNull(message = "El usuario es obligatorio")
     private Long idUsuario;
+    
+    private Long idExterno;
 
     @DecimalMin(value = "0.0", message = "El descuento no puede ser negativo")
     private BigDecimal descuento;

@@ -92,6 +92,13 @@ public class IngresoServiceImpl implements IngresoService {
                                 .orElseThrow(() -> new RecursoNoEncontradoException(
                                                 "Tipo de Vehiculo no encontrado con el id: " + dto.getIdVehiculo()));
 
+                if (dto.getNumeroFicha() != null && !dto.getNumeroFicha().trim().isEmpty()) {
+                        if (ingresoRepository.existsByNumeroFichaAndEstado(dto.getNumeroFicha(), EstadoIngreso.ACTIVO)) {
+                                throw new RecursoNoDisponibleException(
+                                                "El número de ficha " + dto.getNumeroFicha() + " ya se encuentra asignado a una bicicleta adentro.");
+                        }
+                }
+
                 if (ingresoRepository.existsByVehiculoIdVehiculoAndEstado(
                                 vehiculo.getIdVehiculo(), EstadoIngreso.ACTIVO)) {
                         throw new RecursoNoDisponibleException(

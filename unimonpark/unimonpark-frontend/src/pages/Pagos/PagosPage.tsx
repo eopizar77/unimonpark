@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
@@ -43,6 +43,16 @@ export default function PagosPage() {
         resolver: zodResolver(pagoSchema),
         defaultValues: valoresIniciales,
     });
+
+    const idFacturaSeleccionada = form.watch("idFactura");
+
+    useEffect(() => {
+        if (!idFacturaSeleccionada) return;
+        const factura = facturas.find(f => f.idFactura === idFacturaSeleccionada);
+        if (factura) {
+            form.setValue("monto", factura.total);
+        }
+    }, [idFacturaSeleccionada, facturas, form]);
 
     async function cargarDatos() {
         setCargando(true);
@@ -107,6 +117,16 @@ export default function PagosPage() {
     const pagosRegistrados = new Set(pagos.map((pago) => pago.idFactura));
     const facturasDisponibles = facturas.filter((factura) => !pagosRegistrados.has(factura.idFactura));
 
+    const [busqueda, setBusqueda] = useState("");
+
+    const pagosFiltrados = pagos.filter((pago) => {
+        const dFactura = `#${pago.idFactura}`;
+        const uNombre = nombreUsuarioPago(pago.idFactura).toLowerCase();
+        const vPlaca = placaVehiculoPago(pago.idFactura).toLowerCase();
+        const search = busqueda.toLowerCase();
+        return dFactura.includes(search) || uNombre.includes(search) || vPlaca.includes(search) || `#${pago.idPago}`.includes(search);
+    });
+
     return (
         <div className="flex flex-col gap-4">
             <div className="flex items-center justify-between">
@@ -117,6 +137,16 @@ export default function PagosPage() {
                 {puedeCrear && <Button onClick={abrirCrear}>Registrar pago</Button>}
             </div>
 
+            <div className="flex items-center mb-2">
+                <Input 
+                    type="search" 
+                    placeholder="Buscar por placa, usuario o # de factura..." 
+                    className="max-w-md" 
+                    value={busqueda} 
+                    onChange={(e) => setBusqueda(e.target.value)} 
+                />
+            </div>
+
             <Table>
                 <TableHeader><TableRow>
                     <TableHead>Pago</TableHead><TableHead>Factura</TableHead><TableHead>Usuario</TableHead><TableHead>Vehículo</TableHead><TableHead>Fecha</TableHead>
@@ -124,8 +154,8 @@ export default function PagosPage() {
                 </TableRow></TableHeader>
                 <TableBody>
                     {cargando && <TableRow><TableCell colSpan={9}>Cargando...</TableCell></TableRow>}
-                    {!cargando && pagos.length === 0 && <TableRow><TableCell colSpan={9}>No hay pagos registrados</TableCell></TableRow>}
-                    {pagos.map((pago) => (
+                    {!cargando && pagosFiltrados.length === 0 && <TableRow><TableCell colSpan={9}>No hay pagos registrados</TableCell></TableRow>}
+                    {pagosFiltrados.map((pago) => (
                         <TableRow key={pago.idPago}>
                             <TableCell className="font-medium">#{pago.idPago}</TableCell>
                             <TableCell>#{pago.idFactura}</TableCell>
@@ -163,7 +193,7 @@ export default function PagosPage() {
                                 </FormControl><FormMessage /></FormItem>
                             )} />
                             <FormField control={form.control} name="monto" render={({ field }) => (
-                                <FormItem><FormLabel>Monto</FormLabel><FormControl><Input type="number" min="0.01" step="0.01" value={field.value} onChange={(event) => field.onChange(Number(event.target.value))} /></FormControl><FormMessage /></FormItem>
+                                <FormItem><FormLabel>Monto</FormLabel><FormControl><Input type="number" min="0" step="0.01" value={field.value} onChange={(event) => field.onChange(Number(event.target.value))} /></FormControl><FormMessage /></FormItem>
                             )} />
                             <FormField control={form.control} name="metodoPago" render={({ field }) => (
                                 <FormItem><FormLabel>Método de pago</FormLabel><FormControl>
@@ -183,3 +213,4 @@ export default function PagosPage() {
         </div>
     );
 }
+

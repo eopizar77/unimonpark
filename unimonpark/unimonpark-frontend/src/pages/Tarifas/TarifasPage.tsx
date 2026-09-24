@@ -231,8 +231,10 @@ export default function TarifasPage() {
                     </FormControl>
                     <SelectContent>
                       <SelectItem value="ESTUDIANTE">Estudiante</SelectItem>
-                      <SelectItem value="DOCENTE_ADMINISTRATIVO_EXTERNO">Docente / Administrativo / Externo</SelectItem>
+                      <SelectItem value="DOCENTE_ADMINISTRATIVO">Docente / Administrativo</SelectItem>
+                      <SelectItem value="EXTERNO">Externo</SelectItem>
                       <SelectItem value="CENTRO_OBRERO">Centro Obrero</SelectItem>
+                      <SelectItem value="DOCENTE_ADMINISTRATIVO_EXTERNO">Docente/Adm/Externo (Legacy)</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />

@@ -36,4 +36,10 @@ public class MembresiaController {
     public ResponseEntity<MembresiaResponseDTO> crear(@Valid @RequestBody MembresiaRequestDTO dto) {
         return ResponseEntity.status(HttpStatus.CREATED).body(membresiaService.crearMembresia(dto));
     }
+
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'GESTION', 'SUPERVISOR')")
+    @PutMapping("/{id}")
+    public ResponseEntity<MembresiaResponseDTO> actualizar(@PathVariable Long id, @Valid @RequestBody MembresiaRequestDTO dto) {
+        return ResponseEntity.ok(membresiaService.actualizarMembresia(id, dto));
+    }
 }

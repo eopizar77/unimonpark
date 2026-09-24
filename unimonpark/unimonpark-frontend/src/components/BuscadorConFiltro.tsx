@@ -6,6 +6,8 @@ interface BuscadorConFiltroProps<T> {
     valorSeleccionado: number | null;
     obtenerId: (item: T) => number;
     obtenerEtiqueta: (item: T) => string;
+    renderEtiqueta?: (item: T) => React.ReactNode;
+    obtenerSubEtiqueta?: (item: T) => string;
     onSeleccionar: (id: number) => void;
     placeholder?: string;
 }
@@ -15,6 +17,8 @@ export function BuscadorConFiltro<T>({
     valorSeleccionado,
     obtenerId,
     obtenerEtiqueta,
+    renderEtiqueta,
+    obtenerSubEtiqueta,
     onSeleccionar,
     placeholder,
 }: BuscadorConFiltroProps<T>) {
@@ -66,18 +70,23 @@ export function BuscadorConFiltro<T>({
                         <div className="px-2.5 py-2 text-sm text-muted-foreground">Sin resultados</div>
                     )}
                     {coincidencias.map((item) => (
-                        <button
-                            type="button"
-                            key={obtenerId(item)}
-                            className="block w-full px-2.5 py-2 text-left text-sm hover:bg-accent"
-                            onClick={() => {
-                                onSeleccionar(obtenerId(item));
-                                setTexto(obtenerEtiqueta(item));
-                                setAbierto(false);
-                            }}
-                        >
-                            {obtenerEtiqueta(item)}
-                        </button>
+                            <button
+                                type="button"
+                                key={obtenerId(item)}
+                                className="block w-full px-2.5 py-2 text-left text-sm hover:bg-accent"
+                                onClick={() => {
+                                    onSeleccionar(obtenerId(item));
+                                    setTexto(obtenerEtiqueta(item));
+                                    setAbierto(false);
+                                }}
+                            >
+                                <div className="flex items-center gap-2 font-medium">
+                                    {renderEtiqueta ? renderEtiqueta(item) : obtenerEtiqueta(item)}
+                                </div>
+                                {obtenerSubEtiqueta && (
+                                    <span className="block text-xs text-muted-foreground mt-1">{obtenerSubEtiqueta(item)}</span>
+                                )}
+                            </button>
                     ))}
                 </div>
             )}

@@ -13,7 +13,6 @@ import co.edu.unimonserrate.unimonpark.entity.Membresia;
 import co.edu.unimonserrate.unimonpark.entity.Tarifa;
 import co.edu.unimonserrate.unimonpark.entity.Usuario;
 import co.edu.unimonserrate.unimonpark.entity.Vehiculo;
-import co.edu.unimonserrate.unimonpark.enums.CategoriaPersona;
 import co.edu.unimonserrate.unimonpark.enums.TipoCalculoTarifa;
 import co.edu.unimonserrate.unimonpark.exception.RecursoNoDisponibleException;
 import co.edu.unimonserrate.unimonpark.exception.RecursoNoEncontradoException;
@@ -59,23 +58,61 @@ public class MembresiaServiceImpl implements MembresiaService {
                 .orElseThrow(
                         () -> new RecursoNoEncontradoException("Tarifa no encontrada con id: " + dto.getIdTarifa()));
 
-        LocalDateTime inicio = LocalDateTime.now();
+        LocalDateTime inicio = dto.getFechaInicio() != null ? dto.getFechaInicio() : LocalDateTime.now();
+        LocalDateTime fin = dto.getFechaFin() != null ? dto.getFechaFin() : inicio.plusMonths(1);
 
         Membresia m = new Membresia();
         m.setVehiculo(vehiculo);
         m.setTarifa(tarifa);
         m.setFechaInicio(inicio);
-        m.setFechaFin(inicio.plusMonths(1));
-        m.setMontoPagado(calcularMontoMembresia(vehiculo, tarifa));
-        m.setFechaCreacion(inicio);
+        m.setFechaFin(fin);
+
+        if (dto.getMontoPagadoManual() != null) {
+            m.setMontoPagado(dto.getMontoPagadoManual());
+        } else {
+            m.setMontoPagado(calcularMontoMembresia(vehiculo, tarifa, inicio, fin));
+        }
+        
+        m.setFechaCreacion(LocalDateTime.now());
 
         return convertirADTO(membresiaRepository.save(m));
     }
 
-    private BigDecimal calcularMontoMembresia(Vehiculo vehiculo, Tarifa tarifa) {
+    @Override
+    public MembresiaResponseDTO actualizarMembresia(Long id, MembresiaRequestDTO dto) {
+        Membresia m = membresiaRepository.findById(id)
+                .orElseThrow(() -> new RecursoNoEncontradoException("Membresía no encontrada con id: " + id));
+
+        Vehiculo vehiculo = vehiculoRepository.findById(dto.getIdVehiculo())
+                .orElseThrow(() -> new RecursoNoEncontradoException(
+                        "Vehículo no encontrado con id: " + dto.getIdVehiculo()));
+        Tarifa tarifa = tarifaRepository.findById(dto.getIdTarifa())
+                .orElseThrow(
+                        () -> new RecursoNoEncontradoException("Tarifa no encontrada con id: " + dto.getIdTarifa()));
+
+        LocalDateTime inicio = dto.getFechaInicio() != null ? dto.getFechaInicio() : m.getFechaInicio();
+        LocalDateTime fin = dto.getFechaFin() != null ? dto.getFechaFin() : m.getFechaFin();
+
+        m.setVehiculo(vehiculo);
+        m.setTarifa(tarifa);
+        m.setFechaInicio(inicio);
+        m.setFechaFin(fin);
+
+        if (dto.getMontoPagadoManual() != null) {
+            m.setMontoPagado(dto.getMontoPagadoManual());
+        } else {
+            m.setMontoPagado(calcularMontoMembresia(vehiculo, tarifa, inicio, fin));
+        }
+
+        return convertirADTO(membresiaRepository.save(m));
+    }
+
+    private BigDecimal calcularMontoMembresia(Vehiculo vehiculo, Tarifa tarifa, LocalDateTime inicio, LocalDateTime fin) {
         if (tarifa.getTipoCalculo() != TipoCalculoTarifa.MENSUAL) {
             return tarifa.getValorHora() != null ? tarifa.getValorHora() : BigDecimal.ZERO;
         }
+
+        BigDecimal tarifaMensualBase;
 
         // Prioridad 1: si la tarifa tiene porcentaje configurado (ej. carros), se
         // calcula sobre matrícula/salario
@@ -85,7 +122,7 @@ public class MembresiaServiceImpl implements MembresiaService {
                 throw new RecursoNoDisponibleException(
                         "Las membresías con porcentaje solo aplican para usuarios del sistema, no para externos");
             }
-            BigDecimal base = vehiculo.getCategoriaPersona() == CategoriaPersona.ESTUDIANTE
+            BigDecimal base = vehiculo.getCategoriaPersona() == co.edu.unimonserrate.unimonpark.enums.CategoriaPersona.ESTUDIANTE
                     ? usuario.getValorMatricula()
                     : usuario.getValorSalario();
 
@@ -93,16 +130,25 @@ public class MembresiaServiceImpl implements MembresiaService {
                 throw new RecursoNoDisponibleException(
                         "El usuario no tiene valor de matrícula/salario registrado, necesario para calcular la mensualidad");
             }
-            BigDecimal calculado = base.multiply(tarifa.getPorcentaje()).divide(BigDecimal.valueOf(100));
-            return redondearMultiplo10000(calculado);
+            tarifaMensualBase = base.multiply(tarifa.getPorcentaje()).divide(BigDecimal.valueOf(100));
         }
-
         // Prioridad 2: si no tiene porcentaje, se usa el valor fijo (ej. motos)
-        if (tarifa.getValorHora() != null) {
-            return tarifa.getValorHora();
+        else if (tarifa.getValorHora() != null) {
+            tarifaMensualBase = tarifa.getValorHora();
+        } else {
+            throw new RecursoNoDisponibleException("La tarifa mensual no tiene porcentaje ni valor fijo configurado");
         }
 
-        throw new RecursoNoDisponibleException("La tarifa mensual no tiene porcentaje ni valor fijo configurado");
+        // Calcular proporcion por días
+        long dias = java.time.temporal.ChronoUnit.DAYS.between(inicio.toLocalDate(), fin.toLocalDate());
+        if (dias <= 0) dias = 1; // Mínimo 1 día de cobro
+
+        // tarifaDiaria = tarifaMensualBase / 30
+        BigDecimal calculado = tarifaMensualBase
+                .multiply(BigDecimal.valueOf(dias))
+                .divide(BigDecimal.valueOf(30), 2, java.math.RoundingMode.HALF_UP);
+
+        return redondearMultiplo10000(calculado);
     }
 
     /** Redondea hacia arriba al múltiplo de 10.000 más cercano */

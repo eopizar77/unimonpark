@@ -1,5 +1,5 @@
-import { useState, type SubmitEvent } from "react";
-import { useNavigate } from "react-router-dom";
+﻿import { useState, type SubmitEvent } from "react";
+import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -46,7 +46,7 @@ export default function LoginPage(){
         <div className="flex h-screen items-center justify-center bg-muted">
       <Card className="w-full max-w-sm">
         <CardHeader>
-          <CardTitle>Unimonpark</CardTitle>
+          <div className="flex flex-col items-center justify-center mb-4"><img src="/logo.png" alt="Unimonpark Logo" className="w-24 h-24 object-contain rounded-full border-2 border-primary/20 shadow-sm" /></div><CardTitle className="text-center">Unimonpark</CardTitle>
           <CardDescription>Inicia sesión para continuar</CardDescription>
         </CardHeader>
         <CardContent>
@@ -75,12 +75,19 @@ export default function LoginPage(){
               <p className="text-sm text-red-600">{error}</p>
             )}
 
-            <Button type="submit" disabled={cargando}>
+            <Button type="submit" disabled={cargando} className="mt-2">
               {cargando ? "Ingresando..." : "Ingresar"}
             </Button>
           </form>
+          <div className="mt-4 text-center text-sm">
+            <Link to="/forgot-password" className="text-primary hover:underline">
+              ¿Olvidaste tu contraseña?
+            </Link>
+          </div>
         </CardContent>
       </Card>
     </div>
     );
 }
+
+

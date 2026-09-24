@@ -9,6 +9,7 @@ import {
   AlertCircle,
   Car,
   Clock,
+  UserCheck
 } from "lucide-react";
 
 import { listarEspaciosParqueo } from "@/api/espaciosParqueo";
@@ -19,6 +20,7 @@ import { listarMensualidades } from "@/api/mensualidades";
 import { listarVehiculos } from "@/api/vehiculos";
 import { listarTiposVehiculo } from "@/api/tiposVehiculo";
 import { listarUsuarios } from "@/api/usuarios";
+import { listarExternos } from "@/api/externos";
 
 import type { EspacioParqueo } from "@/types/espacioParqueo";
 import type { Ingreso } from "@/types/ingreso";
@@ -27,11 +29,13 @@ import type { Mensualidad } from "@/types/mensualidad";
 import type { Vehiculo } from "@/types/vehiculo";
 import type { TipoVehiculo } from "@/types/tipoVehiculo";
 import type { Usuario } from "@/types/usuario";
+import type { Externo } from "@/types/externo";
 
 import StatCard from "./StatCard";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { useAuth } from "@/context/AuthContext";
 
 interface AlertaVencimiento {
   id: string;
@@ -43,6 +47,7 @@ interface AlertaVencimiento {
 }
 
 export default function DashboardPage() {
+  const { nombreUsuario } = useAuth();
   const [cargando, setCargando] = useState(true);
 
   // Datos base
@@ -54,6 +59,7 @@ export default function DashboardPage() {
   const [vehiculos, setVehiculos] = useState<Vehiculo[]>([]);
   const [tipos, setTipos] = useState<TipoVehiculo[]>([]);
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
+  const [_, setExternos] = useState<Externo[]>([]);
 
   useEffect(() => {
     async function cargar() {
@@ -68,6 +74,7 @@ export default function DashboardPage() {
           vehiculosData,
           tiposData,
           usuariosData,
+          externosData,
         ] = await Promise.all([
           listarEspaciosParqueo(),
           listarIngresos(),
@@ -77,6 +84,7 @@ export default function DashboardPage() {
           listarVehiculos(),
           listarTiposVehiculo(),
           listarUsuarios(),
+          listarExternos(),
         ]);
 
         setEspacios(espaciosData);
@@ -87,6 +95,7 @@ export default function DashboardPage() {
         setVehiculos(vehiculosData);
         setTipos(tiposData);
         setUsuarios(usuariosData);
+        setExternos(externosData);
       } catch {
         toast.error("No se pudo cargar el resumen del parqueadero");
       } finally {
@@ -97,7 +106,7 @@ export default function DashboardPage() {
   }, []);
 
   if (cargando) {
-    return <p className="text-muted-foreground">Cargando centro de control...</p>;
+    return <p className="text-muted-foreground animate-pulse">Cargando centro de control...</p>;
   }
 
   // --- CÁLCULOS ESTADÍSTICOS ---
@@ -122,6 +131,15 @@ export default function DashboardPage() {
       cantidad: cantidadAdentro,
     };
   });
+
+  // --- CONTEO DE EXTERNOS ADENTRO ---
+  const vehiculosDeExternos = vehiculos
+    .filter((v) => v.idExterno !== null || v.nombreExterno !== null)
+    .map((v) => v.idVehiculo);
+    
+  const externosAdentro = ingresosActivos.filter((i) =>
+    vehiculosDeExternos.includes(i.idVehiculo)
+  ).length;
 
   // --- DETECCIÓN DE ALERTAS DE VENCIMIENTO (Próximos 7 días) ---
   const hoy = new Date();
@@ -175,68 +193,87 @@ export default function DashboardPage() {
   // Ordenar de más urgente a menos urgente
   alertas.sort((a, b) => a.diasRestantes - b.diasRestantes);
 
+  // Fecha bonita para el saludo
+  const fechaActual = hoy.toLocaleDateString("es-CO", { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6 animate-in fade-in duration-500">
       <div>
-        <h2 className="text-2xl font-bold tracking-tight">Panel de Control General</h2>
-        <p className="text-sm text-muted-foreground">
-          Monitoreo en tiempo real del parqueadero UnimonPark
+        <h2 className="text-3xl font-bold tracking-tight text-primary">
+          ¡HOLA, {nombreUsuario || "Operario"}! 👋
+        </h2>
+        <p className="text-sm text-muted-foreground mt-1 capitalize">
+          {fechaActual} - MONITOREO TIEMPO REAL -- UNIMONPARK --
         </p>
       </div>
 
       {/* Tarjetas Principales */}
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
-        <StatCard titulo="Espacios disponibles" valor={espaciosDisponibles} icon={CheckCircle2} />
-        <StatCard titulo="Espacios ocupados" valor={espaciosOcupados} icon={MapPin} />
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+        <StatCard titulo="Disponibles" valor={espaciosDisponibles} icon={CheckCircle2} />
+        <StatCard titulo="Ocupados" valor={espaciosOcupados} icon={MapPin} />
         <StatCard
-          titulo="Vehículos adentro"
+          titulo="Adentro"
           valor={ingresosActivos.length}
           icon={LogIn}
           descripcion="Ingresos activos"
         />
         <StatCard
+          titulo="Externos"
+          valor={externosAdentro}
+          icon={UserCheck}
+          descripcion="Visitantes ahora"
+        />
+        <StatCard
           titulo="Abonos vigentes"
           valor={membresiasVigentes + mensualidadesVigentes}
           icon={CalendarCheck}
-          descripcion="Membresías + Mensualidades"
         />
         <StatCard
           titulo="Penalizaciones"
           valor={penalizaciones}
           icon={AlertTriangle}
-          descripcion="Pendientes por resolver"
         />
       </div>
 
       {/* Grid de Ocupación por Tipo y Alertas */}
       <div className="grid gap-6 md:grid-cols-3">
         {/* Distribución por Tipo de Vehículo */}
-        <Card className="md:col-span-1">
+        <Card className="md:col-span-1 shadow-sm border-gray-100">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base">
-              <Car className="h-5 w-5 text-blue-500" />
-              Ocupación por Tipo
+            <CardTitle className="flex items-center gap-2 text-base text-primary">
+              <Car className="h-5 w-5" />
+              OCUPACION POR TIPO
             </CardTitle>
-            <CardDescription>Vehículos dentro en este instante</CardDescription>
+            <CardDescription>Vehículos con ingreso activo</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            {ocupacionPorTipo.map((item) => (
-              <div key={item.nombre} className="flex items-center justify-between rounded-lg border p-3">
-                <span className="font-medium text-sm">{item.nombre}</span>
-                <Badge variant={item.cantidad > 0 ? "default" : "secondary"}>
-                  {item.cantidad} dentro
-                </Badge>
-              </div>
-            ))}
+          <CardContent className="space-y-5">
+            {ocupacionPorTipo.map((item) => {
+              // Calcular porcentaje visual (sobre el total de ocupados, max 100%)
+              const porcentaje = ingresosActivos.length > 0 ? Math.round((item.cantidad / ingresosActivos.length) * 100) : 0;
+              return (
+                <div key={item.nombre} className="flex flex-col gap-2">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="font-medium text-slate-700">{item.nombre}</span>
+                    <span className="font-bold text-primary">{item.cantidad}</span>
+                  </div>
+                  <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-primary rounded-full transition-all duration-1000" 
+                      style={{ width: `${porcentaje}%` }} 
+                    />
+                  </div>
+                </div>
+              );
+            })}
           </CardContent>
         </Card>
 
         {/* Notificaciones y Vencimientos Próximos */}
-        <Card className="md:col-span-2">
+        <Card className="md:col-span-2 shadow-sm border-gray-100">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base text-amber-600 dark:text-amber-500">
               <AlertCircle className="h-5 w-5" />
-              Vencimientos Próximos (7 Días)
+              VENCIMIENTOS PROXIMOS (7 Días)
             </CardTitle>
             <CardDescription>
               Mensualidades y membresías con fecha límite de vencimiento cercana
@@ -244,63 +281,65 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             {alertas.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-6 text-center text-sm text-muted-foreground">
-                <CheckCircle2 className="h-8 w-8 text-emerald-500 mb-2" />
-                <p className="font-medium">No hay vencimientos en los próximos 7 días</p>
+              <div className="flex flex-col items-center justify-center py-8 text-center text-sm text-muted-foreground bg-slate-50/50 rounded-xl border border-dashed border-slate-200">
+                <CheckCircle2 className="h-10 w-10 text-secondary mb-3" />
+                <p className="font-medium text-slate-600">No hay vencimientos en los próximos 7 días</p>
                 <p className="text-xs">Todas las mensualidades y membresías están al día.</p>
               </div>
             ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Titular / Usuario</TableHead>
-                    <TableHead>Placa</TableHead>
-                    <TableHead>Tipo</TableHead>
-                    <TableHead>Fecha Fin</TableHead>
-                    <TableHead className="text-right">Urgencia</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {alertas.map((item) => (
-                    <TableRow key={item.id}>
-                      <TableCell className="font-medium">{item.usuario}</TableCell>
-                      <TableCell>{item.placa}</TableCell>
-                      <TableCell>
-                        <span className="text-xs text-muted-foreground">{item.tipo}</span>
-                      </TableCell>
-                      <TableCell>{item.fechaFin}</TableCell>
-                      <TableCell className="text-right">
-                        {item.diasRestantes < 0 && (
-                          <Badge variant="destructive">Vencida</Badge>
-                        )}
-                        {item.diasRestantes === 0 && (
-                          <Badge variant="destructive">Vence HOY</Badge>
-                        )}
-                        {item.diasRestantes > 0 && item.diasRestantes <= 3 && (
-                          <Badge className="bg-amber-500 hover:bg-amber-600 text-white">
-                            En {item.diasRestantes} días
-                          </Badge>
-                        )}
-                        {item.diasRestantes > 3 && (
-                          <Badge variant="secondary">
-                            En {item.diasRestantes} días
-                          </Badge>
-                        )}
-                      </TableCell>
+              <div className="rounded-md border">
+                <Table>
+                  <TableHeader className="bg-slate-50">
+                    <TableRow>
+                      <TableHead>Titular / Usuario</TableHead>
+                      <TableHead>Placa</TableHead>
+                      <TableHead>Tipo</TableHead>
+                      <TableHead>Fecha Fin</TableHead>
+                      <TableHead className="text-right">Urgencia</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {alertas.map((item) => (
+                      <TableRow key={item.id}>
+                        <TableCell className="font-medium text-primary">{item.usuario}</TableCell>
+                        <TableCell>{item.placa}</TableCell>
+                        <TableCell>
+                          <span className="text-xs text-muted-foreground bg-slate-100 px-2 py-1 rounded-md">{item.tipo}</span>
+                        </TableCell>
+                        <TableCell>{item.fechaFin}</TableCell>
+                        <TableCell className="text-right">
+                          {item.diasRestantes < 0 && (
+                            <Badge variant="destructive" className="bg-red-500">Vencida</Badge>
+                          )}
+                          {item.diasRestantes === 0 && (
+                            <Badge variant="destructive" className="bg-red-500">Vence HOY</Badge>
+                          )}
+                          {item.diasRestantes > 0 && item.diasRestantes <= 3 && (
+                            <Badge className="bg-amber-500 hover:bg-amber-600 text-white border-none">
+                              En {item.diasRestantes} días
+                            </Badge>
+                          )}
+                          {item.diasRestantes > 3 && (
+                            <Badge variant="secondary" className="bg-slate-100 text-slate-600 hover:bg-slate-200">
+                              En {item.diasRestantes} días
+                            </Badge>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
             )}
           </CardContent>
         </Card>
       </div>
 
       {/* Tabla de Actividad Reciente */}
-      <Card>
+      <Card className="shadow-sm border-gray-100">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-base">
-            <Clock className="h-5 w-5 text-slate-500" />
+          <CardTitle className="flex items-center gap-2 text-base text-primary">
+            <Clock className="h-5 w-5" />
             Últimos Ingresos Registrados
           </CardTitle>
           <CardDescription>Actividad reciente en el control de acceso</CardDescription>
@@ -309,35 +348,55 @@ export default function DashboardPage() {
           {ingresos.length === 0 ? (
             <p className="text-sm text-muted-foreground">No hay ingresos registrados aún.</p>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Fecha y Hora</TableHead>
-                  <TableHead>Vehículo / Placa</TableHead>
-                  <TableHead>Tipo Ingreso</TableHead>
-                  <TableHead>Estado</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {ingresos.slice(0, 5).map((ingreso) => {
-                  const veh = vehiculos.find((v) => v.idVehiculo === ingreso.idVehiculo);
-                  return (
-                    <TableRow key={ingreso.idIngreso}>
-                      <TableCell>{new Date(ingreso.fechaIngreso).toLocaleString("es-CO")}</TableCell>
-                      <TableCell className="font-medium">
-                        {veh ? `${veh.placa || "Bicicleta"} - ${veh.marca || ""}` : "Vehículo"}
-                      </TableCell>
-                      <TableCell>{ingreso.tipoIngreso}</TableCell>
-                      <TableCell>
-                        <Badge variant={ingreso.estado === "ACTIVO" ? "default" : "secondary"}>
-                          {ingreso.estado}
-                        </Badge>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader className="bg-slate-50">
+                  <TableRow>
+                    <TableHead>Fecha y Hora</TableHead>
+                    <TableHead>Vehículo / Placa</TableHead>
+                    <TableHead>Tipo Propietario</TableHead>
+                    <TableHead>Tipo Ingreso</TableHead>
+                    <TableHead>Estado</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {ingresos.slice(0, 5).map((ingreso) => {
+                    const veh = vehiculos.find((v) => v.idVehiculo === ingreso.idVehiculo);
+                    const esExterno = veh ? (veh.idExterno !== null || veh.nombreExterno !== null) : false;
+                    
+                    return (
+                      <TableRow key={ingreso.idIngreso}>
+                        <TableCell className="text-slate-600">{new Date(ingreso.fechaIngreso).toLocaleString("es-CO")}</TableCell>
+                        <TableCell className="font-medium text-primary">
+                          {veh ? `${veh.placa || "Bicicleta"} - ${veh.marca || ""}` : "Vehículo"}
+                        </TableCell>
+                        <TableCell>
+                          {esExterno ? (
+                            <Badge variant="outline" className="bg-secondary/20 text-secondary-foreground border-secondary/30">
+                              Visitante Externo
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
+                              Institucional
+                            </Badge>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <span className="text-xs font-medium px-2 py-1 bg-slate-100 rounded-md">
+                            {ingreso.tipoIngreso}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <Badge className={ingreso.estado === "ACTIVO" ? "bg-secondary text-secondary-foreground" : "bg-slate-200 text-slate-700"}>
+                            {ingreso.estado}
+                          </Badge>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
           )}
         </CardContent>
       </Card>

@@ -103,6 +103,8 @@ public class UsuarioServiceImpl implements UsuarioService{
         usuario.setRol(rol);
         usuario.setPerfilUsuarioTarifa(obtenerPerfil(dto.getIdPerfilUsuarioTarifa()));
         usuario.setVoluntarioCentroObrero(Boolean.TRUE.equals(dto.getVoluntarioCentroObrero()));
+        usuario.setValorMatricula(dto.getValorMatricula());
+        usuario.setValorSalario(dto.getValorSalario());
         usuario.setActivo(dto.getActivo());
         usuario.setFechaActualizacion(LocalDateTime.now());
 

@@ -9,6 +9,7 @@ import co.edu.unimonserrate.unimonpark.enums.EstadoIngreso;
 
 public interface IngresoRepository extends JpaRepository<Ingreso, Long> {
 	boolean existsByVehiculoIdVehiculoAndEstado(Long idVehiculo, EstadoIngreso estado);
+	boolean existsByNumeroFichaAndEstado(String numeroFicha, EstadoIngreso estado);
 
 	List<Ingreso> findByFechaIngresoBetween(LocalDateTime desde, LocalDateTime hasta);
 
