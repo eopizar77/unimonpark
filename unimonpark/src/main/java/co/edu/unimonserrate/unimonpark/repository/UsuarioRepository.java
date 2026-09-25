@@ -1,4 +1,4 @@
-package co.edu.unimonserrate.unimonpark.repository;
+﻿package co.edu.unimonserrate.unimonpark.repository;
 
 import java.util.Optional;
 
@@ -8,4 +8,5 @@ import co.edu.unimonserrate.unimonpark.entity.Usuario;
 public interface UsuarioRepository extends JpaRepository<Usuario, Long>{
 
     Optional<Usuario> findByNombreUsuario(String nombreUsuario);
+    Optional<Usuario> findByCorreo(String correo);
 }

@@ -1,7 +1,7 @@
-package co.edu.unimonserrate.unimonpark.security;
+﻿package co.edu.unimonserrate.unimonpark.security;
 
 import co.edu.unimonserrate.unimonpark.aspect.AuditoriaAspect;
-import co.edu.unimonserrate.unimonpark.controller.AuthController;
+
 import co.edu.unimonserrate.unimonpark.repository.AuditoriaRepository;
 import java.io.IOException;
 
@@ -26,7 +26,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final UserDetailsService userDetailsService;
     
     
-    public JwtAuthenticationFilter(JwtUtil jwtUtil, UserDetailsService userDetailsService, AuditoriaAspect auditoriaAspect, AuditoriaRepository auditoriaRepository, AuthController authController){
+    public JwtAuthenticationFilter(JwtUtil jwtUtil, UserDetailsService userDetailsService, AuditoriaAspect auditoriaAspect, AuditoriaRepository auditoriaRepository){
         this.jwtUtil = jwtUtil;
         this.userDetailsService = userDetailsService;
     }
@@ -58,9 +58,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
         }
     }   catch (Exception e){
-        // Token inválido, expirado o corrupto: simplemente no se autentica.
+        // Token invÃ¡lido, expirado o corrupto: simplemente no se autentica.
         // No se debe romper la peticion; el resto de la cadena de filtros.
-        // decidirá si la ruta requiere qutenticacion o no.
+        // decidirÃ¡ si la ruta requiere qutenticacion o no.
         System.err.println(">>> JWT FILTER ERROR: " + e.getClass().getName() + " - " + e.getMessage());
         e.printStackTrace();
         SecurityContextHolder.clearContext();
