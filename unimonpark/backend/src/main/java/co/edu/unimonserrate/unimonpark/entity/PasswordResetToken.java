@@ -1,4 +1,4 @@
-﻿package co.edu.unimonserrate.unimonpark.entity;
+package co.edu.unimonserrate.unimonpark.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;

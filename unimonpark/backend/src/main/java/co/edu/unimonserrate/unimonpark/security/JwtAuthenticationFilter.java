@@ -1,4 +1,4 @@
-﻿package co.edu.unimonserrate.unimonpark.security;
+package co.edu.unimonserrate.unimonpark.security;
 
 import co.edu.unimonserrate.unimonpark.aspect.AuditoriaAspect;
 
