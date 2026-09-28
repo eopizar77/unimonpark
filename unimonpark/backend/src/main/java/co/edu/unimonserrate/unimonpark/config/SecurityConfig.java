@@ -1,4 +1,4 @@
-package co.edu.unimonserrate.unimonpark.config;
+﻿package co.edu.unimonserrate.unimonpark.config;
 
 import java.util.List;
 
@@ -48,7 +48,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource(){
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of(
+        configuration.setAllowedOriginPatterns(List.of("*")); // configuration.setAllowedOrigins(List.of(
         "http://localhost:3000",
         "http://localhost:5173"
         ));
@@ -76,3 +76,4 @@ public class SecurityConfig {
             return http.build();
     }
 }
+
