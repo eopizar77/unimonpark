@@ -5,19 +5,19 @@ import co.edu.unimonserrate.unimonpark.aspect.AuditoriaAspect;
 import co.edu.unimonserrate.unimonpark.repository.AuditoriaRepository;
 import java.io.IOException;
 
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;//
-import org.springframework.security.core.context.SecurityContextHolder;//
-import org.springframework.security.core.userdetails.UserDetails;//
-import org.springframework.security.core.userdetails.UserDetailsService;//
-import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;//
-import org.springframework.stereotype.Component;//
-import org.springframework.web.filter.OncePerRequestFilter;//
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
+import org.springframework.stereotype.Component;
+import org.springframework.web.filter.OncePerRequestFilter;
 
-import org.springframework.lang.NonNull;//
-import jakarta.servlet.FilterChain;//
-import jakarta.servlet.ServletException;//
-import jakarta.servlet.http.HttpServletRequest;//
-import jakarta.servlet.http.HttpServletResponse;//
+import org.springframework.lang.NonNull;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
@@ -58,9 +58,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
         }
     }   catch (Exception e){
-        // Token invÃ¡lido, expirado o corrupto: simplemente no se autentica.
+        // Token invÃƒÂ¡lido, expirado o corrupto: simplemente no se autentica.
         // No se debe romper la peticion; el resto de la cadena de filtros.
-        // decidirÃ¡ si la ruta requiere qutenticacion o no.
+        // decidirÃƒÂ¡ si la ruta requiere qutenticacion o no.
         System.err.println(">>> JWT FILTER ERROR: " + e.getClass().getName() + " - " + e.getMessage());
         e.printStackTrace();
         SecurityContextHolder.clearContext();
