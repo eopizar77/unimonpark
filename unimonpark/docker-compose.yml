@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      # Si tienes la base de datos en Proxmox/Ubuntu, pon su IP aqui.
+      # Por defecto, apunto a la IP que usabas localmente.
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://192.168.10.214:5432/mi_base_datos?sslmode=disable&currentSchema=unimonpark
+      - SPRING_DATASOURCE_USERNAME=admin_user
+      - SPRING_DATASOURCE_PASSWORD=MiPasswordSeguro123
+    restart: always
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: always
