@@ -1,4 +1,4 @@
-﻿package co.edu.unimonserrate.unimonpark.service;
+package co.edu.unimonserrate.unimonpark.service;
 
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
