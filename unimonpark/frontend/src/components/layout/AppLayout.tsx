@@ -19,16 +19,16 @@ interface NavItem {
 const NAV_ITEMS: NavItem[] = [
   { to: "/dashboard", label: "Inicio", icon: Home },
   { to: "/roles", label: "Roles", icon: ShieldCheck, roles: ["ADMINISTRADOR"] },
-  { to: "/tipos-vehiculo", label: "Tipos de vehculo", icon: Tags, roles: ["ADMINISTRADOR"] },
+  { to: "/tipos-vehiculo", label: "Tipos de vehículo", icon: Tags, roles: ["ADMINISTRADOR"] },
   { to: "/usuarios", label: "Usuarios", icon: Users, roles: ["ADMINISTRADOR"] },
   { to: "/externos", label: "Externos", icon: UserCheck, roles: ["ADMINISTRADOR", "GESTION"] },
   { to: "/espacios-parqueo", label: "Espacios de parqueo", icon: MapPin, roles: ["ADMINISTRADOR"] },
   { to: "/tarifas", label: "Tarifas", icon: DollarSign, roles: ["ADMINISTRADOR"] },
-  { to: "/vehiculos", label: "Vehculos", icon: Car, roles: ["ADMINISTRADOR", "GESTION"] },
+  { to: "/vehiculos", label: "Vehículos", icon: Car, roles: ["ADMINISTRADOR", "GESTION"] },
   { to: "/salidas", label: "Salidas", icon: LogOut, roles: ["ADMINISTRADOR", "GESTION"] },
   { to: "/facturas", label: "Facturas", icon: Receipt, roles: ["ADMINISTRADOR", "GESTION"] },
   { to: "/pagos", label: "Pagos", icon: CreditCard, roles: ["ADMINISTRADOR", "GESTION"] },
-  { to: "/membresias", label: "Membresas", icon: CalendarCheck, roles: ["ADMINISTRADOR", "GESTION", "SUPERVISOR"] },
+  { to: "/membresias", label: "Membresías", icon: CalendarCheck, roles: ["ADMINISTRADOR", "GESTION", "SUPERVISOR"] },
   { to: "/penalizaciones", label: "Penalizaciones", icon: AlertTriangle, roles: ["ADMINISTRADOR", "GESTION", "SUPERVISOR"] },
   { to: "/ingresos", label: "Ingresos", icon: LogIn, roles: ["ADMINISTRADOR", "GESTION"] },
   { to: "/reportes", label: "Reportes Unimonpark", icon: BarChart3, roles: ["ADMINISTRADOR", "GESTION"]},
@@ -45,7 +45,7 @@ export default function AppLayout() {
     navigate("/login");
   }
 
-  const itemsVisibles = NAV_ITEMS.filter((item) => !item.roles || (rol && item.roles.includes(rol)));
+  const itemsVisibles = NAV_ITEMS.filter("item) => !item.roles || (rol && item.roles.includes(rol)));
 
   return (
     <div className="flex h-screen flex-col md:flex-row overflow-hidden">
@@ -56,7 +56,7 @@ export default function AppLayout() {
         </Button>
       </div>
 
-      <aside className={` md:flex w-full md:w-64 md:relative border-r bg-muted/40 p-4 flex-col shrink-0}>
+      <aside className={`${menuAbierto ? "flex absolute top-[65px] z-50 h-[calc(100vh-65px)] w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80" : "hidden"} md:flex w-full md:w-64 md:relative border-r bg-muted/40 p-4 flex-col shrink-0`}>
         <h1 className="hidden md:block text-lg font-bold mb-6">Unimonpark</h1>
 
         <nav className="flex flex-col gap-1 flex-1 overflow-y-auto">
@@ -68,13 +68,13 @@ export default function AppLayout() {
                 key={item.to}
                 to={item.to}
                 onClick={() => setMenuAbierto(false)}
-                className={lex items-center gap-2 rounded px-3 py-2 text-sm hover:bg-muted }
+                className={`flex items-center gap-2 rounded px-3 py-2 text-sm hover:bg-muted ${activo ? "bg-muted font-medium" : ""}`}
               >
                 <Icono className="h-4 w-4 shrink-0" />
                 {item.label}
               </Link>
             );
-          })}
+          })=
         </nav>
 
         <Separator className="my-3 shrink-0" />
@@ -84,7 +84,7 @@ export default function AppLayout() {
           <p className="text-muted-foreground">{rol}</p>
         </div>
         <Button variant="outline" size="sm" className="mt-3 shrink-0" onClick={handleLogout}>
-          Cerrar sesin
+          Cerrar sesión
         </Button>
       </aside>
 
