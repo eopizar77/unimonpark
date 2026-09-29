@@ -8,6 +8,7 @@ interface BuscadorConFiltroProps<T> {
     obtenerEtiqueta: (item: T) => string;
     renderEtiqueta?: (item: T) => React.ReactNode;
     obtenerSubEtiqueta?: (item: T) => string;
+    obtenerTerminosBusqueda?: (item: T) => string; // términos extra para buscar (ej: cédula)
     onSeleccionar: (id: number) => void;
     placeholder?: string;
 }
@@ -19,6 +20,7 @@ export function BuscadorConFiltro<T>({
     obtenerEtiqueta,
     renderEtiqueta,
     obtenerSubEtiqueta,
+    obtenerTerminosBusqueda,
     onSeleccionar,
     placeholder,
 }: BuscadorConFiltroProps<T>) {
@@ -50,7 +52,12 @@ export function BuscadorConFiltro<T>({
 
     const coincidencias = texto.trim() === ""
         ? items
-        : items.filter((item) => obtenerEtiqueta(item).toLowerCase().includes(texto.toLowerCase()));
+        : items.filter((item) => {
+            const etiqueta = obtenerEtiqueta(item).toLowerCase();
+            const terminos = obtenerTerminosBusqueda ? obtenerTerminosBusqueda(item).toLowerCase() : "";
+            const busqueda = texto.toLowerCase();
+            return etiqueta.includes(busqueda) || terminos.includes(busqueda);
+        });
 
     return (
         <div className="relative" ref={contenedorRef}>

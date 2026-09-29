@@ -185,7 +185,7 @@ export default function FacturasPage() {
             <div className="flex items-center mb-2">
                 <Input 
                     type="search" 
-                    placeholder="Buscar por placa, cliente, # de factura o cédula..." 
+                    placeholder="Buscar por placa, cliente, # de factura o cÃ©dula..." 
                     className="w-full md:max-w-md" 
                     value={busqueda} 
                     onChange={(e) => setBusqueda(e.target.value)} 
@@ -195,7 +195,7 @@ export default function FacturasPage() {
             <Table>
                 <TableHeader><TableRow>
                     <TableHead>Factura</TableHead><TableHead>Fecha</TableHead><TableHead>Cliente</TableHead>
-                    <TableHead>Vehículo</TableHead><TableHead>Subtotal</TableHead><TableHead>Total</TableHead><TableHead>Estado</TableHead>
+                    <TableHead>VehÃ­culo</TableHead><TableHead>Subtotal</TableHead><TableHead>Total</TableHead><TableHead>Estado</TableHead>
                 </TableRow></TableHeader>
                 <TableBody>
                     {cargando && <TableRow><TableCell colSpan={7}>Cargando...</TableCell></TableRow>}
@@ -233,8 +233,15 @@ export default function FacturasPage() {
                                         valorSeleccionado={field.value || null}
                                         obtenerId={(s) => s.idSalida}
                                         obtenerEtiqueta={descripcionSalida}
+                                        obtenerTerminosBusqueda={(s) => {
+                                            const vehiculo = vehiculos.find(v => v.idVehiculo === s.idVehiculo);
+                                            if (!vehiculo) return "";
+                                            if (vehiculo.idExterno) return externos.find(e => e.idExterno === vehiculo.idExterno)?.numeroDocumento || "";
+                                            if (vehiculo.idUsuario) return usuarios.find(u => u.idUsuario === vehiculo.idUsuario)?.documento || "";
+                                            return "";
+                                        }}
                                         onSeleccionar={(id) => field.onChange(id)}
-                                        placeholder={salidasDisponibles.length === 0 ? "No hay salidas sin facturar" : "Escribe la placa..."}
+                                        placeholder={salidasDisponibles.length === 0 ? "No hay salidas sin facturar" : "Escribe la placa o c\u00E9dula..."}
                                     />
                                 </FormControl><FormMessage /></FormItem>
                             )} />
@@ -280,8 +287,9 @@ export default function FacturasPage() {
                                             obtenerId={(u) => u.idUsuario}
                                             obtenerEtiqueta={nombreUsuarioSelect}
                                             obtenerSubEtiqueta={(u) => `CC: ${u.documento}`}
+                                            obtenerTerminosBusqueda={(u) => u.documento}
                                             onSeleccionar={(id) => field.onChange(id)}
-                                            placeholder="Escribe el nombre..."
+                                            placeholder="Escribe el nombre o c\u00E9dula..."
                                         />
                                     </FormControl><FormMessage /></FormItem>
                                 )} />
@@ -296,8 +304,9 @@ export default function FacturasPage() {
                                             obtenerId={(e) => e.idExterno}
                                             obtenerEtiqueta={nombreExternoSelect}
                                             obtenerSubEtiqueta={(e) => `CC: ${e.numeroDocumento}`}
+                                            obtenerTerminosBusqueda={(e) => e.numeroDocumento}
                                             onSeleccionar={(id) => field.onChange(id)}
-                                            placeholder="Escribe el nombre..."
+                                            placeholder="Escribe el nombre o c\u00E9dula..."
                                         />
                                     </FormControl><FormMessage /></FormItem>
                                 )} />
@@ -306,7 +315,7 @@ export default function FacturasPage() {
 
                             <div className="rounded-lg border bg-muted/30 p-3 text-sm">
                                 <p><strong>Subtotal de la salida:</strong> {salidaSeleccionada ? formatoMoneda(subtotal) : "Selecciona una salida"}</p>
-                                <p className="text-muted-foreground">El subtotal se toma automáticamente del valor calculado al cerrar la salida.</p>
+                                <p className="text-muted-foreground">El subtotal se toma automÃ¡ticamente del valor calculado al cerrar la salida.</p>
                             </div>
                             <FormField control={form.control as any} name="descuento" render={({ field }) => (
                                 <FormItem><FormLabel>Descuento</FormLabel><FormControl><Input type="number" min="0" step="0.01" value={field.value} onChange={(event) => field.onChange(Number(event.target.value))} /></FormControl><FormMessage /></FormItem>
