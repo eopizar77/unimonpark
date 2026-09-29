@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
@@ -165,13 +165,16 @@ export default function FacturasPage() {
     const facturasFiltradas = facturas.filter((factura) => {
         const nombre = `${factura.nombres} ${factura.apellidos}`.toLowerCase();
         const placa = (factura.placaVehiculo || "").toLowerCase();
+        const cedula = factura.idUsuario
+            ? (usuarios.find(u => u.idUsuario === factura.idUsuario)?.documento || "")
+            : (externos.find(e => e.idExterno === factura.idExterno)?.numeroDocumento || "");
         const search = busqueda.toLowerCase();
-        return nombre.includes(search) || placa.includes(search) || `#${factura.idFactura}`.includes(search);
+        return nombre.includes(search) || placa.includes(search) || `#${factura.idFactura}`.includes(search) || cedula.includes(search);
     });
 
     return (
         <div className="flex flex-col gap-4">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between flex-wrap gap-2">
                 <div>
                     <h2 className="text-2xl font-bold">Facturas</h2>
                     <p className="text-sm text-muted-foreground">Documentos generados a partir de las salidas</p>
@@ -182,8 +185,8 @@ export default function FacturasPage() {
             <div className="flex items-center mb-2">
                 <Input 
                     type="search" 
-                    placeholder="Buscar por placa, cliente o # de factura..." 
-                    className="max-w-md" 
+                    placeholder="Buscar por placa, cliente, # de factura o cédula..." 
+                    className="w-full md:max-w-md" 
                     value={busqueda} 
                     onChange={(e) => setBusqueda(e.target.value)} 
                 />

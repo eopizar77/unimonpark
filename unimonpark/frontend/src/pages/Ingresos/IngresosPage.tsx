@@ -237,13 +237,19 @@ export default function IngresosPage() {
     const ingresosFiltrados = ingresos.filter((ingreso) => {
         const dVehiculo = descripcionVehiculo(ingreso.idVehiculo).toLowerCase();
         const numFicha = (ingreso.numeroFicha || "").toLowerCase();
+        const vehiculo = vehiculos.find(v => v.idVehiculo === ingreso.idVehiculo);
+        const cedula = vehiculo
+            ? (vehiculo.idUsuario
+                ? (usuarios.find(u => u.idUsuario === vehiculo.idUsuario)?.documento || "")
+                : (externos.find(e => e.idExterno === vehiculo.idExterno)?.numeroDocumento || ""))
+            : "";
         const search = busqueda.toLowerCase();
-        return dVehiculo.includes(search) || numFicha.includes(search);
+        return dVehiculo.includes(search) || numFicha.includes(search) || cedula.includes(search);
     });
 
     return (
         <div className="flex flex-col gap-4">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between flex-wrap gap-2">
                 <div>
                     <h2 className="text-2xl font-bold">Ingresos</h2>
                     <p className="text-sm text-muted-foreground">Registro histórico de entradas al parqueadero</p>
@@ -254,8 +260,8 @@ export default function IngresosPage() {
             <div className="flex items-center mb-2">
                 <Input 
                     type="search" 
-                    placeholder="Buscar por placa, ficha o usuario..." 
-                    className="max-w-md" 
+                    placeholder="Buscar por placa, ficha o usuario o cédula..." 
+                    className="w-full md:max-w-md" 
                     value={busqueda} 
                     onChange={(e) => setBusqueda(e.target.value)} 
                 />
@@ -289,7 +295,7 @@ export default function IngresosPage() {
             </Table>
 
             {puedeCrear && <Dialog open={dialogAbierto} onOpenChange={setDialogAbierto}>
-                <DialogContent className="sm:max-w-lg">
+                <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
                     <DialogHeader><DialogTitle>Registrar ingreso</DialogTitle></DialogHeader>
                     <Form {...form}>
                         <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-4">

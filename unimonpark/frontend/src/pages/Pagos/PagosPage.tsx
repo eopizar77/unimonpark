@@ -1,12 +1,16 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 
 import { crearPago, listarPagos } from "@/api/pagos";
 import { listarFacturas } from "@/api/facturas";
+import { listarUsuarios } from "@/api/usuarios";
+import { listarExternos } from "@/api/externos";
 import type { Pago } from "@/types/pago";
 import type { Factura } from "@/types/factura";
+import type { Usuario } from "@/types/usuario";
+import type { Externo } from "@/types/externo";
 import { pagoSchema, type PagoFormValues } from "./pagoSchema";
 import { BuscadorConFiltro } from "@/components/BuscadorConFiltro";
 
@@ -36,6 +40,8 @@ export default function PagosPage() {
     const puedeCrear = rolesConPermiso.has((rol ?? "").trim().toUpperCase());
     const [pagos, setPagos] = useState<Pago[]>([]);
     const [facturas, setFacturas] = useState<Factura[]>([]);
+    const [usuarios, setUsuarios] = useState<Usuario[]>([]);
+    const [externos, setExternos] = useState<Externo[]>([]);
     const [cargando, setCargando] = useState(true);
     const [dialogAbierto, setDialogAbierto] = useState(false);
 
@@ -57,9 +63,11 @@ export default function PagosPage() {
     async function cargarDatos() {
         setCargando(true);
         try {
-            const [pagosData, facturasData] = await Promise.all([listarPagos(), listarFacturas()]);
+            const [pagosData, facturasData, usuariosData, externosData] = await Promise.all([listarPagos(), listarFacturas(), listarUsuarios(), listarExternos()]);
             setPagos(pagosData);
             setFacturas(facturasData);
+            setUsuarios(usuariosData);
+            setExternos(externosData);
         } catch {
             toast.error("No se pudieron cargar los pagos");
         } finally {
@@ -123,13 +131,19 @@ export default function PagosPage() {
         const dFactura = `#${pago.idFactura}`;
         const uNombre = nombreUsuarioPago(pago.idFactura).toLowerCase();
         const vPlaca = placaVehiculoPago(pago.idFactura).toLowerCase();
+        const factura = obtenerFactura(pago.idFactura);
+        const cedula = factura
+            ? (factura.idUsuario
+                ? (usuarios.find(u => u.idUsuario === factura.idUsuario)?.documento || "")
+                : (externos.find(e => e.idExterno === factura.idExterno)?.numeroDocumento || ""))
+            : "";
         const search = busqueda.toLowerCase();
-        return dFactura.includes(search) || uNombre.includes(search) || vPlaca.includes(search) || `#${pago.idPago}`.includes(search);
+        return dFactura.includes(search) || uNombre.includes(search) || vPlaca.includes(search) || `#${pago.idPago}`.includes(search) || cedula.includes(search);
     });
 
     return (
         <div className="flex flex-col gap-4">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-2">
                 <div>
                     <h2 className="text-2xl font-bold">Pagos</h2>
                     <p className="text-sm text-muted-foreground">Registro histórico de pagos recibidos</p>
@@ -140,8 +154,8 @@ export default function PagosPage() {
             <div className="flex items-center mb-2">
                 <Input 
                     type="search" 
-                    placeholder="Buscar por placa, usuario o # de factura..." 
-                    className="max-w-md" 
+                    placeholder="Buscar por placa, usuario, # de factura o cédula..." 
+                    className="w-full md:max-w-md" 
                     value={busqueda} 
                     onChange={(e) => setBusqueda(e.target.value)} 
                 />
@@ -172,7 +186,7 @@ export default function PagosPage() {
             </Table>
 
             {puedeCrear && <Dialog open={dialogAbierto} onOpenChange={setDialogAbierto}>
-                <DialogContent className="sm:max-w-lg">
+                <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
                     <DialogHeader><DialogTitle>Registrar pago</DialogTitle></DialogHeader>
                     <Form {...form}>
                         <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-4">
@@ -193,7 +207,18 @@ export default function PagosPage() {
                                 </FormControl><FormMessage /></FormItem>
                             )} />
                             <FormField control={form.control} name="monto" render={({ field }) => (
-                                <FormItem><FormLabel>Monto</FormLabel><FormControl><Input type="number" min="0" step="0.01" value={field.value} onChange={(event) => field.onChange(Number(event.target.value))} /></FormControl><FormMessage /></FormItem>
+                                <FormItem>
+                                    <FormLabel>Monto (tomado de la factura)</FormLabel>
+                                    <FormControl>
+                                        <Input
+                                            type="text"
+                                            readOnly
+                                            value={formatoMoneda(field.value)}
+                                            className="bg-muted text-muted-foreground cursor-not-allowed"
+                                        />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
                             )} />
                             <FormField control={form.control} name="metodoPago" render={({ field }) => (
                                 <FormItem><FormLabel>Método de pago</FormLabel><FormControl>

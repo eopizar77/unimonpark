@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
@@ -10,6 +10,8 @@ import { listarVehiculos } from "@/api/vehiculos";
 import { listarEspaciosParqueo } from "@/api/espaciosParqueo";
 import { listarTiposVehiculo } from "@/api/tiposVehiculo";
 import { listarMembresias } from "@/api/membresias";
+import { listarUsuarios } from "@/api/usuarios";
+import { listarExternos } from "@/api/externos";
 import type { Salida } from "@/types/salida";
 import type { Ingreso } from "@/types/ingreso";
 import type { Tarifa } from "@/types/tarifa";
@@ -17,6 +19,8 @@ import type { Vehiculo } from "@/types/vehiculo";
 import type { EspacioParqueo } from "@/types/espacioParqueo";
 import type { TipoVehiculo } from "@/types/tipoVehiculo";
 import type { Membresia } from "@/types/membresia";
+import type { Usuario } from "@/types/usuario";
+import type { Externo } from "@/types/externo";
 import { salidaSchema, type SalidaFormValues } from "./salidaSchema";
 import { BuscadorConFiltro } from "@/components/BuscadorConFiltro";
 
@@ -51,6 +55,8 @@ export default function SalidasPage() {
     const [espacios, setEspacios] = useState<EspacioParqueo[]>([]);
     const [tipos, setTipos] = useState<TipoVehiculo[]>([]);
     const [membresias, setMembresias] = useState<Membresia[]>([]);
+    const [usuarios, setUsuarios] = useState<Usuario[]>([]);
+    const [externos, setExternos] = useState<Externo[]>([]);
     const [cargando, setCargando] = useState(true);
     const [dialogAbierto, setDialogAbierto] = useState(false);
     const [ahora, setAhora] = useState(() => Date.now());
@@ -63,7 +69,7 @@ export default function SalidasPage() {
     async function cargarDatos() {
         setCargando(true);
         try {
-            const [salidasData, ingresosData, tarifasData, vehiculosData, espaciosData, tiposData, membresiasData] = await Promise.all([
+            const [salidasData, ingresosData, tarifasData, vehiculosData, espaciosData, tiposData, membresiasData, usuariosData, externosData] = await Promise.all([
                 listarSalidas(),
                 listarIngresos(),
                 listarTarifas(),
@@ -71,6 +77,8 @@ export default function SalidasPage() {
                 listarEspaciosParqueo(),
                 listarTiposVehiculo(),
                 listarMembresias(),
+                listarUsuarios(),
+                listarExternos(),
             ]);
             setSalidas(salidasData);
             setIngresos(ingresosData);
@@ -79,6 +87,8 @@ export default function SalidasPage() {
             setEspacios(espaciosData);
             setTipos(tiposData);
             setMembresias(membresiasData);
+            setUsuarios(usuariosData);
+            setExternos(externosData);
         } catch {
             toast.error("No se pudieron cargar las salidas");
         } finally {
@@ -213,13 +223,20 @@ export default function SalidasPage() {
 
     const salidasFiltradas = salidas.filter((salida) => {
         const dIngreso = descripcionIngreso(salida.idIngreso).toLowerCase();
+        const ingreso = ingresos.find(i => i.idIngreso === salida.idIngreso);
+        const vehiculo = ingreso ? vehiculos.find(v => v.idVehiculo === ingreso.idVehiculo) : undefined;
+        const cedula = vehiculo
+            ? (vehiculo.idUsuario
+                ? (usuarios.find(u => u.idUsuario === vehiculo.idUsuario)?.documento || "")
+                : (externos.find(e => e.idExterno === vehiculo.idExterno)?.numeroDocumento || ""))
+            : "";
         const search = busqueda.toLowerCase();
-        return dIngreso.includes(search);
+        return dIngreso.includes(search) || cedula.includes(search);
     });
 
     return (
         <div className="flex flex-col gap-4">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between flex-wrap gap-2">
                 <div>
                     <h2 className="text-2xl font-bold">Salidas</h2>
                     <p className="text-sm text-muted-foreground">Registro histórico de salidas del parqueadero</p>
@@ -230,8 +247,8 @@ export default function SalidasPage() {
             <div className="flex items-center mb-2">
                 <Input 
                     type="search" 
-                    placeholder="Buscar por placa, vehículo o ingreso..." 
-                    className="max-w-md" 
+                    placeholder="Buscar por placa, vehículo o ingreso o cédula..." 
+                    className="w-full md:max-w-md" 
                     value={busqueda} 
                     onChange={(e) => setBusqueda(e.target.value)} 
                 />
