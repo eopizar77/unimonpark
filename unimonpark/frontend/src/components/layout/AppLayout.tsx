@@ -19,16 +19,16 @@ interface NavItem {
 const NAV_ITEMS: NavItem[] = [
   { to: "/dashboard", label: "Inicio", icon: Home },
   { to: "/roles", label: "Roles", icon: ShieldCheck, roles: ["ADMINISTRADOR"] },
-  { to: "/tipos-vehiculo", label: "Tipos de vehÃƒÂ­culo", icon: Tags, roles: ["ADMINISTRADOR"] },
+  { to: "/tipos-vehiculo", label: "Tipos de vehÃƒÆ’Ã‚Â­culo", icon: Tags, roles: ["ADMINISTRADOR"] },
   { to: "/usuarios", label: "Usuarios", icon: Users, roles: ["ADMINISTRADOR"] },
   { to: "/externos", label: "Externos", icon: UserCheck, roles: ["ADMINISTRADOR", "GESTION"] },
   { to: "/espacios-parqueo", label: "Espacios de parqueo", icon: MapPin, roles: ["ADMINISTRADOR"] },
   { to: "/tarifas", label: "Tarifas", icon: DollarSign, roles: ["ADMINISTRADOR"] },
-  { to: "/vehiculos", label: "VehÃƒÂ­culos", icon: Car, roles: ["ADMINISTRADOR", "GESTION"] },
+  { to: "/vehiculos", label: "VehÃƒÆ’Ã‚Â­culos", icon: Car, roles: ["ADMINISTRADOR", "GESTION"] },
   { to: "/salidas", label: "Salidas", icon: LogOut, roles: ["ADMINISTRADOR", "GESTION"] },
   { to: "/facturas", label: "Facturas", icon: Receipt, roles: ["ADMINISTRADOR", "GESTION"] },
   { to: "/pagos", label: "Pagos", icon: CreditCard, roles: ["ADMINISTRADOR", "GESTION"] },
-  { to: "/membresias", label: "MembresÃƒÂ­as", icon: CalendarCheck, roles: ["ADMINISTRADOR", "GESTION", "SUPERVISOR"] },
+  { to: "/membresias", label: "MembresÃƒÆ’Ã‚Â­as", icon: CalendarCheck, roles: ["ADMINISTRADOR", "GESTION", "SUPERVISOR"] },
   { to: "/penalizaciones", label: "Penalizaciones", icon: AlertTriangle, roles: ["ADMINISTRADOR", "GESTION", "SUPERVISOR"] },
   { to: "/ingresos", label: "Ingresos", icon: LogIn, roles: ["ADMINISTRADOR", "GESTION"] },
   { to: "/reportes", label: "Reportes Unimonpark", icon: BarChart3, roles: ["ADMINISTRADOR", "GESTION"]},
@@ -74,7 +74,7 @@ export default function AppLayout() {
                 {item.label}
               </Link>
             );
-          })=
+          })}
         </nav>
 
         <Separator className="my-3 shrink-0" />
@@ -84,7 +84,7 @@ export default function AppLayout() {
           <p className="text-muted-foreground">{rol}</p>
         </div>
         <Button variant="outline" size="sm" className="mt-3 shrink-0" onClick={handleLogout}>
-          Cerrar sesiÃƒÂ³n
+          Cerrar sesiÃƒÆ’Ã‚Â³n
         </Button>
       </aside>
 
