@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
+import { Search } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 
@@ -93,21 +94,34 @@ export default function TiposVehiculoPage() {
     }
 
     return (
-        <div className="flex flex-col gap-4">
-            <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-bold">Tipos de Vehículo</h2>
+        <div className="flex flex-col gap-6">
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                <div>
+                    <h2 className="text-2xl font-bold tracking-tight text-slate-900">Tipos de Vehículo</h2>
+                    <p className="text-sm text-slate-500 font-normal">Gestión de tipos de vehículos</p>
+                </div>
                 <Button onClick={abrirCrear}>Nuevo tipo</Button>
             </div>
 
-            <Table>
-                <TableHeader>
-                    <TableRow>
-                        <TableHead>Nombre</TableHead>
-                        <TableHead>Descripción</TableHead>
-                        <TableHead>Estado</TableHead>
-                        <TableHead className="text-right">Acciones</TableHead>
-                    </TableRow>
-                </TableHeader>
+            <div className="bg-white rounded-xl shadow-sm border border-slate-200/80 overflow-hidden">
+                <div className="p-4 border-b border-slate-200/80">
+                    <div className="relative w-full max-w-sm">
+                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-500" />
+                        <Input
+                            placeholder="Buscar tipo de vehículo..."
+                            className="pl-9"
+                        />
+                    </div>
+                </div>
+                <Table>
+                    <TableHeader className="bg-slate-50/50">
+                        <TableRow>
+                            <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Nombre</TableHead>
+                            <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Descripción</TableHead>
+                            <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Estado</TableHead>
+                            <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider text-right">Acciones</TableHead>
+                        </TableRow>
+                    </TableHeader>
                 <TableBody>
                     {cargando && <TableRow><TableCell colSpan={4}>Cargando...</TableCell></TableRow>}
                     {!cargando && tipos.length === 0 && (
@@ -150,6 +164,7 @@ export default function TiposVehiculoPage() {
                     ))}
                 </TableBody>
             </Table>
+            </div>
 
             <Dialog open={dialogAbierto} onOpenChange={setDialogAbierto}>
                 <DialogContent>
