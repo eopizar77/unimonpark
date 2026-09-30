@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
+import { Search } from "lucide-react";
 
 import {
     actualizarEspacioParqueo,
@@ -147,48 +148,70 @@ export default function EspaciosParqueoPage() {
     }
 
     return (
-        <div className="flex flex-col gap-4">
-            <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-bold">Espacios de parqueo</h2>
+        <div className="flex flex-col gap-6">
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                <div>
+                    <h2 className="text-2xl font-bold tracking-tight text-slate-900">Espacios de parqueo</h2>
+                    <p className="text-sm text-slate-500 font-normal">Gestiona los espacios de estacionamiento disponibles</p>
+                </div>
                 <Button onClick={abrirCrear}>Nuevo espacio</Button>
             </div>
-            <Table>
-                <TableHeader><TableRow>
-                    <TableHead>Código</TableHead><TableHead>Piso</TableHead><TableHead>Zona</TableHead>
-                    <TableHead>Tipo de vehículo</TableHead><TableHead>Estado</TableHead><TableHead>Activo</TableHead>
-                    <TableHead className="text-right">Acciones</TableHead>
-                </TableRow></TableHeader>
-                <TableBody>
-                    {cargando && <TableRow><TableCell colSpan={7}>Cargando...</TableCell></TableRow>}
-                    {!cargando && espacios.length === 0 && <TableRow><TableCell colSpan={7}>No hay espacios de parqueo registrados</TableCell></TableRow>}
-                    {espacios.map((espacio) => (
-                        <TableRow key={espacio.idEspacio}>
-                            <TableCell className="font-medium">{espacio.codigo}</TableCell>
-                            <TableCell>{espacio.piso || "-"}</TableCell>
-                            <TableCell>{espacio.zona || "-"}</TableCell>
-                            <TableCell>{nombreTipo(espacio.idTipoVehiculo)}</TableCell>
-                            <TableCell><Badge variant="outline">{espacio.estado}</Badge></TableCell>
-                            <TableCell><Badge variant={espacio.activo ? "default" : "secondary"}>{espacio.activo ? "Sí" : "No"}</Badge></TableCell>
-                            <TableCell className="flex justify-end gap-2 text-right">
-                                <Button variant="outline" size="sm" onClick={() => abrirEditar(espacio)}>Editar</Button>
-                                <AlertDialog>
-                                    <AlertDialogTrigger render={<Button variant="destructive" size="sm" />}>Eliminar</AlertDialogTrigger>
-                                    <AlertDialogContent>
-                                        <AlertDialogHeader>
-                                            <AlertDialogTitle>¿Eliminar este espacio?</AlertDialogTitle>
-                                            <AlertDialogDescription>Esta acción no se puede deshacer. Se eliminará el espacio "{espacio.codigo}".</AlertDialogDescription>
-                                        </AlertDialogHeader>
-                                        <AlertDialogFooter>
-                                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                            <AlertDialogAction onClick={() => handleEliminar(espacio.idEspacio)}>Eliminar</AlertDialogAction>
-                                        </AlertDialogFooter>
-                                    </AlertDialogContent>
-                                </AlertDialog>
-                            </TableCell>
+            
+            <div className="bg-white rounded-xl shadow-sm border border-slate-200/80 overflow-hidden">
+                <div className="p-4 border-b border-slate-200/80 bg-slate-50/30">
+                    <div className="relative max-w-sm">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                        <Input placeholder="Buscar espacios..." className="pl-9 bg-white" />
+                    </div>
+                </div>
+                <Table>
+                    <TableHeader className="bg-slate-50/50">
+                        <TableRow>
+                            <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Código</TableHead>
+                            <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Piso</TableHead>
+                            <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Zona</TableHead>
+                            <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Tipo de vehículo</TableHead>
+                            <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Estado</TableHead>
+                            <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Activo</TableHead>
+                            <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider text-right">Acciones</TableHead>
                         </TableRow>
-                    ))}
-                </TableBody>
-            </Table>
+                    </TableHeader>
+                    <TableBody>
+                        {cargando && <TableRow><TableCell colSpan={7} className="text-center py-6">Cargando...</TableCell></TableRow>}
+                        {!cargando && espacios.length === 0 && <TableRow><TableCell colSpan={7} className="text-center py-6 text-slate-500">No hay espacios de parqueo registrados</TableCell></TableRow>}
+                        {espacios.map((espacio) => (
+                            <TableRow key={espacio.idEspacio}>
+                                <TableCell>
+                                    <span className="bg-slate-100 text-slate-900 font-mono font-bold text-xs px-2.5 py-1 rounded border border-slate-300 tracking-wider inline-block">
+                                        {espacio.codigo}
+                                    </span>
+                                </TableCell>
+                                <TableCell>{espacio.piso || "-"}</TableCell>
+                                <TableCell>{espacio.zona || "-"}</TableCell>
+                                <TableCell>{nombreTipo(espacio.idTipoVehiculo)}</TableCell>
+                                <TableCell><Badge variant="outline">{espacio.estado}</Badge></TableCell>
+                                <TableCell><Badge variant={espacio.activo ? "default" : "secondary"}>{espacio.activo ? "Sí" : "No"}</Badge></TableCell>
+                                <TableCell className="flex justify-end gap-2 text-right">
+                                    <Button variant="outline" size="sm" onClick={() => abrirEditar(espacio)}>Editar</Button>
+                                    <AlertDialog>
+                                        <AlertDialogTrigger render={<Button variant="destructive" size="sm" />}>Eliminar</AlertDialogTrigger>
+                                        <AlertDialogContent>
+                                            <AlertDialogHeader>
+                                                <AlertDialogTitle>¿Eliminar este espacio?</AlertDialogTitle>
+                                                <AlertDialogDescription>Esta acción no se puede deshacer. Se eliminará el espacio "{espacio.codigo}".</AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                                <AlertDialogAction onClick={() => handleEliminar(espacio.idEspacio)}>Eliminar</AlertDialogAction>
+                                            </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                    </AlertDialog>
+                                </TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+            </div>
             <Dialog open={dialogAbierto} onOpenChange={setDialogAbierto}>
                 <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
                     <DialogHeader><DialogTitle>{espacioEditando ? "Editar espacio de parqueo" : "Nuevo espacio de parqueo"}</DialogTitle></DialogHeader>
