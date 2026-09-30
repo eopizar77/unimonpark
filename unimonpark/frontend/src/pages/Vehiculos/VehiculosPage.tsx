@@ -14,6 +14,7 @@ import type { Externo } from "@/types/externo";
 import type { Vehiculo, VehiculoPayload } from "@/types/vehiculo";
 import { vehiculoSchema, type VehiculoFormValues } from "./vehiculoSchema";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Search } from "lucide-react";
 
 import {
     AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -191,29 +192,39 @@ export default function VehiculosPage() {
 
     return (
         <div className="flex flex-col gap-4">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                 <div>
-                    <h2 className="text-2xl font-bold">Vehículos</h2>
-                    <p className="text-sm text-muted-foreground">
+                    <h2 className="text-2xl font-bold tracking-tight text-slate-900">Vehículos</h2>
+                    <p className="text-sm text-slate-500 font-normal">
                         Gestión de automotores y bicicletas pertenecientes a usuarios institucionales o visitantes externos.
                     </p>
                 </div>
                 <Button onClick={abrirCrear}>Nuevo vehículo</Button>
             </div>
 
-            <Table>
-                <TableHeader>
-                    <TableRow>
-                        <TableHead>Placa</TableHead>
-                        <TableHead>Tipo</TableHead>
-                        <TableHead>Propietario</TableHead>
-                        <TableHead>Categoría</TableHead>
-                        <TableHead>Marca / modelo</TableHead>
-                        <TableHead>Estado</TableHead>
-                        <TableHead className="text-right">Acciones</TableHead>
-                    </TableRow>
-                </TableHeader>
-                <TableBody>
+            <div className="bg-white rounded-xl shadow-sm border border-slate-200/80 overflow-hidden">
+                <div className="p-4 border-b border-slate-200/80 flex items-center justify-between bg-white">
+                    <div className="relative max-w-sm w-full">
+                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-400" />
+                        <Input
+                            placeholder="Buscar vehículo..."
+                            className="pl-9 bg-slate-50 border-slate-200 w-full"
+                        />
+                    </div>
+                </div>
+                <Table>
+                    <TableHeader className="bg-slate-50/50">
+                        <TableRow>
+                            <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Placa</TableHead>
+                            <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Tipo</TableHead>
+                            <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Propietario</TableHead>
+                            <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Categoría</TableHead>
+                            <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Marca / modelo</TableHead>
+                            <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Estado</TableHead>
+                            <TableHead className="text-right text-slate-500 font-medium text-xs uppercase tracking-wider">Acciones</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
                     {cargando && (
                         <TableRow>
                             <TableCell colSpan={7}>Cargando...</TableCell>
@@ -226,7 +237,15 @@ export default function VehiculosPage() {
                     )}
                     {vehiculos.map((vehiculo) => (
                         <TableRow key={vehiculo.idVehiculo}>
-                            <TableCell className="font-medium">{vehiculo.placa || "Sin placa"}</TableCell>
+                            <TableCell className="font-medium">
+                                {vehiculo.placa ? (
+                                    <span className="bg-slate-100 text-slate-900 font-mono font-bold text-xs px-2.5 py-1 rounded border border-slate-300 tracking-wider inline-block">
+                                        {vehiculo.placa}
+                                    </span>
+                                ) : (
+                                    <span className="text-muted-foreground italic">Sin placa</span>
+                                )}
+                            </TableCell>
                             <TableCell>{nombreTipo(vehiculo.idTipoVehiculo)}</TableCell>
                             <TableCell>{renderPropietario(vehiculo)}</TableCell>
                             <TableCell>
@@ -268,6 +287,7 @@ export default function VehiculosPage() {
                     ))}
                 </TableBody>
             </Table>
+            </div>
 
             <Dialog open={dialogAbierto} onOpenChange={setDialogAbierto}>
                 <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
