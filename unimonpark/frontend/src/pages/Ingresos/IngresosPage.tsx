@@ -98,14 +98,14 @@ export default function IngresosPage() {
         if (esBicicletaIngreso) {
             const ficha = valores.numeroFicha?.trim();
             if (!ficha) {
-                toast.error("El nÃƒÂºmero de ficha es obligatorio para bicicletas");
+                toast.error("El nÃƒÆ’Ã‚Âºmero de ficha es obligatorio para bicicletas");
                 return;
             }
             const fichaEnUso = ingresos.some(
                 (ing) => ing.estado === "ACTIVO" && ing.numeroFicha === ficha
             );
             if (fichaEnUso) {
-                toast.error(`El nÃƒÂºmero de ficha ${ficha} ya se encuentra asignado a una bicicleta adentro.`);
+                toast.error(`El nÃƒÆ’Ã‚Âºmero de ficha ${ficha} ya se encuentra asignado a una bicicleta adentro.`);
                 return;
             }
         }
@@ -139,7 +139,7 @@ export default function IngresosPage() {
             nombreCompleto = vehiculo.nombreUsuario;
         }
 
-        return `${identificador} - ${nombreCompleto ? `${nombreCompleto} ` : ""}(${vehiculo.marca || "VehÃƒÂ­culo"})`;
+        return `${identificador} - ${nombreCompleto ? `${nombreCompleto} ` : ""}(${vehiculo.marca || "VehÃƒÆ’Ã‚Â­culo"})`;
     }
 
     function renderEtiquetaVehiculo(vehiculo: Vehiculo) {
@@ -173,17 +173,15 @@ export default function IngresosPage() {
                     )}
                 </div>
                 <span className="text-xs text-slate-500 font-normal ml-[3.25rem]">
-                    {vehiculo.placa ? (vehiculo.marca || "Vehículo") : "Bicicleta"}
+                    {vehiculo.placa ? (vehiculo.marca || "VehÃ­culo") : "Bicicleta"}
                 </span>
             </div>
         );
     }
-        return <span>{etiqueta}</span>;
-    }
 
     function descripcionVehiculo(id: number) {
         const vehiculo = vehiculos.find((item) => item.idVehiculo === id);
-        return vehiculo ? etiquetaVehiculo(vehiculo) : "VehÃƒÂ­culo no encontrado";
+        return vehiculo ? etiquetaVehiculo(vehiculo) : "VehÃƒÆ’Ã‚Â­culo no encontrado";
     }
 
     function descripcionEspacio(id: number) {
@@ -225,25 +223,25 @@ export default function IngresosPage() {
         : undefined;
     const esBicicletaIngreso = tipoVehiculoSeleccionado?.nombre.toLowerCase() === "bicicleta";
 
-    // ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â Detectar si el vehÃƒÂ­culo seleccionado tiene membresÃƒÂ­a activa
+    // ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒâ€šÃ‚Â Detectar si el vehÃƒÆ’Ã‚Â­culo seleccionado tiene membresÃƒÆ’Ã‚Â­a activa
     const membresiaActiva = vehiculoSeleccionado
         ? membresias.find((m) => m.activa && m.idVehiculo === vehiculoSeleccionado.idVehiculo)
         : undefined;
 
-    // ÃƒÂ°Ã…Â¸Ã…Â¡Ã¢â€šÂ¬ Efecto 1: NotificaciÃƒÂ³n de MembresÃƒÂ­a y cambio automÃƒÂ¡tico a tipo "MENSUAL"
+    // ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸Ãƒâ€¦Ã‚Â¡ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ Efecto 1: NotificaciÃƒÆ’Ã‚Â³n de MembresÃƒÆ’Ã‚Â­a y cambio automÃƒÆ’Ã‚Â¡tico a tipo "MENSUAL"
     useEffect(() => {
         if (!idVehiculoSeleccionado || !vehiculoSeleccionado) return;
 
         const membresia = membresias.find((m) => m.activa && m.idVehiculo === vehiculoSeleccionado.idVehiculo);
         if (membresia) {
-            toast.success(`ÃƒÂ¢Ã‚Â­Ã‚Â Ã‚Â¡VehÃƒÂ­culo con MembresÃƒÂ­a Vigente! (Vence: ${membresia.fechaFin})`, {
+            toast.success(`ÃƒÆ’Ã‚Â¢Ãƒâ€šÃ‚Â­Ãƒâ€šÃ‚Â Ãƒâ€šÃ‚Â¡VehÃƒÆ’Ã‚Â­culo con MembresÃƒÆ’Ã‚Â­a Vigente! (Vence: ${membresia.fechaFin})`, {
                 duration: 4500,
             });
             form.setValue("tipoIngreso", "MENSUAL");
         }
     }, [idVehiculoSeleccionado, membresias]);
 
-    // ÃƒÂ°Ã…Â¸Ã…Â¡Ã¢â€šÂ¬ Efecto 2: AsignaciÃƒÂ³n automÃƒÂ¡tica de celda por primera letra ('A', 'M', 'B')
+    // ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸Ãƒâ€¦Ã‚Â¡ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ Efecto 2: AsignaciÃƒÆ’Ã‚Â³n automÃƒÆ’Ã‚Â¡tica de celda por primera letra ('A', 'M', 'B')
     useEffect(() => {
         if (!idVehiculoSeleccionado || !vehiculoSeleccionado || !tipoVehiculoSeleccionado) {
             return;
@@ -256,7 +254,7 @@ export default function IngresosPage() {
 
         if (espacioSugerido) {
             form.setValue("idEspacioParqueo", espacioSugerido.idEspacio);
-            toast.info(`Espacio asignado automÃƒÂ¡ticamente: ${espacioSugerido.codigo}`, { duration: 2500 });
+            toast.info(`Espacio asignado automÃƒÆ’Ã‚Â¡ticamente: ${espacioSugerido.codigo}`, { duration: 2500 });
         } else if (espaciosDisponibles.length > 0) {
             form.setValue("idEspacioParqueo", espaciosDisponibles[0].idEspacio);
         }
@@ -282,7 +280,7 @@ export default function IngresosPage() {
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                 <div>
                     <h2 className="text-2xl font-bold tracking-tight text-slate-900">Ingresos</h2>
-                    <p className="text-sm text-slate-500 font-normal">Registro histÃƒÂ³rico de entradas al parqueadero</p>
+                    <p className="text-sm text-slate-500 font-normal">Registro histÃƒÆ’Ã‚Â³rico de entradas al parqueadero</p>
                 </div>
                 {puedeCrear && <Button className="bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg px-4 py-2.5 shadow-sm transition-all duration-150" onClick={abrirCrear}>Registrar ingreso</Button>}
             </div>
@@ -293,7 +291,7 @@ export default function IngresosPage() {
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                         <Input 
                             type="search" 
-                            placeholder="Buscar por placa, ficha o usuario o cÃƒÂ©dula..." 
+                            placeholder="Buscar por placa, ficha o usuario o cÃƒÆ’Ã‚Â©dula..." 
                             className="pl-10 pr-4 py-2 border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm w-full md:max-w-md" 
                             value={busqueda} 
                             onChange={(e) => setBusqueda(e.target.value)} 
@@ -304,9 +302,9 @@ export default function IngresosPage() {
                     <TableHeader className="bg-slate-50/50">
                         <TableRow>
                             <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Fecha de Ingreso</TableHead>
-                            <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">IdentificaciÃƒÂ³n</TableHead>
+                            <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">IdentificaciÃƒÆ’Ã‚Â³n</TableHead>
                             <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider hidden md:table-cell">Conductor</TableHead>
-                            <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">UbicaciÃƒÂ³n</TableHead>
+                            <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">UbicaciÃƒÆ’Ã‚Â³n</TableHead>
                             <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider hidden lg:table-cell">Lectura (Km)</TableHead>
                             <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Estado</TableHead>
                         </TableRow>
@@ -322,7 +320,7 @@ export default function IngresosPage() {
                             const vehiculo = vehiculos.find(v => v.idVehiculo === ingreso.idVehiculo);
                             const isBici = !vehiculo?.placa;
                             const identificador = vehiculo?.placa || ingreso.numeroFicha || "S/N";
-                            const subtext = isBici ? "Bicicleta" : (vehiculo?.marca || "VehÃƒÂ­culo");
+                            const subtext = isBici ? "Bicicleta" : (vehiculo?.marca || "VehÃƒÆ’Ã‚Â­culo");
 
                             const isActive = ingreso.estado.toLowerCase() === "activo";
 
@@ -372,7 +370,7 @@ export default function IngresosPage() {
                     <Form {...form}>
                         <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-4">
                             <FormField control={form.control} name="idVehiculo" render={({ field }) => (
-                                <FormItem><FormLabel>VehÃƒÂ­culo (busca por placa o nombre)</FormLabel><FormControl>
+                                <FormItem><FormLabel>VehÃƒÆ’Ã‚Â­culo (busca por placa o nombre)</FormLabel><FormControl>
                                     <BuscadorConFiltro
                                         items={vehiculosDisponibles}
                                         valorSeleccionado={field.value || null}
@@ -390,14 +388,14 @@ export default function IngresosPage() {
                                 </FormControl><FormMessage /></FormItem>
                             )} />
 
-                            {/* Banner visual si el vehÃƒÂ­culo cuenta con membresÃƒÂ­a activa */}
+                            {/* Banner visual si el vehÃƒÆ’Ã‚Â­culo cuenta con membresÃƒÆ’Ã‚Â­a activa */}
                             {membresiaActiva && (
                                 <div className="flex items-center gap-3 rounded-lg bg-emerald-500/10 border border-emerald-500/30 p-3 text-sm text-emerald-700 dark:text-emerald-400 font-medium">
-                                    <span className="text-xl">ÃƒÂ¢Ã‚Â­Ã‚Â</span>
+                                    <span className="text-xl">ÃƒÆ’Ã‚Â¢Ãƒâ€šÃ‚Â­Ãƒâ€šÃ‚Â</span>
                                     <div>
-                                        <p className="font-semibold">VehÃ­culo con MembresÃ­a Vigente</p>
+                                        <p className="font-semibold">VehÃƒÂ­culo con MembresÃƒÂ­a Vigente</p>
                                         <p className="text-xs text-emerald-600 dark:text-emerald-500">
-                                            Vence el {membresiaActiva.fechaFin}. El ingreso se registrÃƒÂ³ como MENSUAL automÃƒÂ¡ticamente.
+                                            Vence el {membresiaActiva.fechaFin}. El ingreso se registrÃƒÆ’Ã‚Â³ como MENSUAL automÃƒÆ’Ã‚Â¡ticamente.
                                         </p>
                                     </div>
                                 </div>
@@ -405,7 +403,7 @@ export default function IngresosPage() {
 
                             {esBicicletaIngreso && (
                                 <FormField control={form.control} name="numeroFicha" render={({ field }) => (
-                                    <FormItem><FormLabel>NÃƒÂºmero de ficha</FormLabel><FormControl>
+                                    <FormItem><FormLabel>NÃƒÆ’Ã‚Âºmero de ficha</FormLabel><FormControl>
                                         <Input {...field} value={field.value ?? ""} onChange={(event) => field.onChange(event.target.value)} />
                                     </FormControl><FormMessage /></FormItem>
                                 )} />
