@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
+import { Search } from "lucide-react";
 
 import { listarMembresias, crearMembresia, editarMembresia } from "@/api/membresias";
 import { obtenerMensajeError } from "@/api/client";
@@ -120,12 +121,17 @@ export default function MembresiasPage() {
     }
   }
 
-  function formatearFecha(fecha: string) {
-    return new Date(fecha).toLocaleDateString("es-CO", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
+  function renderDate(fecha?: string) {
+    if (!fecha) return <span className="text-sm text-slate-500">-</span>;
+    const dateObj = new Date(fecha);
+    const dateStr = dateObj.toLocaleDateString("es-CO", { year: "numeric", month: "short", day: "numeric" });
+    const timeStr = dateObj.toLocaleTimeString("es-CO", { hour: "2-digit", minute: "2-digit" });
+    return (
+      <div className="flex flex-col">
+        <span className="text-sm font-medium text-slate-900">{dateStr}</span>
+        <span className="text-xs text-slate-500">{timeStr}</span>
+      </div>
+    );
   }
 
   // Filtrar tarifas que aplican para cobro mensual
@@ -135,7 +141,7 @@ export default function MembresiasPage() {
 
   function etiquetaVehiculoMembresia(v: Vehiculo) {
     const propietario = v.nombreUsuario || (v.nombreExterno ? `${v.nombreExterno} (Ext)` : "Sin propietario");
-    return v.placa ? `${v.placa} â€” ${propietario}` : `Bicicleta â€” ${propietario}`;
+    return v.placa ? `${v.placa} — ${propietario}` : `Bicicleta — ${propietario}`;
   }
 
   const [busqueda, setBusqueda] = useState("");
@@ -148,68 +154,77 @@ export default function MembresiasPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold">Membresías</h2>
-          <p className="text-sm text-muted-foreground">
+          <h2 className="text-2xl font-bold tracking-tight text-slate-900">Membresías</h2>
+          <p className="text-sm text-slate-500 font-normal">
             Suscripciones mensuales de parqueo para vehículos autorizados.
           </p>
         </div>
         <Button onClick={abrirCrear}>Nueva membresía</Button>
       </div>
 
-      <div className="flex items-center mb-2">
-        <Input 
-          type="search" 
-          placeholder="Buscar por vehículo o propietario..." 
-          className="max-w-md" 
-          value={busqueda} 
-          onChange={(e) => setBusqueda(e.target.value)} 
-        />
-      </div>
+      <div className="bg-white rounded-xl shadow-sm border border-slate-200/80 overflow-hidden">
+        <div className="p-4 border-b border-slate-200/80 flex items-center">
+          <div className="relative w-full max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+            <Input 
+              type="search" 
+              placeholder="Buscar por vehículo o propietario..." 
+              className="pl-9 w-full" 
+              value={busqueda} 
+              onChange={(e) => setBusqueda(e.target.value)} 
+            />
+          </div>
+        </div>
 
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Placa</TableHead>
-            <TableHead>Tarifa</TableHead>
-            <TableHead>Inicio</TableHead>
-            <TableHead>Vence</TableHead>
-            <TableHead>Monto pagado</TableHead>
-            <TableHead>Estado</TableHead>
-            <TableHead className="text-right">Acciones</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {cargando && (
+        <Table>
+          <TableHeader className="bg-slate-50/50">
             <TableRow>
-              <TableCell colSpan={7}>Cargando...</TableCell>
+              <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Placa</TableHead>
+              <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Tarifa</TableHead>
+              <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Inicio</TableHead>
+              <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Vence</TableHead>
+              <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Monto pagado</TableHead>
+              <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Estado</TableHead>
+              <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider text-right">Acciones</TableHead>
             </TableRow>
-          )}
-          {!cargando && membresiasFiltradas.length === 0 && (
-            <TableRow>
-              <TableCell colSpan={6}>No hay membresías registradas</TableCell>
-            </TableRow>
-          )}
-          {membresiasFiltradas.map((m) => (
-            <TableRow key={m.idMembresia}>
-              <TableCell className="font-medium">{m.placaVehiculo || "Sin placa"}</TableCell>
-              <TableCell>{m.nombreTarifa}</TableCell>
-              <TableCell>{formatearFecha(m.fechaInicio)}</TableCell>
-              <TableCell>{formatearFecha(m.fechaFin)}</TableCell>
-              <TableCell className="font-semibold">{formatearMoneda(m.montoPagado)}</TableCell>
-              <TableCell>
-                <Badge variant={m.activa ? "default" : "secondary"}>
-                  {m.activa ? "Activa" : "Vencida"}
-                </Badge>
-              </TableCell>
-              <TableCell className="text-right">
-                <Button variant="outline" size="sm" onClick={() => abrirEditar(m)}>Editar</Button>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+          </TableHeader>
+          <TableBody>
+            {cargando && (
+              <TableRow>
+                <TableCell colSpan={7}>Cargando...</TableCell>
+              </TableRow>
+            )}
+            {!cargando && membresiasFiltradas.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={7}>No hay membresías registradas</TableCell>
+              </TableRow>
+            )}
+            {membresiasFiltradas.map((m) => (
+              <TableRow key={m.idMembresia}>
+                <TableCell>
+                  <span className="bg-slate-100 text-slate-900 font-mono font-bold text-xs px-2.5 py-1 rounded border border-slate-300 tracking-wider inline-block">
+                    {m.placaVehiculo || "SIN PLACA"}
+                  </span>
+                </TableCell>
+                <TableCell>{m.nombreTarifa}</TableCell>
+                <TableCell>{renderDate(m.fechaInicio)}</TableCell>
+                <TableCell>{renderDate(m.fechaFin)}</TableCell>
+                <TableCell className="font-semibold">{formatearMoneda(m.montoPagado)}</TableCell>
+                <TableCell>
+                  <Badge variant={m.activa ? "default" : "secondary"}>
+                    {m.activa ? "Activa" : "Vencida"}
+                  </Badge>
+                </TableCell>
+                <TableCell className="text-right">
+                  <Button variant="outline" size="sm" onClick={() => abrirEditar(m)}>Editar</Button>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
 
       <Dialog open={dialogAbierto} onOpenChange={setDialogAbierto}>
         <DialogContent>
