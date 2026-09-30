@@ -21,6 +21,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Search } from "lucide-react";
 
 // IDs fijos de roles (tabla `roles`) que no requieren nombre de usuario/contraseña
 // ni tienen ambos campos de mensualidad: Estudiante=7 (matrícula), Dae=8 (salario), Centro Obrero=9 (ninguno)
@@ -165,69 +166,90 @@ export default function UsuariosPage() {
     }
 
     return (
-        <div className="flex flex-col gap-4">
-            <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-bold">Usuarios</h2>
+        <div className="flex flex-col gap-6">
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                <div>
+                    <h2 className="text-2xl font-bold tracking-tight text-slate-900">Usuarios</h2>
+                    <p className="text-sm text-slate-500 font-normal">Gestión de usuarios del sistema</p>
+                </div>
                 <Button onClick={abrirCrear}>Nuevo usuario</Button>
             </div>
 
-            <Table>
-                <TableHeader>
-                    <TableRow>
-                        <TableHead>Nombre</TableHead>
-                        <TableHead>Usuario</TableHead>
-                        <TableHead>Correo</TableHead>
-                        <TableHead>Rol</TableHead>
-                        <TableHead>Matrícula / Salario</TableHead>
-                        <TableHead>Estado</TableHead>
-                        <TableHead className="text-right">Acciones</TableHead>
-                    </TableRow>
-                </TableHeader>
-                <TableBody>
-                    {cargando && <TableRow><TableCell colSpan={7}>Cargando...</TableCell></TableRow>}
-                    {!cargando && usuarios.length === 0 && (
-                        <TableRow><TableCell colSpan={7}>No hay usuarios registrados</TableCell></TableRow>
-                    )}
-                    {usuarios.map((usuario) => (
-                        <TableRow key={usuario.idUsuario}>
-                            <TableCell className="font-medium">{usuario.nombres} {usuario.apellidos}</TableCell>
-                            <TableCell>{usuario.nombreUsuario ?? "-"}</TableCell>
-                            <TableCell>{usuario.correo}</TableCell>
-                            <TableCell>{roles.find((rol) => rol.idRol === usuario.idRol)?.nombre ?? usuario.idRol}</TableCell>
-                            <TableCell>{usuario.valorMatricula ?? usuario.valorSalario ?? "-"}</TableCell>
-                            <TableCell>
-                                <Badge variant={usuario.activo ? "default" : "secondary"}>
-                                    {usuario.activo ? "Activo" : "Inactivo"}
-                                </Badge>
-                            </TableCell>
-                            <TableCell className="flex justify-end gap-2 text-right">
-                                <Button variant="outline" size="sm" onClick={() => abrirEditar(usuario)}>
-                                    Editar
-                                </Button>
-                                <AlertDialog>
-                                    <AlertDialogTrigger render={<Button variant="destructive" size="sm" />}>
-                                        Eliminar
-                                    </AlertDialogTrigger>
-                                    <AlertDialogContent>
-                                        <AlertDialogHeader>
-                                            <AlertDialogTitle>¿Eliminar este usuario?</AlertDialogTitle>
-                                            <AlertDialogDescription>
-                                                Esta acción no se puede deshacer. Se eliminará "{usuario.nombreUsuario ?? usuario.nombres}".
-                                            </AlertDialogDescription>
-                                        </AlertDialogHeader>
-                                        <AlertDialogFooter>
-                                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                            <AlertDialogAction onClick={() => handleEliminar(usuario.idUsuario)}>
-                                                Eliminar
-                                            </AlertDialogAction>
-                                        </AlertDialogFooter>
-                                    </AlertDialogContent>
-                                </AlertDialog>
-                            </TableCell>
+            <div className="bg-white rounded-xl shadow-sm border border-slate-200/80 overflow-hidden">
+                <div className="p-4 border-b border-slate-200/80">
+                    <div className="relative max-w-sm">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                        <Input 
+                            placeholder="Buscar usuarios..." 
+                            className="pl-9 bg-slate-50/50 border-slate-200/80" 
+                        />
+                    </div>
+                </div>
+
+                <Table>
+                    <TableHeader className="bg-slate-50/50">
+                        <TableRow>
+                            <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Nombre</TableHead>
+                            <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Documento</TableHead>
+                            <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Usuario</TableHead>
+                            <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Correo</TableHead>
+                            <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Rol</TableHead>
+                            <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Matrícula / Salario</TableHead>
+                            <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Estado</TableHead>
+                            <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider text-right">Acciones</TableHead>
                         </TableRow>
-                    ))}
-                </TableBody>
-            </Table>
+                    </TableHeader>
+                    <TableBody>
+                        {cargando && <TableRow><TableCell colSpan={8}>Cargando...</TableCell></TableRow>}
+                        {!cargando && usuarios.length === 0 && (
+                            <TableRow><TableCell colSpan={8}>No hay usuarios registrados</TableCell></TableRow>
+                        )}
+                        {usuarios.map((usuario) => (
+                            <TableRow key={usuario.idUsuario}>
+                                <TableCell className="font-medium text-slate-900">{usuario.nombres} {usuario.apellidos}</TableCell>
+                                <TableCell>
+                                    <span className="bg-slate-100 text-slate-900 font-mono font-bold text-xs px-2.5 py-1 rounded border border-slate-300 tracking-wider inline-block">
+                                        {usuario.documento}
+                                    </span>
+                                </TableCell>
+                                <TableCell className="text-slate-600">{usuario.nombreUsuario ?? "-"}</TableCell>
+                                <TableCell className="text-slate-600">{usuario.correo}</TableCell>
+                                <TableCell className="text-slate-600">{roles.find((rol) => rol.idRol === usuario.idRol)?.nombre ?? usuario.idRol}</TableCell>
+                                <TableCell className="text-slate-600">{usuario.valorMatricula ?? usuario.valorSalario ?? "-"}</TableCell>
+                                <TableCell>
+                                    <Badge variant={usuario.activo ? "default" : "secondary"}>
+                                        {usuario.activo ? "Activo" : "Inactivo"}
+                                    </Badge>
+                                </TableCell>
+                                <TableCell className="flex justify-end gap-2 text-right">
+                                    <Button variant="outline" size="sm" onClick={() => abrirEditar(usuario)}>
+                                        Editar
+                                    </Button>
+                                    <AlertDialog>
+                                        <AlertDialogTrigger render={<Button variant="destructive" size="sm" />}>
+                                            Eliminar
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent>
+                                            <AlertDialogHeader>
+                                                <AlertDialogTitle>¿Eliminar este usuario?</AlertDialogTitle>
+                                                <AlertDialogDescription>
+                                                    Esta acción no se puede deshacer. Se eliminará "{usuario.nombreUsuario ?? usuario.nombres}".
+                                                </AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                                <AlertDialogAction onClick={() => handleEliminar(usuario.idUsuario)}>
+                                                    Eliminar
+                                                </AlertDialogAction>
+                                            </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                    </AlertDialog>
+                                </TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+            </div>
 
             <Dialog open={dialogAbierto} onOpenChange={setDialogAbierto}>
                 <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
