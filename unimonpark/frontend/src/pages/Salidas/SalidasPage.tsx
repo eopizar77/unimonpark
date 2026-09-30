@@ -220,6 +220,8 @@ export default function SalidasPage() {
     const ingresosActivos = ingresos.filter((ingreso) => ingreso.estado.toLowerCase() === "activo");
 
     const [busqueda, setBusqueda] = useState("");
+    const [fechaDesde, setFechaDesde] = useState("");
+    const [fechaHasta, setFechaHasta] = useState("");
 
     const salidasFiltradas = salidas.filter((salida) => {
         const dIngreso = descripcionIngreso(salida.idIngreso).toLowerCase();
@@ -231,50 +233,127 @@ export default function SalidasPage() {
                 : (externos.find(e => e.idExterno === vehiculo.idExterno)?.numeroDocumento || ""))
             : "";
         const search = busqueda.toLowerCase();
-        return dIngreso.includes(search) || cedula.includes(search);
+        const coincideBusqueda = dIngreso.includes(search) || cedula.includes(search);
+
+        const fechaS = new Date(salida.fechaSalida);
+        const dDesde = fechaDesde ? new Date(`${fechaDesde}T00:00:00`) : null;
+        const dHasta = fechaHasta ? new Date(`${fechaHasta}T23:59:59`) : null;
+
+        let coincideFecha = true;
+        if (dDesde && fechaS < dDesde) coincideFecha = false;
+        if (dHasta && fechaS > dHasta) coincideFecha = false;
+
+        return coincideBusqueda && coincideFecha;
     });
 
     return (
         <div className="flex flex-col gap-4">
             <div className="flex items-center justify-between flex-wrap gap-2">
                 <div>
-                    <h2 className="text-2xl font-bold">Salidas</h2>
-                    <p className="text-sm text-muted-foreground">Registro histórico de salidas del parqueadero</p>
+                    <h2 className="text-2xl font-bold tracking-tight text-slate-900">Salidas</h2>
+                    <p className="text-sm text-slate-500 font-normal">Registro histórico de salidas y cobros</p>
                 </div>
                 {puedeCrear && <Button onClick={abrirCrear}>Registrar salida</Button>}
             </div>
 
-            <div className="flex items-center mb-2">
-                <Input 
-                    type="search" 
-                    placeholder="Buscar por placa, vehículo o ingreso o cédula..." 
-                    className="w-full md:max-w-md" 
-                    value={busqueda} 
-                    onChange={(e) => setBusqueda(e.target.value)} 
-                />
-            </div>
+            <div className="bg-white rounded-xl shadow-sm border border-slate-200/80 overflow-hidden">
+                <div className="p-4 border-b border-slate-100 flex flex-col sm:flex-row gap-3 bg-slate-50/30">
+                    <Input 
+                        type="search" 
+                        placeholder="Buscar por placa, vehículo o ingreso o cédula..." 
+                        className="w-full sm:max-w-[300px] bg-white" 
+                        value={busqueda} 
+                        onChange={(e) => setBusqueda(e.target.value)} 
+                    />
+                    <div className="flex gap-2">
+                        <Input
+                            type="date"
+                            className="w-full sm:w-[150px] bg-white"
+                            value={fechaDesde}
+                            onChange={(e) => setFechaDesde(e.target.value)}
+                        />
+                        <Input
+                            type="date"
+                            className="w-full sm:w-[150px] bg-white"
+                            value={fechaHasta}
+                            onChange={(e) => setFechaHasta(e.target.value)}
+                        />
+                        {(busqueda || fechaDesde || fechaHasta) && (
+                            <Button 
+                                variant="ghost" 
+                                onClick={() => {
+                                    setBusqueda("");
+                                    setFechaDesde("");
+                                    setFechaHasta("");
+                                }}
+                            >
+                                Limpiar
+                            </Button>
+                        )}
+                    </div>
+                </div>
 
-            <Table>
-                <TableHeader><TableRow>
-                    <TableHead>Fecha</TableHead><TableHead>Ingreso / vehículo</TableHead><TableHead>Tipo ingreso</TableHead><TableHead>Tarifa / modalidad</TableHead>
-                    <TableHead>Tiempo</TableHead><TableHead>Valor total</TableHead><TableHead>Estado</TableHead>
-                </TableRow></TableHeader>
-                <TableBody>
-                    {cargando && <TableRow><TableCell colSpan={7}>Cargando...</TableCell></TableRow>}
-                    {!cargando && salidasFiltradas.length === 0 && <TableRow><TableCell colSpan={7}>No hay salidas registradas</TableCell></TableRow>}
-                    {salidasFiltradas.map((salida) => (
-                        <TableRow key={salida.idSalida}>
-                            <TableCell>{formatearFecha(salida.fechaSalida)}</TableCell>
-                            <TableCell>{renderDescripcionIngreso(descripcionIngreso(salida.idIngreso))}</TableCell>
-                            <TableCell>{salida.tipoIngreso ?? "-"}</TableCell>
-                            <TableCell>{tarifas.find((tarifa) => tarifa.idTarifa === salida.idTarifa)?.nombre ?? "Sin tarifa (bicicleta)"} ({salida.modalidadPago ?? "LEGACY"})</TableCell>
-                            <TableCell>{salida.tiempoPermanencia ?? "-"} min</TableCell>
-                            <TableCell>{formatoMoneda(salida.valorTotal)}</TableCell>
-                            <TableCell><Badge variant="secondary">{salida.estado}</Badge></TableCell>
+                <Table>
+                    <TableHeader className="bg-slate-50/50">
+                        <TableRow>
+                            <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Fecha de Salida</TableHead>
+                            <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Ingreso / Vehículo</TableHead>
+                            <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Tipo ingreso</TableHead>
+                            <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Tarifa / modalidad</TableHead>
+                            <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Tiempo</TableHead>
+                            <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Valor total</TableHead>
+                            <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Estado</TableHead>
                         </TableRow>
-                    ))}
-                </TableBody>
-            </Table>
+                    </TableHeader>
+                    <TableBody>
+                        {cargando && <TableRow><TableCell colSpan={7} className="text-center py-8 text-slate-500">Cargando...</TableCell></TableRow>}
+                        {!cargando && salidasFiltradas.length === 0 && <TableRow><TableCell colSpan={7} className="text-center py-8 text-slate-500">No hay salidas registradas</TableCell></TableRow>}
+                        {salidasFiltradas.map((salida) => (
+                            <TableRow key={salida.idSalida} className="hover:bg-slate-50/50">
+                                <TableCell>
+                                    <div className="flex flex-col">
+                                        <span className="font-medium text-slate-900">
+                                            {new Date(salida.fechaSalida).toLocaleDateString("es-CO")}
+                                        </span>
+                                        <span className="text-xs text-slate-500">
+                                            {new Date(salida.fechaSalida).toLocaleTimeString("es-CO", { hour: "2-digit", minute: "2-digit" })}
+                                        </span>
+                                    </div>
+                                </TableCell>
+                                <TableCell>
+                                    {(() => {
+                                        const ingreso = ingresos.find(i => i.idIngreso === salida.idIngreso);
+                                        const vehiculo = vehiculos.find(v => v.idVehiculo === ingreso?.idVehiculo);
+                                        const tipoVehiculo = tipos.find(t => t.idTipoVehiculo === vehiculo?.idTipoVehiculo);
+                                        const idBase = vehiculo?.placa ? vehiculo.placa : (ingreso?.numeroFicha ? `${ingreso.numeroFicha}` : "Vehículo");
+                                        
+                                        return (
+                                            <div className="flex flex-col gap-1">
+                                                <div>
+                                                    <span className="bg-slate-100 text-slate-900 font-mono font-bold text-xs px-2.5 py-1 rounded border border-slate-300 tracking-wider">
+                                                        {idBase}
+                                                    </span>
+                                                    {vehiculo?.nombreExterno && (
+                                                        <Badge variant="outline" className="ml-2 text-[10px] bg-amber-500/10 text-amber-600 border-amber-300 py-0 h-4">
+                                                            EXTERNO
+                                                        </Badge>
+                                                    )}
+                                                </div>
+                                                <span className="text-xs text-slate-500">{tipoVehiculo?.nombre ?? "Desconocido"}</span>
+                                            </div>
+                                        );
+                                    })()}
+                                </TableCell>
+                                <TableCell>{salida.tipoIngreso ?? "-"}</TableCell>
+                                <TableCell>{tarifas.find((tarifa) => tarifa.idTarifa === salida.idTarifa)?.nombre ?? "Sin tarifa (bicicleta)"} ({salida.modalidadPago ?? "LEGACY"})</TableCell>
+                                <TableCell>{salida.tiempoPermanencia ?? "-"} min</TableCell>
+                                <TableCell className="font-medium">{formatoMoneda(salida.valorTotal)}</TableCell>
+                                <TableCell><Badge variant="secondary">{salida.estado}</Badge></TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+            </div>
 
             {puedeCrear && <Dialog open={dialogAbierto} onOpenChange={setDialogAbierto}>
                 <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
