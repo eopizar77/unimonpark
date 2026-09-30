@@ -30,6 +30,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useAuth } from "@/context/AuthContext";
+import { Search, MapPin } from "lucide-react";
 
 const rolesConPermiso = new Set(["ADMINISTRADOR", "GESTION"]);
 const valoresIniciales: IngresoFormValues = {
@@ -173,6 +174,23 @@ export default function IngresosPage() {
         return espacio ? `${espacio.codigo}${espacio.zona ? ` - ${espacio.zona}` : ""}` : "Espacio no encontrado";
     }
 
+    function obtenerNombreConductor(id: number) {
+        const vehiculo = vehiculos.find(v => v.idVehiculo === id);
+        if (!vehiculo) return "Desconocido";
+        if (vehiculo.idExterno) {
+            const ext = externos.find(e => e.idExterno === vehiculo.idExterno);
+            return ext ? `${ext.nombres} ${ext.apellidos}` : (vehiculo.nombreExterno || "Desconocido");
+        } else if (vehiculo.idUsuario) {
+            const propietario = usuarios.find(u => u.idUsuario === vehiculo.idUsuario);
+            return propietario ? `${propietario.nombres} ${propietario.apellidos}` : (vehiculo.nombreUsuario || "Desconocido");
+        } else if (vehiculo.nombreExterno) {
+            return vehiculo.nombreExterno;
+        } else if (vehiculo.nombreUsuario) {
+            return vehiculo.nombreUsuario;
+        }
+        return "Desconocido";
+    }
+
     function formatearFecha(fecha: string) {
         const fechaFormateada = new Date(fecha);
         return Number.isNaN(fechaFormateada.getTime()) ? fecha : fechaFormateada.toLocaleString("es-CO");
@@ -248,51 +266,93 @@ export default function IngresosPage() {
     });
 
     return (
-        <div className="flex flex-col gap-4">
-            <div className="flex items-center justify-between flex-wrap gap-2">
+        <div className="flex flex-col gap-6 p-4 md:p-6">
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                 <div>
-                    <h2 className="text-2xl font-bold">Ingresos</h2>
-                    <p className="text-sm text-muted-foreground">Registro histórico de entradas al parqueadero</p>
+                    <h2 className="text-2xl font-bold tracking-tight text-slate-900">Ingresos</h2>
+                    <p className="text-sm text-slate-500 font-normal">Registro histórico de entradas al parqueadero</p>
                 </div>
-                {puedeCrear && <Button onClick={abrirCrear}>Registrar ingreso</Button>}
+                {puedeCrear && <Button className="bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg px-4 py-2.5 shadow-sm transition-all duration-150" onClick={abrirCrear}>Registrar ingreso</Button>}
             </div>
 
-            <div className="flex items-center mb-2">
-                <Input 
-                    type="search" 
-                    placeholder="Buscar por placa, ficha o usuario o cédula..." 
-                    className="w-full md:max-w-md" 
-                    value={busqueda} 
-                    onChange={(e) => setBusqueda(e.target.value)} 
-                />
-            </div>
-
-            <Table>
-                <TableHeader><TableRow>
-                    <TableHead>Fecha de ingreso</TableHead>
-                    <TableHead>Vehículo</TableHead>
-                    <TableHead>Ficha</TableHead>
-                    <TableHead>Espacio</TableHead>
-                    <TableHead>Tipo</TableHead>
-                    <TableHead>Lectura inicial (km)</TableHead>
-                    <TableHead>Estado</TableHead>
-                </TableRow></TableHeader>
-                <TableBody>
-                    {cargando && <TableRow><TableCell colSpan={7}>Cargando...</TableCell></TableRow>}
-                    {!cargando && ingresosFiltrados.length === 0 && <TableRow><TableCell colSpan={7}>No hay ingresos registrados</TableCell></TableRow>}
-                    {ingresosFiltrados.map((ingreso) => (
-                        <TableRow key={ingreso.idIngreso}>
-                            <TableCell>{formatearFecha(ingreso.fechaIngreso)}</TableCell>
-                            <TableCell>{renderDescripcionVehiculo(ingreso.idVehiculo)}</TableCell>
-                            <TableCell>{ingreso.numeroFicha ?? "-"}</TableCell>
-                            <TableCell>{descripcionEspacio(ingreso.idEspacioParqueo)}</TableCell>
-                            <TableCell>{ingreso.tipoIngreso}</TableCell>
-                            <TableCell>{ingreso.lecturaInicialKm ?? "-"}</TableCell>
-                            <TableCell><Badge variant={ingreso.estado.toLowerCase() === "activo" ? "default" : "secondary"}>{ingreso.estado}</Badge></TableCell>
+            <div className="bg-white rounded-xl shadow-sm border border-slate-200/80 overflow-hidden">
+                <div className="p-4 md:p-6 border-b border-slate-200/80">
+                    <div className="relative">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                        <Input 
+                            type="search" 
+                            placeholder="Buscar por placa, ficha o usuario o cédula..." 
+                            className="pl-10 pr-4 py-2 border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm w-full md:max-w-md" 
+                            value={busqueda} 
+                            onChange={(e) => setBusqueda(e.target.value)} 
+                        />
+                    </div>
+                </div>
+                <Table>
+                    <TableHeader className="bg-slate-50/50">
+                        <TableRow>
+                            <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Fecha de Ingreso</TableHead>
+                            <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Identificación</TableHead>
+                            <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider hidden md:table-cell">Conductor</TableHead>
+                            <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Ubicación</TableHead>
+                            <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider hidden lg:table-cell">Lectura (Km)</TableHead>
+                            <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Estado</TableHead>
                         </TableRow>
-                    ))}
-                </TableBody>
-            </Table>
+                    </TableHeader>
+                    <TableBody>
+                        {cargando && <TableRow><TableCell colSpan={6} className="text-center py-4">Cargando...</TableCell></TableRow>}
+                        {!cargando && ingresosFiltrados.length === 0 && <TableRow><TableCell colSpan={6} className="text-center py-4">No hay ingresos registrados</TableCell></TableRow>}
+                        {ingresosFiltrados.map((ingreso) => {
+                            const fecha = new Date(ingreso.fechaIngreso);
+                            const dateStr = Number.isNaN(fecha.getTime()) ? ingreso.fechaIngreso : fecha.toLocaleDateString("es-CO", { day: '2-digit', month: 'short', year: 'numeric' });
+                            const timeStr = Number.isNaN(fecha.getTime()) ? "" : fecha.toLocaleTimeString("es-CO", { hour: '2-digit', minute: '2-digit', hour12: true });
+
+                            const vehiculo = vehiculos.find(v => v.idVehiculo === ingreso.idVehiculo);
+                            const isBici = !vehiculo?.placa;
+                            const identificador = vehiculo?.placa || ingreso.numeroFicha || "S/N";
+                            const subtext = isBici ? "Bicicleta" : (vehiculo?.marca || "Vehículo");
+
+                            const isActive = ingreso.estado.toLowerCase() === "activo";
+
+                            return (
+                                <TableRow key={ingreso.idIngreso}>
+                                    <TableCell>
+                                        <div className="text-sm font-medium text-slate-900">{dateStr}</div>
+                                        <div className="text-xs text-slate-500">{timeStr}</div>
+                                    </TableCell>
+                                    <TableCell>
+                                        <div className="flex flex-col items-start gap-1">
+                                            <span className="bg-slate-100 text-slate-900 font-mono font-bold text-xs px-2.5 py-1 rounded border border-slate-300 tracking-wider inline-block">
+                                                {identificador}
+                                            </span>
+                                            <span className="text-xs text-slate-500 font-normal">{subtext}</span>
+                                        </div>
+                                    </TableCell>
+                                    <TableCell className="hidden md:table-cell">
+                                        <div className="text-sm font-medium text-slate-800 capitalize">
+                                            {obtenerNombreConductor(ingreso.idVehiculo).toLowerCase()}
+                                        </div>
+                                    </TableCell>
+                                    <TableCell>
+                                        <span className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-700 bg-slate-100 px-2.5 py-1 rounded-md">
+                                            <MapPin className="h-3 w-3 text-slate-500" />
+                                            {descripcionEspacio(ingreso.idEspacioParqueo)}
+                                        </span>
+                                    </TableCell>
+                                    <TableCell className="hidden lg:table-cell text-sm text-slate-600">
+                                        {ingreso.lecturaInicialKm ? `${ingreso.lecturaInicialKm} km` : <span className="text-slate-400">N/A</span>}
+                                    </TableCell>
+                                    <TableCell>
+                                        <Badge className={isActive ? "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100" : "bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200"} variant="outline">
+                                            {ingreso.estado}
+                                        </Badge>
+                                    </TableCell>
+                                </TableRow>
+                            );
+                        })}
+                    </TableBody>
+                </Table>
+            </div>
 
             {puedeCrear && <Dialog open={dialogAbierto} onOpenChange={setDialogAbierto}>
                 <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">

@@ -24,7 +24,7 @@ const NAV_ITEMS: NavItem[] = [
   { to: "/externos", label: "Externos", icon: UserCheck, roles: ["ADMINISTRADOR", "GESTION"] },
   { to: "/espacios-parqueo", label: "Espacios de parqueo", icon: MapPin, roles: ["ADMINISTRADOR"] },
   { to: "/tarifas", label: "Tarifas", icon: DollarSign, roles: ["ADMINISTRADOR"] },
-  { to: "/vehiculos", label: "Vehículos", icon: Car, roles: ["ADMINISTRADOR", "GESTION"] },
+  { to: "/vehiculos", label: "VehÃ­culos", icon: Car, roles: ["ADMINISTRADOR", "GESTION"] },
   { to: "/salidas", label: "Salidas", icon: LogOut, roles: ["ADMINISTRADOR", "GESTION"] },
   { to: "/facturas", label: "Facturas", icon: Receipt, roles: ["ADMINISTRADOR", "GESTION"] },
   { to: "/pagos", label: "Pagos", icon: CreditCard, roles: ["ADMINISTRADOR", "GESTION"] },
@@ -48,7 +48,7 @@ export default function AppLayout() {
   const itemsVisibles = NAV_ITEMS.filter((item) => !item.roles || (rol && item.roles.includes(rol)));
 
   return (
-    <div className="flex h-screen flex-col md:flex-row overflow-hidden">
+    <div className="flex h-screen flex-col md:flex-row overflow-hidden bg-slate-50">
       <div className="md:hidden flex items-center justify-between p-4 border-b bg-muted/40 shrink-0">
         <h1 className="text-lg font-bold">Unimonpark</h1>
         <Button variant="ghost" size="icon" onClick={() => setMenuAbierto(!menuAbierto)}>
@@ -84,7 +84,7 @@ export default function AppLayout() {
           <p className="text-muted-foreground">{rol}</p>
         </div>
         <Button variant="outline" size="sm" className="mt-3 shrink-0" onClick={handleLogout}>
-          Cerrar sesión
+          Cerrar sesiÃ³n
         </Button>
       </aside>
 
