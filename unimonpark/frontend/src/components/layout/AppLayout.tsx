@@ -19,12 +19,12 @@ interface NavItem {
 const NAV_ITEMS: NavItem[] = [
   { to: "/dashboard", label: "Inicio", icon: Home },
   { to: "/roles", label: "Roles", icon: ShieldCheck, roles: ["ADMINISTRADOR"] },
-  { to: "/tipos-vehiculo", label: "Tipos de Vehiculo", icon: Tags, roles: ["ADMINISTRADOR"] },
+  { to: "/tipos-vehiculo", label: "Tipos de Vehículo", icon: Tags, roles: ["ADMINISTRADOR"] },
   { to: "/usuarios", label: "Usuarios", icon: Users, roles: ["ADMINISTRADOR"] },
   { to: "/externos", label: "Externos", icon: UserCheck, roles: ["ADMINISTRADOR", "GESTION"] },
   { to: "/espacios-parqueo", label: "Espacios de parqueo", icon: MapPin, roles: ["ADMINISTRADOR"] },
   { to: "/tarifas", label: "Tarifas", icon: DollarSign, roles: ["ADMINISTRADOR"] },
-  { to: "/vehiculos", label: "VehÃ­culos", icon: Car, roles: ["ADMINISTRADOR", "GESTION"] },
+  { to: "/vehiculos", label: "Vehículos", icon: Car, roles: ["ADMINISTRADOR", "GESTION"] },
   { to: "/salidas", label: "Salidas", icon: LogOut, roles: ["ADMINISTRADOR", "GESTION"] },
   { to: "/facturas", label: "Facturas", icon: Receipt, roles: ["ADMINISTRADOR", "GESTION"] },
   { to: "/pagos", label: "Pagos", icon: CreditCard, roles: ["ADMINISTRADOR", "GESTION"] },
@@ -83,9 +83,7 @@ export default function AppLayout() {
           <p className="font-medium">{nombreUsuario}</p>
           <p className="text-muted-foreground">{rol}</p>
         </div>
-        <Button variant="outline" size="sm" className="mt-3 shrink-0" onClick={handleLogout}>
-          Cerrar sesiÃ³n
-        </Button>
+        <Button variant="outline" size="sm" className="mt-3 shrink-0" onClick={handleLogout}>Cerrar sesión</Button>
       </aside>
 
       <main className="flex-1 overflow-x-hidden overflow-y-auto p-6 md:p-8 w-full min-w-0 bg-slate-50">
