@@ -110,10 +110,7 @@ return (
                 <div className="p-4 border-b border-slate-200/80">
                     <div className="relative w-full max-w-sm">
                         <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-500" />
-                        <Input
-                            placeholder="Buscar tipo de vehículo..."
-                            className="pl-9"
-                        />
+                        <Input placeholder="Buscar tipo de vehículo..." className="pl-9" value={busqueda} onChange={(e) => setBusqueda(e.target.value)} />
                     </div>
                 </div>
                 <Table>

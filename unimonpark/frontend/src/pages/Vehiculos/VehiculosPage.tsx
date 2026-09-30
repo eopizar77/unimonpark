@@ -156,8 +156,7 @@ export default function VehiculosPage() {
     function renderPropietario(vehiculo: Vehiculo) {
         if (vehiculo.nombreExterno) {
             
-    const vehiculosFiltrados = vehiculos.filter(v => { const search = busqueda.toLowerCase(); return (v.placa?.toLowerCase() || "").includes(search) || (v.marca?.toLowerCase() || "").includes(search) || (v.color?.toLowerCase() || "").includes(search); });
-return (
+    return (
                 <div className="flex items-center gap-1.5">
                     <span>{vehiculo.nombreExterno}</span>
                     <Badge variant="outline" className="text-xs bg-amber-500/10 text-amber-600 border-amber-300">
@@ -193,6 +192,13 @@ return (
         return tipos.find((tipo) => tipo.idTipoVehiculo === id)?.nombre ?? "Tipo no encontrado";
     }
 
+        const vehiculosFiltrados = vehiculos.filter(v => { 
+        const search = busqueda.toLowerCase(); 
+        return (v.placa?.toLowerCase() || "").includes(search) || 
+               (v.marca?.toLowerCase() || "").includes(search) || 
+               (v.color?.toLowerCase() || "").includes(search); 
+    });
+
     return (
         <div className="flex flex-col gap-4">
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
@@ -209,10 +215,7 @@ return (
                 <div className="p-4 border-b border-slate-200/80 flex items-center justify-between bg-white">
                     <div className="relative max-w-sm w-full">
                         <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-400" />
-                        <Input
-                            placeholder="Buscar vehículo..."
-                            className="pl-9 bg-slate-50 border-slate-200 w-full"
-                        />
+                        <Input placeholder="Buscar vehículo..." className="pl-9 bg-slate-50 border-slate-200 w-full" value={busqueda} onChange={(e) => setBusqueda(e.target.value)} />
                     </div>
                 </div>
                 <Table>
