@@ -17,6 +17,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Search } from "lucide-react";
 
 const valoresIniciales: PenalizacionFormValues = {
   idVehiculo: 0,
@@ -82,48 +83,64 @@ export default function PenalizacionesPage() {
   }
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold">Penalizaciones</h2>
+    <div className="flex flex-col gap-6">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight text-slate-900">Penalizaciones</h2>
+          <p className="text-sm text-slate-500 font-normal">Gestiona las penalizaciones registradas</p>
+        </div>
         <Button onClick={abrirCrear}>Nueva penalización</Button>
       </div>
 
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Placa</TableHead>
-            <TableHead>Tipo</TableHead>
-            <TableHead>Valor</TableHead>
-            <TableHead>Estado</TableHead>
-            <TableHead className="text-right">Acciones</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {cargando && <TableRow><TableCell colSpan={5}>Cargando...</TableCell></TableRow>}
-          {!cargando && penalizaciones.length === 0 && (
-            <TableRow><TableCell colSpan={5}>No hay penalizaciones registradas</TableCell></TableRow>
-          )}
-          {penalizaciones.map((p) => (
-            <TableRow key={p.idPenalizacion}>
-              <TableCell className="font-medium">{p.placaVehiculo}</TableCell>
-              <TableCell>{p.tipo === "TICKET_PERDIDO" ? "Ticket perdido" : "Ficha perdida"}</TableCell>
-              <TableCell>${p.valor}</TableCell>
-              <TableCell>
-                <Badge variant={p.estado === "PAGADA" ? "default" : "secondary"}>
-                  {p.estado === "PAGADA" ? "Pagada" : "Pendiente"}
-                </Badge>
-              </TableCell>
-              <TableCell className="text-right">
-                {p.estado === "PENDIENTE" && (
-                  <Button variant="outline" size="sm" onClick={() => handleMarcarPagada(p.idPenalizacion)}>
-                    Marcar pagada
-                  </Button>
-                )}
-              </TableCell>
+      <div className="bg-white rounded-xl shadow-sm border border-slate-200/80 overflow-hidden">
+        <div className="p-4 border-b border-slate-200/80">
+          <div className="relative max-w-sm">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+            <Input className="pl-9 bg-slate-50/50" placeholder="Buscar por placa..." />
+          </div>
+        </div>
+
+        <Table>
+          <TableHeader className="bg-slate-50/50">
+            <TableRow>
+              <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Placa</TableHead>
+              <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Tipo</TableHead>
+              <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Valor</TableHead>
+              <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Estado</TableHead>
+              <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider text-right">Acciones</TableHead>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+          </TableHeader>
+          <TableBody>
+            {cargando && <TableRow><TableCell colSpan={5}>Cargando...</TableCell></TableRow>}
+            {!cargando && penalizaciones.length === 0 && (
+              <TableRow><TableCell colSpan={5}>No hay penalizaciones registradas</TableCell></TableRow>
+            )}
+            {penalizaciones.map((p) => (
+              <TableRow key={p.idPenalizacion}>
+                <TableCell>
+                  <span className="bg-slate-100 text-slate-900 font-mono font-bold text-xs px-2.5 py-1 rounded border border-slate-300 tracking-wider inline-block">
+                    {p.placaVehiculo}
+                  </span>
+                </TableCell>
+                <TableCell>{p.tipo === "TICKET_PERDIDO" ? "Ticket perdido" : "Ficha perdida"}</TableCell>
+                <TableCell>${p.valor}</TableCell>
+                <TableCell>
+                  <Badge variant={p.estado === "PAGADA" ? "default" : "secondary"}>
+                    {p.estado === "PAGADA" ? "Pagada" : "Pendiente"}
+                  </Badge>
+                </TableCell>
+                <TableCell className="text-right">
+                  {p.estado === "PENDIENTE" && (
+                    <Button variant="outline" size="sm" onClick={() => handleMarcarPagada(p.idPenalizacion)}>
+                      Marcar pagada
+                    </Button>
+                  )}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
 
       <Dialog open={dialogAbierto} onOpenChange={setDialogAbierto}>
         <DialogContent>
