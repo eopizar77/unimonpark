@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
+import { Search } from "lucide-react";
 
 import { crearMensualidad, listarMensualidades } from "@/api/mensualidades";
 import { listarUsuarios } from "@/api/usuarios";
@@ -93,18 +94,63 @@ export default function MensualidadesPage() {
     }
 
     return (
-        <div className="flex flex-col gap-4">
-            <div className="flex items-center justify-between">
-                <div><h2 className="text-2xl font-bold">Mensualidades</h2><p className="text-sm text-muted-foreground">Planillas vigentes por usuario y vehículo</p></div>
+        <div className="flex flex-col gap-6">
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                <div>
+                    <h2 className="text-2xl font-bold tracking-tight text-slate-900">Mensualidades</h2>
+                    <p className="text-sm text-slate-500 font-normal">Planillas vigentes por usuario y vehículo</p>
+                </div>
                 {puedeCrear && <Button onClick={abrirCrear}>Registrar mensualidad</Button>}
             </div>
-            <Table><TableHeader><TableRow><TableHead>Usuario</TableHead><TableHead>Vehículo</TableHead><TableHead>Periodo</TableHead><TableHead>Valor</TableHead><TableHead>Estado</TableHead></TableRow></TableHeader>
-                <TableBody>
-                    {cargando && <TableRow><TableCell colSpan={5}>Cargando...</TableCell></TableRow>}
-                    {!cargando && mensualidades.length === 0 && <TableRow><TableCell colSpan={5}>No hay mensualidades registradas</TableCell></TableRow>}
-                    {mensualidades.map((item) => <TableRow key={item.idMensualidadUsuario}><TableCell>{nombreUsuario(item.idUsuario)}</TableCell><TableCell>{item.placaVehiculo}</TableCell><TableCell>{item.fechaInicio} a {item.fechaFin}</TableCell><TableCell>{formatoMoneda(item.valorCalculado)}</TableCell><TableCell><Badge variant="secondary">{item.estado}</Badge></TableCell></TableRow>)}
-                </TableBody>
-            </Table>
+
+            <div className="bg-white rounded-xl shadow-sm border border-slate-200/80 overflow-hidden">
+                <div className="p-4 border-b border-slate-100 flex items-center justify-between">
+                    <div className="relative w-full max-w-sm">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                        <input 
+                            type="text" 
+                            placeholder="Buscar mensualidad..." 
+                            className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-colors"
+                        />
+                    </div>
+                </div>
+                <Table>
+                    <TableHeader className="bg-slate-50/50">
+                        <TableRow>
+                            <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Usuario</TableHead>
+                            <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Vehículo</TableHead>
+                            <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Periodo</TableHead>
+                            <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Valor</TableHead>
+                            <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Estado</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {cargando && <TableRow><TableCell colSpan={5} className="text-center py-6 text-slate-500">Cargando...</TableCell></TableRow>}
+                        {!cargando && mensualidades.length === 0 && <TableRow><TableCell colSpan={5} className="text-center py-6 text-slate-500">No hay mensualidades registradas</TableCell></TableRow>}
+                        {mensualidades.map((item) => (
+                            <TableRow key={item.idMensualidadUsuario}>
+                                <TableCell className="font-medium text-slate-900">{nombreUsuario(item.idUsuario)}</TableCell>
+                                <TableCell>
+                                    <span className="bg-slate-100 text-slate-900 font-mono font-bold text-xs px-2.5 py-1 rounded border border-slate-300 tracking-wider inline-block">
+                                        {item.placaVehiculo}
+                                    </span>
+                                </TableCell>
+                                <TableCell className="text-sm text-slate-600">
+                                    {new Date(item.fechaInicio + 'T12:00:00').toLocaleDateString('es-CO', { year: 'numeric', month: 'short', day: 'numeric' })} a {new Date(item.fechaFin + 'T12:00:00').toLocaleDateString('es-CO', { year: 'numeric', month: 'short', day: 'numeric' })}
+                                </TableCell>
+                                <TableCell>
+                                    <span className="font-mono font-bold text-emerald-600">
+                                        {formatoMoneda(item.valorCalculado)}
+                                    </span>
+                                </TableCell>
+                                <TableCell>
+                                    <Badge variant="secondary">{item.estado}</Badge>
+                                </TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+            </div>
             {puedeCrear && <Dialog open={dialogAbierto} onOpenChange={setDialogAbierto}><DialogContent><DialogHeader><DialogTitle>Registrar mensualidad</DialogTitle></DialogHeader><Form {...form}><form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-4">
                 <FormField control={form.control} name="idUsuario" render={({ field }) => <FormItem><FormLabel>Usuario</FormLabel><FormControl><select className="h-8 w-full rounded-lg border border-input px-2.5 text-sm" value={field.value || ""} onChange={(event) => { field.onChange(Number(event.target.value)); form.setValue("idVehiculo", 0); }}><option value="" disabled>Selecciona un usuario</option>{usuarios.filter((item) => item.activo).map((item) => <option key={item.idUsuario} value={item.idUsuario}>{item.nombres} {item.apellidos}</option>)}</select></FormControl><FormMessage /></FormItem>} />
                 <FormField control={form.control} name="idVehiculo" render={({ field }) => <FormItem><FormLabel>Vehículo</FormLabel><FormControl><select className="h-8 w-full rounded-lg border border-input px-2.5 text-sm" value={field.value || ""} onChange={(event) => field.onChange(Number(event.target.value))}><option value="" disabled>Selecciona un vehículo</option>{vehiculosDelUsuario.map((item) => <option key={item.idVehiculo} value={item.idVehiculo}>{item.placa}</option>)}</select></FormControl><FormMessage /></FormItem>} />
