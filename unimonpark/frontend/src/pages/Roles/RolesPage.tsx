@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
+import { Search } from "lucide-react";
 
 import { listarRoles, crearRol, actualizarRol, eliminarRol } from "@/api/roles";
 import type { Rol } from "@/types/rol";
@@ -93,68 +94,79 @@ export default function RolesPage(){
     }
 
     return(
-        <div className="flex flex-col gap-4">
-            <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-bold">Roles</h2>
+        <div className="flex flex-col gap-6">
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                <div>
+                    <h2 className="text-2xl font-bold tracking-tight text-slate-900">Roles</h2>
+                    <p className="text-sm text-slate-500 font-normal">Gestión de roles y permisos</p>
+                </div>
                 <Button onClick={abrirCrear}>Nuevo Rol</Button>
             </div>
 
-            <Table>
-                <TableHeader>
-                    <TableRow>
-                        <TableHead>Nombre</TableHead>
-                        <TableHead>Descripción</TableHead>
-                        <TableHead>Estado</TableHead>
-                        <TableHead className="text-right">Acciones</TableHead>
-                    </TableRow>
-                </TableHeader>
-                <TableBody>
-                    {cargando && (
-                        <TableRow><TableCell colSpan={4}>Cargando...</TableCell></TableRow>
-                    )}
-                    {!cargando && roles.length === 0 && (
-                        <TableRow><TableCell colSpan={4}>No hay Roles Registrados</TableCell></TableRow>
-                    )}
-                    {roles.map((rol) =>(
-                        <TableRow key={rol.idRol}>
-                            <TableCell className="font-medium">{rol.nombre}</TableCell>
-                            <TableCell>{rol.descripcion}</TableCell>
-                            <TableCell>
-                                <Badge variant={rol.activo ? "default" : "secondary"}>
-                                    {rol.activo ? "Activo" : "Inactivo"}
-                                </Badge>
-                            </TableCell>
-                            <TableCell className="text-right flex gap-2 justify-end">
-                                <Button variant="outline" size="sm" onClick={() => abrirEditar(rol)}>
-                                    Editar
-                                </Button>
-
-                                <AlertDialog>
-                                    <AlertDialogTrigger
-                                        render={<Button variant="destructive" size="sm" />}
-                                    >
-                                        Eliminar
-                                    </AlertDialogTrigger>
-                                        <AlertDialogContent>
-                                        <AlertDialogHeader>
-                                            <AlertDialogTitle>¿Eliminar este rol?</AlertDialogTitle>
-                                            <AlertDialogDescription>
-                                                Esta acción no se puede deshacer. Se eliminará el rol "{rol.nombre}".
-                                            </AlertDialogDescription>
-                                        </AlertDialogHeader>
-                                        <AlertDialogFooter>
-                                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                            <AlertDialogAction onClick={() => handleEliminar(rol.idRol)}>
-                                                Eliminar
-                                            </AlertDialogAction>
-                                        </AlertDialogFooter>
-                                    </AlertDialogContent>
-                                </AlertDialog>
-                            </TableCell>
+            <div className="bg-white rounded-xl shadow-sm border border-slate-200/80 overflow-hidden">
+                <div className="p-4 border-b border-slate-200/80">
+                    <div className="relative w-full md:w-72">
+                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-500" />
+                        <Input placeholder="Buscar roles..." className="pl-9 bg-white" />
+                    </div>
+                </div>
+                <Table>
+                    <TableHeader className="bg-slate-50/50">
+                        <TableRow>
+                            <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Nombre</TableHead>
+                            <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Descripción</TableHead>
+                            <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Estado</TableHead>
+                            <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider text-right">Acciones</TableHead>
                         </TableRow>
-                    ))}
-                </TableBody>
-            </Table>
+                    </TableHeader>
+                    <TableBody>
+                        {cargando && (
+                            <TableRow><TableCell colSpan={4}>Cargando...</TableCell></TableRow>
+                        )}
+                        {!cargando && roles.length === 0 && (
+                            <TableRow><TableCell colSpan={4}>No hay Roles Registrados</TableCell></TableRow>
+                        )}
+                        {roles.map((rol) =>(
+                            <TableRow key={rol.idRol}>
+                                <TableCell className="font-medium">{rol.nombre}</TableCell>
+                                <TableCell>{rol.descripcion}</TableCell>
+                                <TableCell>
+                                    <Badge variant={rol.activo ? "default" : "secondary"}>
+                                        {rol.activo ? "Activo" : "Inactivo"}
+                                    </Badge>
+                                </TableCell>
+                                <TableCell className="text-right flex gap-2 justify-end">
+                                    <Button variant="outline" size="sm" onClick={() => abrirEditar(rol)}>
+                                        Editar
+                                    </Button>
+
+                                    <AlertDialog>
+                                        <AlertDialogTrigger
+                                            render={<Button variant="destructive" size="sm" />}
+                                        >
+                                            Eliminar
+                                        </AlertDialogTrigger>
+                                            <AlertDialogContent>
+                                            <AlertDialogHeader>
+                                                <AlertDialogTitle>¿Eliminar este rol?</AlertDialogTitle>
+                                                <AlertDialogDescription>
+                                                    Esta acción no se puede deshacer. Se eliminará el rol "{rol.nombre}".
+                                                </AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                                <AlertDialogAction onClick={() => handleEliminar(rol.idRol)}>
+                                                    Eliminar
+                                                </AlertDialogAction>
+                                            </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                    </AlertDialog>
+                                </TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+            </div>
 
             <Dialog open={dialogAbierto} onOpenChange={setDialogAbierto}>
                 <DialogContent>
@@ -181,7 +193,7 @@ export default function RolesPage(){
                             name="descripcion"
                             render={({ field}) => (
                                 <FormItem>
-                                <FormLabel>Descripcion</FormLabel>
+                                <FormLabel>Descripción</FormLabel>
                                 <FormControl>
                                     <Input {...field} />
                                 </FormControl>
