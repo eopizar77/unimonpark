@@ -27,6 +27,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 export default function TiposVehiculoPage() {
     const [tipos, setTipos] = useState<TipoVehiculo[]>([]);
     const [cargando, setCargando] = useState(true);
+    const [busqueda, setBusqueda] = useState("");
     const [dialogAbierto, setDialogAbierto] = useState(false);
     const [tipoEditando, setTipoEditando] = useState<TipoVehiculo | null>(null);
 
@@ -93,7 +94,9 @@ export default function TiposVehiculoPage() {
         }
     }
 
-    return (
+    
+    const tiposFiltrados = tipos.filter(t => { const search = busqueda.toLowerCase(); return (t.nombre?.toLowerCase() || "").includes(search) || (t.descripcion?.toLowerCase() || "").includes(search); });
+return (
         <div className="flex flex-col gap-6">
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                 <div>
@@ -124,10 +127,10 @@ export default function TiposVehiculoPage() {
                     </TableHeader>
                 <TableBody>
                     {cargando && <TableRow><TableCell colSpan={4}>Cargando...</TableCell></TableRow>}
-                    {!cargando && tipos.length === 0 && (
+                    {!cargando && tiposFiltrados.length === 0 && (
                         <TableRow><TableCell colSpan={4}>No hay tipos de vehículo registrados</TableCell></TableRow>
                     )}
-                    {tipos.map((tipo) => (
+                    {tiposFiltrados.map((tipo) => (
                         <TableRow key={tipo.idTipoVehiculo}>
                             <TableCell className="font-medium">{tipo.nombre}</TableCell>
                             <TableCell>{tipo.descripcion}</TableCell>

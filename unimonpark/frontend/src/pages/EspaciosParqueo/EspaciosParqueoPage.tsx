@@ -44,6 +44,7 @@ export default function EspaciosParqueoPage() {
     const [espacios, setEspacios] = useState<EspacioParqueo[]>([]);
     const [tipos, setTipos] = useState<TipoVehiculo[]>([]);
     const [cargando, setCargando] = useState(true);
+    const [busqueda, setBusqueda] = useState("");
     const [dialogAbierto, setDialogAbierto] = useState(false);
     const [espacioEditando, setEspacioEditando] = useState<EspacioParqueo | null>(null);
 
@@ -147,7 +148,9 @@ export default function EspaciosParqueoPage() {
             : estadosDisponibles;
     }
 
-    return (
+    
+    const espaciosFiltrados = espacios.filter(e => { const search = busqueda.toLowerCase(); return (e.codigo?.toLowerCase() || "").includes(search) || (e.estado?.toLowerCase() || "").includes(search); });
+return (
         <div className="flex flex-col gap-6">
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                 <div>
@@ -161,7 +164,7 @@ export default function EspaciosParqueoPage() {
                 <div className="p-4 border-b border-slate-200/80 bg-slate-50/30">
                     <div className="relative max-w-sm">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                        <Input placeholder="Buscar espacios..." className="pl-9 bg-white" />
+                        <Input placeholder="Buscar espacios..." className="pl-9 bg-white" value={busqueda} onChange={(e) => setBusqueda(e.target.value)} />
                     </div>
                 </div>
                 <Table>
@@ -178,8 +181,8 @@ export default function EspaciosParqueoPage() {
                     </TableHeader>
                     <TableBody>
                         {cargando && <TableRow><TableCell colSpan={7} className="text-center py-6">Cargando...</TableCell></TableRow>}
-                        {!cargando && espacios.length === 0 && <TableRow><TableCell colSpan={7} className="text-center py-6 text-slate-500">No hay espacios de parqueo registrados</TableCell></TableRow>}
-                        {espacios.map((espacio) => (
+                        {!cargando && espaciosFiltrados.length === 0 && <TableRow><TableCell colSpan={7} className="text-center py-6 text-slate-500">No hay espacios de parqueo registrados</TableCell></TableRow>}
+                        {espaciosFiltrados.map((espacio) => (
                             <TableRow key={espacio.idEspacio}>
                                 <TableCell>
                                     <span className="bg-slate-100 text-slate-900 font-mono font-bold text-xs px-2.5 py-1 rounded border border-slate-300 tracking-wider inline-block">

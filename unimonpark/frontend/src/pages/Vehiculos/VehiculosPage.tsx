@@ -48,6 +48,7 @@ export default function VehiculosPage() {
     const [externos, setExternos] = useState<Externo[]>([]);
     const [tipos, setTipos] = useState<TipoVehiculo[]>([]);
     const [cargando, setCargando] = useState(true);
+    const [busqueda, setBusqueda] = useState("");
     const [dialogAbierto, setDialogAbierto] = useState(false);
     const [vehiculoEditando, setVehiculoEditando] = useState<Vehiculo | null>(null);
 
@@ -154,7 +155,9 @@ export default function VehiculosPage() {
 
     function renderPropietario(vehiculo: Vehiculo) {
         if (vehiculo.nombreExterno) {
-            return (
+            
+    const vehiculosFiltrados = vehiculos.filter(v => { const search = busqueda.toLowerCase(); return (v.placa?.toLowerCase() || "").includes(search) || (v.marca?.toLowerCase() || "").includes(search) || (v.color?.toLowerCase() || "").includes(search); });
+return (
                 <div className="flex items-center gap-1.5">
                     <span>{vehiculo.nombreExterno}</span>
                     <Badge variant="outline" className="text-xs bg-amber-500/10 text-amber-600 border-amber-300">
@@ -230,12 +233,12 @@ export default function VehiculosPage() {
                             <TableCell colSpan={7}>Cargando...</TableCell>
                         </TableRow>
                     )}
-                    {!cargando && vehiculos.length === 0 && (
+                    {!cargando && vehiculosFiltrados.length === 0 && (
                         <TableRow>
                             <TableCell colSpan={7}>No hay vehículos registrados</TableCell>
                         </TableRow>
                     )}
-                    {vehiculos.map((vehiculo) => (
+                    {vehiculosFiltrados.map((vehiculo) => (
                         <TableRow key={vehiculo.idVehiculo}>
                             <TableCell className="font-medium">
                                 {vehiculo.placa ? (

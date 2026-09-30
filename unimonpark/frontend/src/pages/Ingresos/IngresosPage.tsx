@@ -274,7 +274,20 @@ export default function IngresosPage() {
                 : (externos.find(e => e.idExterno === vehiculo.idExterno)?.numeroDocumento || ""))
             : "";
         const search = busqueda.toLowerCase();
-        return dVehiculo.includes(search) || numFicha.includes(search) || cedula.includes(search);
+        const cumpleTexto = dVehiculo.includes(search) || numFicha.includes(search) || cedula.includes(search);
+
+        let cumpleFechas = true;
+        const fechaIng = new Date(ingreso.fechaIngreso);
+        if (fechaDesde) {
+            const desde = new Date(fechaDesde + "T00:00:00");
+            if (fechaIng < desde) cumpleFechas = false;
+        }
+        if (fechaHasta) {
+            const hasta = new Date(fechaHasta + "T23:59:59");
+            if (fechaIng > hasta) cumpleFechas = false;
+        }
+
+        return cumpleTexto && cumpleFechas;
     });
 
     return (
