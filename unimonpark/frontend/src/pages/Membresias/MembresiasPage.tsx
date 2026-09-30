@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
@@ -76,7 +76,7 @@ export default function MembresiasPage() {
       setVehiculos(vehiculosData.filter((v) => v.activo));
       setTarifas(tarifasData);
     } catch {
-      toast.error("No se pudieron cargar las membresÃ­as");
+      toast.error("No se pudieron cargar las membresías");
     } finally {
       setCargando(false);
     }
@@ -234,7 +234,7 @@ export default function MembresiasPage() {
                           return v.placa ? `${v.placa} ${propietario}` : `Vehículo ${v.idVehiculo} ${propietario}`;
                         }}
                         onSeleccionar={(id) => field.onChange(id)}
-                        placeholder="Selecciona un vehÃ­culo o propietario..."
+                        placeholder="Selecciona un vehículo o propietario..."
                       />
                     </FormControl>
                     <FormMessage />

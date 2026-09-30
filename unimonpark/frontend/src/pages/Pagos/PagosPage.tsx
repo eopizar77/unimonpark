@@ -146,7 +146,7 @@ export default function PagosPage() {
             <div className="flex flex-wrap items-center justify-between gap-2">
                 <div>
                     <h2 className="text-2xl font-bold">Pagos</h2>
-                    <p className="text-sm text-muted-foreground">Registro histÃ³rico de pagos recibidos</p>
+                    <p className="text-sm text-muted-foreground">Registro histórico de pagos recibidos</p>
                 </div>
                 {puedeCrear && <Button onClick={abrirCrear}>Registrar pago</Button>}
             </div>
@@ -154,7 +154,7 @@ export default function PagosPage() {
             <div className="flex items-center mb-2">
                 <Input 
                     type="search" 
-                    placeholder="Buscar por placa, usuario, # de factura o cÃ©dula..." 
+                    placeholder="Buscar por placa, usuario, # de factura o cédula..." 
                     className="w-full md:max-w-md" 
                     value={busqueda} 
                     onChange={(e) => setBusqueda(e.target.value)} 
@@ -163,8 +163,8 @@ export default function PagosPage() {
 
             <Table>
                 <TableHeader><TableRow>
-                    <TableHead>Pago</TableHead><TableHead>Factura</TableHead><TableHead>Usuario</TableHead><TableHead>VehÃ­culo</TableHead><TableHead>Fecha</TableHead>
-                    <TableHead>Monto</TableHead><TableHead>MÃ©todo</TableHead><TableHead>Referencia</TableHead><TableHead>Estado</TableHead>
+                    <TableHead>Pago</TableHead><TableHead>Factura</TableHead><TableHead>Usuario</TableHead><TableHead>Vehículo</TableHead><TableHead>Fecha</TableHead>
+                    <TableHead>Monto</TableHead><TableHead>Método</TableHead><TableHead>Referencia</TableHead><TableHead>Estado</TableHead>
                 </TableRow></TableHeader>
                 <TableBody>
                     {cargando && <TableRow><TableCell colSpan={9}>Cargando...</TableCell></TableRow>}
@@ -226,7 +226,7 @@ export default function PagosPage() {
                                 </FormItem>
                             )} />
                             <FormField control={form.control} name="metodoPago" render={({ field }) => (
-                                <FormItem><FormLabel>MÃ©todo de pago</FormLabel><FormControl>
+                                <FormItem><FormLabel>Método de pago</FormLabel><FormControl>
                                     <select className="h-8 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm" value={field.value} onChange={field.onChange}>
                                         {metodosPago.map((metodo) => <option key={metodo} value={metodo}>{metodo}</option>)}
                                     </select>

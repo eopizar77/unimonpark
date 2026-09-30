@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,7 +20,7 @@ export default function ForgotPasswordPage() {
             await axios.post("/auth/forgot-password", { correo });
             setEnviado(true);
         } catch (err) {
-            toast.error("Error al solicitar restablecimiento de contraseÃ±a");
+            toast.error("Error al solicitar restablecimiento de contraseña");
         } finally {
             setCargando(false);
         }
@@ -33,14 +33,14 @@ export default function ForgotPasswordPage() {
                     <div className="flex flex-col items-center justify-center mb-4">
                         <img src="/logo.png" alt="Unimonpark Logo" className="w-24 h-24 object-contain rounded-full border-2 border-primary/20 shadow-sm" />
                     </div>
-                    <CardTitle className="text-center">Restablecer ContraseÃ±a</CardTitle>
+                    <CardTitle className="text-center">Restablecer Contraseña</CardTitle>
                     <CardDescription className="text-center">Ingresa tu correo para recibir un enlace</CardDescription>
                 </CardHeader>
                 <CardContent>
                     {!enviado ? (
                         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
                             <div className="flex flex-col gap-2">
-                                <Label htmlFor="correo">Correo electrÃ³nico</Label>
+                                <Label htmlFor="correo">Correo electrónico</Label>
                                 <Input id="correo" type="email" value={correo} onChange={(e) => setCorreo(e.target.value)} required />
                             </div>
                             <Button type="submit" disabled={cargando} className="mt-2">
@@ -53,7 +53,7 @@ export default function ForgotPasswordPage() {
                         </div>
                     )}
                     <div className="mt-4 text-center text-sm">
-                        <Link to="/login" className="text-primary hover:underline">Volver al inicio de sesiÃ³n</Link>
+                        <Link to="/login" className="text-primary hover:underline">Volver al inicio de sesión</Link>
                     </div>
                 </CardContent>
             </Card>

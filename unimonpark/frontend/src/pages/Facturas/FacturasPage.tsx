@@ -317,7 +317,7 @@ export default function FacturasPage() {
 
                             <div className="rounded-lg border bg-muted/30 p-3 text-sm">
                                 <p><strong>Subtotal de la salida:</strong> {salidaSeleccionada ? formatoMoneda(subtotal) : "Selecciona una salida"}</p>
-                                <p className="text-muted-foreground">El subtotal se toma automÃƒÂ¡ticamente del valor calculado al cerrar la salida.</p>
+                                <p className="text-muted-foreground">El subtotal se toma automÃƒ¡ticamente del valor calculado al cerrar la salida.</p>
                             </div>
                             <FormField control={form.control as any} name="descuento" render={({ field }) => (
                                 <FormItem><FormLabel>Descuento</FormLabel><FormControl><Input type="number" min="0" step="0.01" value={field.value} onChange={(event) => field.onChange(Number(event.target.value))} /></FormControl><FormMessage /></FormItem>
