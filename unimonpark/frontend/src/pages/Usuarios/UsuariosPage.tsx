@@ -68,6 +68,7 @@ export default function UsuariosPage() {
     const [usuarios, setUsuarios] = useState<Usuario[]>([]);
     const [roles, setRoles] = useState<Rol[]>([]);
     const [cargando, setCargando] = useState(true);
+    const [busqueda, setBusqueda] = useState("");
     const [dialogAbierto, setDialogAbierto] = useState(false);
     const [usuarioEditando, setUsuarioEditando] = useState<Usuario | null>(null);
 
@@ -165,7 +166,9 @@ export default function UsuariosPage() {
         }
     }
 
-    return (
+    
+    const usuariosFiltrados = usuarios.filter(u => { const search = busqueda.toLowerCase(); return (u.nombres?.toLowerCase() || "").includes(search) || (u.apellidos?.toLowerCase() || "").includes(search) || (u.documento?.toLowerCase() || "").includes(search) || (u.correo?.toLowerCase() || "").includes(search) || (u.nombreUsuario?.toLowerCase() || "").includes(search); });
+return (
         <div className="flex flex-col gap-6">
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                 <div>
@@ -179,10 +182,7 @@ export default function UsuariosPage() {
                 <div className="p-4 border-b border-slate-200/80">
                     <div className="relative max-w-sm">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                        <Input 
-                            placeholder="Buscar usuarios..." 
-                            className="pl-9 bg-slate-50/50 border-slate-200/80" 
-                        />
+                        <Input placeholder="Buscar usuarios..." className="pl-9 bg-slate-50/50 border-slate-200/80" value={busqueda} onChange={(e) => setBusqueda(e.target.value)} />
                     </div>
                 </div>
 
@@ -201,10 +201,10 @@ export default function UsuariosPage() {
                     </TableHeader>
                     <TableBody>
                         {cargando && <TableRow><TableCell colSpan={8}>Cargando...</TableCell></TableRow>}
-                        {!cargando && usuarios.length === 0 && (
+                        {!cargando && usuariosFiltrados.length === 0 && (
                             <TableRow><TableCell colSpan={8}>No hay usuarios registrados</TableCell></TableRow>
                         )}
-                        {usuarios.map((usuario) => (
+                        {usuariosFiltrados.map((usuario) => (
                             <TableRow key={usuario.idUsuario}>
                                 <TableCell className="font-medium text-slate-900">{usuario.nombres} {usuario.apellidos}</TableCell>
                                 <TableCell>
@@ -221,7 +221,7 @@ export default function UsuariosPage() {
                                         {usuario.activo ? "Activo" : "Inactivo"}
                                     </Badge>
                                 </TableCell>
-                                <TableCell className="flex justify-end gap-2 text-right">
+                                <TableCell className="text-right align-middle"><div className="flex justify-end items-center gap-2">
                                     <Button variant="outline" size="sm" onClick={() => abrirEditar(usuario)}>
                                         Editar
                                     </Button>
@@ -243,8 +243,7 @@ export default function UsuariosPage() {
                                                 </AlertDialogAction>
                                             </AlertDialogFooter>
                                         </AlertDialogContent>
-                                    </AlertDialog>
-                                </TableCell>
+                                    </AlertDialog></div></TableCell>
                             </TableRow>
                         ))}
                     </TableBody>

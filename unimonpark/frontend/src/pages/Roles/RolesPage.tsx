@@ -30,6 +30,7 @@ import {
 export default function RolesPage(){
     const [roles, setRoles] = useState<Rol[]>([]);
     const [cargando, setCargando] = useState(true);
+    const [busqueda, setBusqueda] = useState("");
     const [dialogAbierto, setDialogAbierto] = useState(false);
     const [rolEditando, setRolEditando] = useState<Rol | null>(null);
 
@@ -93,7 +94,9 @@ export default function RolesPage(){
         }
     }
 
-    return(
+    
+    const rolesFiltrados = roles.filter(r => { const search = busqueda.toLowerCase(); return (r.nombre?.toLowerCase() || "").includes(search) || (r.descripcion?.toLowerCase() || "").includes(search); });
+return(
         <div className="flex flex-col gap-6">
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                 <div>
@@ -107,7 +110,7 @@ export default function RolesPage(){
                 <div className="p-4 border-b border-slate-200/80">
                     <div className="relative w-full md:w-72">
                         <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-500" />
-                        <Input placeholder="Buscar roles..." className="pl-9 bg-white" />
+                        <Input placeholder="Buscar roles..." className="pl-9 bg-white" value={busqueda} onChange={(e) => setBusqueda(e.target.value)} />
                     </div>
                 </div>
                 <Table>
@@ -123,10 +126,10 @@ export default function RolesPage(){
                         {cargando && (
                             <TableRow><TableCell colSpan={4}>Cargando...</TableCell></TableRow>
                         )}
-                        {!cargando && roles.length === 0 && (
+                        {!cargando && rolesFiltrados.length === 0 && (
                             <TableRow><TableCell colSpan={4}>No hay Roles Registrados</TableCell></TableRow>
                         )}
-                        {roles.map((rol) =>(
+                        {rolesFiltrados.map((rol) =>(
                             <TableRow key={rol.idRol}>
                                 <TableCell className="font-medium">{rol.nombre}</TableCell>
                                 <TableCell>{rol.descripcion}</TableCell>
@@ -135,7 +138,7 @@ export default function RolesPage(){
                                         {rol.activo ? "Activo" : "Inactivo"}
                                     </Badge>
                                 </TableCell>
-                                <TableCell className="text-right flex gap-2 justify-end">
+                                <TableCell className="text-right align-middle"><div className="flex justify-end items-center gap-2">
                                     <Button variant="outline" size="sm" onClick={() => abrirEditar(rol)}>
                                         Editar
                                     </Button>
@@ -160,8 +163,7 @@ export default function RolesPage(){
                                                 </AlertDialogAction>
                                             </AlertDialogFooter>
                                         </AlertDialogContent>
-                                    </AlertDialog>
-                                </TableCell>
+                                    </AlertDialog></div></TableCell>
                             </TableRow>
                         ))}
                     </TableBody>
