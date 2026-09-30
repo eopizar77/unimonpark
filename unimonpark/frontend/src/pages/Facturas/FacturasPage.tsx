@@ -150,9 +150,15 @@ export default function FacturasPage() {
         return `${salida.placaVehiculo || "Bicicleta"} - Salida #${salida.idSalida} - ${formatoMoneda(salida.valorTotal)}`;
     }
 
-    function formatearFecha(fecha: string) {
+    function renderFecha(fecha: string) {
         const fechaFormateada = new Date(fecha);
-        return Number.isNaN(fechaFormateada.getTime()) ? fecha : fechaFormateada.toLocaleString("es-CO");
+        if (Number.isNaN(fechaFormateada.getTime())) return fecha;
+        return (
+            <div className="flex flex-col">
+                <span className="text-slate-900">{fechaFormateada.toLocaleDateString("es-CO")}</span>
+                <span className="text-slate-500 text-xs">{fechaFormateada.toLocaleTimeString("es-CO", { hour: "2-digit", minute: "2-digit" })}</span>
+            </div>
+        );
     }
 
     const salidasFacturadas = new Set(facturas.map((factura) => factura.idSalida));
@@ -161,6 +167,8 @@ export default function FacturasPage() {
     const externosActivos = externos.filter((ext) => ext.activo);
 
     const [busqueda, setBusqueda] = useState("");
+    const [fechaDesde, setFechaDesde] = useState("");
+    const [fechaHasta, setFechaHasta] = useState("");
 
     const facturasFiltradas = facturas.filter((factura) => {
         const nombre = `${factura.nombres} ${factura.apellidos}`.toLowerCase();
@@ -169,57 +177,98 @@ export default function FacturasPage() {
             ? (usuarios.find(u => u.idUsuario === factura.idUsuario)?.documento || "")
             : (externos.find(e => e.idExterno === factura.idExterno)?.numeroDocumento || "");
         const search = busqueda.toLowerCase();
-        return nombre.includes(search) || placa.includes(search) || `#${factura.idFactura}`.includes(search) || cedula.includes(search);
+        const cumpleBusqueda = nombre.includes(search) || placa.includes(search) || `#${factura.idFactura}`.includes(search) || cedula.includes(search);
+
+        let cumpleFecha = true;
+        if (fechaDesde || fechaHasta) {
+            const fFecha = factura.fecha.substring(0, 10);
+            if (fechaDesde && fFecha < fechaDesde) cumpleFecha = false;
+            if (fechaHasta && fFecha > fechaHasta) cumpleFecha = false;
+        }
+
+        return cumpleBusqueda && cumpleFecha;
     });
+
+    function limpiarFiltros() {
+        setBusqueda("");
+        setFechaDesde("");
+        setFechaHasta("");
+    }
 
     return (
         <div className="flex flex-col gap-4">
             <div className="flex items-center justify-between flex-wrap gap-2">
                 <div>
-                    <h2 className="text-2xl font-bold">Facturas</h2>
-                    <p className="text-sm text-muted-foreground">Documentos generados a partir de las salidas</p>
+                    <h2 className="text-2xl font-bold tracking-tight text-slate-900">Facturas</h2>
+                    <p className="text-sm text-slate-500 font-normal">Registro histórico de facturas emitidas</p>
                 </div>
                 {puedeCrear && <Button onClick={abrirCrear}>Generar factura</Button>}
             </div>
 
-            <div className="flex items-center mb-2">
+            <div className="flex flex-col sm:flex-row gap-2 mb-2">
                 <Input 
                     type="search" 
-                    placeholder="Buscar por placa, cliente, # de factura o cÃƒÂ©dula..." 
-                    className="w-full md:max-w-md" 
+                    placeholder="Buscar por placa, cliente, # de factura o cédula..." 
+                    className="w-full sm:max-w-xs" 
                     value={busqueda} 
                     onChange={(e) => setBusqueda(e.target.value)} 
                 />
+                <Input
+                    type="date"
+                    value={fechaDesde}
+                    onChange={(e) => setFechaDesde(e.target.value)}
+                    className="w-full sm:w-auto"
+                />
+                <Input
+                    type="date"
+                    value={fechaHasta}
+                    onChange={(e) => setFechaHasta(e.target.value)}
+                    className="w-full sm:w-auto"
+                />
+                <Button variant="outline" onClick={limpiarFiltros} className="w-full sm:w-auto">
+                    Limpiar
+                </Button>
             </div>
 
-            <Table>
-                <TableHeader><TableRow>
-                    <TableHead>Factura</TableHead><TableHead>Fecha</TableHead><TableHead>Cliente</TableHead>
-                    <TableHead>VehÃƒÂ­culo</TableHead><TableHead>Subtotal</TableHead><TableHead>Total</TableHead><TableHead>Estado</TableHead>
-                </TableRow></TableHeader>
-                <TableBody>
-                    {cargando && <TableRow><TableCell colSpan={7}>Cargando...</TableCell></TableRow>}
-                    {!cargando && facturasFiltradas.length === 0 && <TableRow><TableCell colSpan={7}>No hay facturas registradas</TableCell></TableRow>}
-                    {facturasFiltradas.map((factura) => (
-                        <TableRow key={factura.idFactura}>
-                            <TableCell className="font-medium">#{factura.idFactura}</TableCell>
-                            <TableCell>{formatearFecha(factura.fecha)}</TableCell>
-                            <TableCell>
-                                {factura.nombres} {factura.apellidos}
-                                {factura.idExterno && (
-                                    <Badge variant="outline" className="ml-2 text-xs bg-amber-500/10 text-amber-600 border-amber-300">
-                                        Externo
-                                    </Badge>
-                                )}
-                            </TableCell>
-                            <TableCell>{factura.placaVehiculo || "Bicicleta"}</TableCell>
-                            <TableCell>{formatoMoneda(factura.subtotal)}</TableCell>
-                            <TableCell>{formatoMoneda(factura.total)}</TableCell>
-                            <TableCell><Badge variant="secondary">{factura.estado}</Badge></TableCell>
+            <div className="bg-white rounded-xl shadow-sm border border-slate-200/80 overflow-hidden">
+                <Table>
+                    <TableHeader className="bg-slate-50/50">
+                        <TableRow>
+                            <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Factura</TableHead>
+                            <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Fecha de Emisión</TableHead>
+                            <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Cliente</TableHead>
+                            <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Vehículo</TableHead>
+                            <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Subtotal</TableHead>
+                            <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Total</TableHead>
+                            <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Estado</TableHead>
                         </TableRow>
-                    ))}
-                </TableBody>
-            </Table>
+                    </TableHeader>
+                    <TableBody>
+                        {cargando && <TableRow><TableCell colSpan={7}>Cargando...</TableCell></TableRow>}
+                        {!cargando && facturasFiltradas.length === 0 && <TableRow><TableCell colSpan={7}>No hay facturas registradas</TableCell></TableRow>}
+                        {facturasFiltradas.map((factura) => (
+                            <TableRow key={factura.idFactura}>
+                                <TableCell>
+                                    <Badge variant="outline" className="font-mono">#{factura.idFactura}</Badge>
+                                </TableCell>
+                                <TableCell>{renderFecha(factura.fecha)}</TableCell>
+                                <TableCell>
+                                    {factura.nombres} {factura.apellidos}
+                                    {factura.idExterno && (
+                                        <Badge variant="outline" className="ml-2 text-xs bg-amber-500/10 text-amber-600 border-amber-300">
+                                            Externo
+                                        </Badge>
+                                    )}
+                                </TableCell>
+                                <TableCell>{factura.placaVehiculo || "Bicicleta"}</TableCell>
+                                <TableCell>{formatoMoneda(factura.subtotal)}</TableCell>
+                                <TableCell className="font-mono font-bold text-emerald-600">{formatoMoneda(factura.total)}</TableCell>
+                                <TableCell><Badge variant="secondary">{factura.estado}</Badge></TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+            </div>
 
             {puedeCrear && <Dialog open={dialogAbierto} onOpenChange={setDialogAbierto}>
                 <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
