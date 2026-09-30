@@ -82,7 +82,12 @@ export default function ReportesPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <h2 className="text-2xl font-bold">Reportes</h2>
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight text-slate-900">Reportes</h2>
+          <p className="text-sm text-slate-500 font-normal">Visualización y exportación de métricas del sistema</p>
+        </div>
+      </div>
 
       <Tabs defaultValue="ingresos">
         <TabsList>
@@ -159,30 +164,32 @@ function ReporteIngresosSalidas({
   }
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-end gap-3">
-        <div>
-          <Label>Desde</Label>
-          <Input type="date" value={fechaDesde} onChange={(e) => setFechaDesde(e.target.value)} />
+    <div className="bg-white rounded-xl shadow-sm border border-slate-200/80 overflow-hidden mt-4">
+      <div className="p-4 border-b border-slate-200/80 bg-white flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div className="flex flex-wrap items-end gap-3">
+          <div>
+            <Label>Desde</Label>
+            <Input className="h-9 border-slate-300 rounded-md px-3 text-sm" type="date" value={fechaDesde} onChange={(e) => setFechaDesde(e.target.value)} />
+          </div>
+          <div>
+            <Label>Hasta</Label>
+            <Input className="h-9 border-slate-300 rounded-md px-3 text-sm" type="date" value={fechaHasta} onChange={(e) => setFechaHasta(e.target.value)} />
+          </div>
+          <div>
+            <Label>Tipo de vehículo</Label>
+            <select
+              className="h-9 border-slate-300 rounded-md px-3 text-sm border bg-transparent"
+              value={tipoVehiculo}
+              onChange={(e) => setTipoVehiculo(e.target.value)}
+            >
+              <option value="">Todos</option>
+              {tiposDisponibles.map((t) => (
+                <option key={t} value={t}>{t}</option>
+              ))}
+            </select>
+          </div>
         </div>
-        <div>
-          <Label>Hasta</Label>
-          <Input type="date" value={fechaHasta} onChange={(e) => setFechaHasta(e.target.value)} />
-        </div>
-        <div>
-          <Label>Tipo de vehículo</Label>
-          <select
-            className="h-8 rounded-lg border border-input bg-transparent px-2.5 text-sm"
-            value={tipoVehiculo}
-            onChange={(e) => setTipoVehiculo(e.target.value)}
-          >
-            <option value="">Todos</option>
-            {tiposDisponibles.map((t) => (
-              <option key={t} value={t}>{t}</option>
-            ))}
-          </select>
-        </div>
-        <div className="flex gap-2 ml-auto">
+        <div className="flex gap-2">
           <Button variant="outline" size="sm" onClick={exportarComoExcel}>
             <FileSpreadsheet className="h-4 w-4 mr-1" /> Excel
           </Button>
@@ -193,14 +200,14 @@ function ReporteIngresosSalidas({
       </div>
 
       <Table>
-        <TableHeader>
+        <TableHeader className="bg-slate-50/50">
           <TableRow>
-            <TableHead>Vehículo</TableHead>
-            <TableHead>Tipo</TableHead>
-            <TableHead>Ingreso</TableHead>
-            <TableHead>Salida</TableHead>
-            <TableHead>Tarifa</TableHead>
-            <TableHead>Valor</TableHead>
+            <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Vehículo</TableHead>
+            <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Tipo</TableHead>
+            <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Ingreso</TableHead>
+            <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Salida</TableHead>
+            <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Tarifa</TableHead>
+            <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Valor</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -209,12 +216,12 @@ function ReporteIngresosSalidas({
           )}
           {filtrados.map((s) => (
             <TableRow key={s.idSalida}>
-              <TableCell>{s.placaVehiculo}</TableCell>
+              <TableCell><span className="bg-slate-100 text-slate-900 font-mono font-bold text-xs px-2.5 py-1 rounded border border-slate-300 tracking-wider inline-block">{s.placaVehiculo}</span></TableCell>
               <TableCell>{s.tipoVehiculo}</TableCell>
               <TableCell>{s.fechaIngreso.slice(0, 16).replace("T", " ")}</TableCell>
               <TableCell>{s.fechaSalida.slice(0, 16).replace("T", " ")}</TableCell>
               <TableCell>{s.nombreTarifa}</TableCell>
-              <TableCell>${s.valorTotal}</TableCell>
+              <TableCell><span className="font-mono font-bold text-emerald-600">${s.valorTotal}</span></TableCell>
             </TableRow>
           ))}
         </TableBody>
@@ -273,30 +280,32 @@ function ReporteFacturacion({
   }
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-end gap-3">
-        <div>
-          <Label>Desde</Label>
-          <Input type="date" value={fechaDesde} onChange={(e) => setFechaDesde(e.target.value)} />
+    <div className="bg-white rounded-xl shadow-sm border border-slate-200/80 overflow-hidden mt-4">
+      <div className="p-4 border-b border-slate-200/80 bg-white flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div className="flex flex-wrap items-end gap-3">
+          <div>
+            <Label>Desde</Label>
+            <Input className="h-9 border-slate-300 rounded-md px-3 text-sm" type="date" value={fechaDesde} onChange={(e) => setFechaDesde(e.target.value)} />
+          </div>
+          <div>
+            <Label>Hasta</Label>
+            <Input className="h-9 border-slate-300 rounded-md px-3 text-sm" type="date" value={fechaHasta} onChange={(e) => setFechaHasta(e.target.value)} />
+          </div>
+          <div>
+            <Label>Categoría de persona</Label>
+            <select
+              className="h-9 border-slate-300 rounded-md px-3 text-sm border bg-transparent"
+              value={categoria}
+              onChange={(e) => setCategoria(e.target.value)}
+            >
+              <option value="">Todas</option>
+              <option value="ESTUDIANTE">Estudiante</option>
+              <option value="DOCENTE_ADMINISTRATIVO_EXTERNO">Docente/Admin/Externo</option>
+              <option value="CENTRO_OBRERO">Centro Obrero</option>
+            </select>
+          </div>
         </div>
-        <div>
-          <Label>Hasta</Label>
-          <Input type="date" value={fechaHasta} onChange={(e) => setFechaHasta(e.target.value)} />
-        </div>
-        <div>
-          <Label>Categoría de persona</Label>
-          <select
-            className="h-8 rounded-lg border border-input bg-transparent px-2.5 text-sm"
-            value={categoria}
-            onChange={(e) => setCategoria(e.target.value)}
-          >
-            <option value="">Todas</option>
-            <option value="ESTUDIANTE">Estudiante</option>
-            <option value="DOCENTE_ADMINISTRATIVO_EXTERNO">Docente/Admin/Externo</option>
-            <option value="CENTRO_OBRERO">Centro Obrero</option>
-          </select>
-        </div>
-        <div className="flex gap-2 ml-auto">
+        <div className="flex gap-2">
           <Button variant="outline" size="sm" onClick={exportarComoExcel}>
             <FileSpreadsheet className="h-4 w-4 mr-1" /> Excel
           </Button>
@@ -307,13 +316,13 @@ function ReporteFacturacion({
       </div>
 
       <Table>
-        <TableHeader>
+        <TableHeader className="bg-slate-50/50">
           <TableRow>
-            <TableHead>Vehículo</TableHead>
-            <TableHead>Usuario</TableHead>
-            <TableHead>Fecha</TableHead>
-            <TableHead>Total</TableHead>
-            <TableHead>Estado</TableHead>
+            <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Vehículo</TableHead>
+            <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Usuario</TableHead>
+            <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Fecha</TableHead>
+            <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Total</TableHead>
+            <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Estado</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -322,10 +331,10 @@ function ReporteFacturacion({
           )}
           {filtrados.map((f) => (
             <TableRow key={f.idFactura}>
-              <TableCell>{obtenerInfo(f.placaVehiculo).identificador}</TableCell>
+              <TableCell><span className="bg-slate-100 text-slate-900 font-mono font-bold text-xs px-2.5 py-1 rounded border border-slate-300 tracking-wider inline-block">{obtenerInfo(f.placaVehiculo).identificador}</span></TableCell>
               <TableCell>{f.nombres} {f.apellidos}</TableCell>
               <TableCell>{f.fecha.slice(0, 10)}</TableCell>
-              <TableCell>${f.total}</TableCell>
+              <TableCell><span className="font-mono font-bold text-emerald-600">${f.total}</span></TableCell>
               <TableCell>{f.estado}</TableCell>
             </TableRow>
           ))}
@@ -389,30 +398,32 @@ function ReportePagos({
   }
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-end gap-3">
-        <div>
-          <Label>Desde</Label>
-          <Input type="date" value={fechaDesde} onChange={(e) => setFechaDesde(e.target.value)} />
+    <div className="bg-white rounded-xl shadow-sm border border-slate-200/80 overflow-hidden mt-4">
+      <div className="p-4 border-b border-slate-200/80 bg-white flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div className="flex flex-wrap items-end gap-3">
+          <div>
+            <Label>Desde</Label>
+            <Input className="h-9 border-slate-300 rounded-md px-3 text-sm" type="date" value={fechaDesde} onChange={(e) => setFechaDesde(e.target.value)} />
+          </div>
+          <div>
+            <Label>Hasta</Label>
+            <Input className="h-9 border-slate-300 rounded-md px-3 text-sm" type="date" value={fechaHasta} onChange={(e) => setFechaHasta(e.target.value)} />
+          </div>
+          <div>
+            <Label>Método de pago</Label>
+            <select
+              className="h-9 border-slate-300 rounded-md px-3 text-sm border bg-transparent"
+              value={metodoPago}
+              onChange={(e) => setMetodoPago(e.target.value)}
+            >
+              <option value="">Todos</option>
+              {metodosDisponibles.map((m) => (
+                <option key={m} value={m}>{m}</option>
+              ))}
+            </select>
+          </div>
         </div>
-        <div>
-          <Label>Hasta</Label>
-          <Input type="date" value={fechaHasta} onChange={(e) => setFechaHasta(e.target.value)} />
-        </div>
-        <div>
-          <Label>Método de pago</Label>
-          <select
-            className="h-8 rounded-lg border border-input bg-transparent px-2.5 text-sm"
-            value={metodoPago}
-            onChange={(e) => setMetodoPago(e.target.value)}
-          >
-            <option value="">Todos</option>
-            {metodosDisponibles.map((m) => (
-              <option key={m} value={m}>{m}</option>
-            ))}
-          </select>
-        </div>
-        <div className="flex gap-2 ml-auto">
+        <div className="flex gap-2">
           <Button variant="outline" size="sm" onClick={exportarComoExcel}>
             <FileSpreadsheet className="h-4 w-4 mr-1" /> Excel
           </Button>
@@ -423,13 +434,13 @@ function ReportePagos({
       </div>
 
       <Table>
-        <TableHeader>
+        <TableHeader className="bg-slate-50/50">
           <TableRow>
-            <TableHead>Vehículo</TableHead>
-            <TableHead>Fecha</TableHead>
-            <TableHead>Monto</TableHead>
-            <TableHead>Método</TableHead>
-            <TableHead>Estado</TableHead>
+            <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Vehículo</TableHead>
+            <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Fecha</TableHead>
+            <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Monto</TableHead>
+            <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Método</TableHead>
+            <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Estado</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -438,9 +449,9 @@ function ReportePagos({
           )}
           {filtrados.map((p) => (
             <TableRow key={p.idPago}>
-              <TableCell>{placaPorFactura.get(p.idFactura) ?? "-"}</TableCell>
+              <TableCell><span className="bg-slate-100 text-slate-900 font-mono font-bold text-xs px-2.5 py-1 rounded border border-slate-300 tracking-wider inline-block">{placaPorFactura.get(p.idFactura) ?? "-"}</span></TableCell>
               <TableCell>{p.fecha.slice(0, 10)}</TableCell>
-              <TableCell>${p.monto}</TableCell>
+              <TableCell><span className="font-mono font-bold text-emerald-600">${p.monto}</span></TableCell>
               <TableCell>{p.metodoPago}</TableCell>
               <TableCell>{p.estado}</TableCell>
             </TableRow>
