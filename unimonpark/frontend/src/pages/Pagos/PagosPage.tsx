@@ -99,9 +99,12 @@ export default function PagosPage() {
         }
     }
 
-    function formatearFecha(fecha: string) {
+    function formatearFechaObj(fecha: string) {
         const fechaFormateada = new Date(fecha);
-        return Number.isNaN(fechaFormateada.getTime()) ? fecha : fechaFormateada.toLocaleString("es-CO");
+        if (Number.isNaN(fechaFormateada.getTime())) return { dia: fecha, hora: "" };
+        const dia = fechaFormateada.toLocaleDateString("es-CO");
+        const hora = fechaFormateada.toLocaleTimeString("es-CO", { hour: '2-digit', minute: '2-digit' });
+        return { dia, hora };
     }
 
     function obtenerFactura(id: number) {
@@ -126,6 +129,8 @@ export default function PagosPage() {
     const facturasDisponibles = facturas.filter((factura) => !pagosRegistrados.has(factura.idFactura));
 
     const [busqueda, setBusqueda] = useState("");
+    const [fechaDesde, setFechaDesde] = useState("");
+    const [fechaHasta, setFechaHasta] = useState("");
 
     const pagosFiltrados = pagos.filter((pago) => {
         const dFactura = `#${pago.idFactura}`;
@@ -138,52 +143,113 @@ export default function PagosPage() {
                 : (externos.find(e => e.idExterno === factura.idExterno)?.numeroDocumento || ""))
             : "";
         const search = busqueda.toLowerCase();
-        return dFactura.includes(search) || uNombre.includes(search) || vPlaca.includes(search) || `#${pago.idPago}`.includes(search) || cedula.includes(search);
+        const coincideTexto = dFactura.includes(search) || uNombre.includes(search) || vPlaca.includes(search) || `#${pago.idPago}`.includes(search) || cedula.includes(search);
+
+        let coincideFecha = true;
+        if (fechaDesde || fechaHasta) {
+            const pagoDate = new Date(pago.fecha);
+            if (fechaDesde) {
+                const start = new Date(fechaDesde);
+                start.setHours(0, 0, 0, 0);
+                if (pagoDate < start) coincideFecha = false;
+            }
+            if (fechaHasta) {
+                const end = new Date(fechaHasta);
+                end.setHours(23, 59, 59, 999);
+                if (pagoDate > end) coincideFecha = false;
+            }
+        }
+
+        return coincideTexto && coincideFecha;
     });
 
     return (
         <div className="flex flex-col gap-4">
             <div className="flex flex-wrap items-center justify-between gap-2">
                 <div>
-                    <h2 className="text-2xl font-bold">Pagos</h2>
-                    <p className="text-sm text-muted-foreground">Registro histórico de pagos recibidos</p>
+                    <h2 className="text-2xl font-bold tracking-tight text-slate-900">Pagos</h2>
+                    <p className="text-sm text-slate-500 font-normal">Registro histórico de pagos recibidos</p>
                 </div>
                 {puedeCrear && <Button onClick={abrirCrear}>Registrar pago</Button>}
             </div>
 
-            <div className="flex items-center mb-2">
+            <div className="flex flex-wrap items-center gap-2 mb-2">
                 <Input 
                     type="search" 
                     placeholder="Buscar por placa, usuario, # de factura o cédula..." 
-                    className="w-full md:max-w-md" 
+                    className="w-full md:w-80" 
                     value={busqueda} 
                     onChange={(e) => setBusqueda(e.target.value)} 
                 />
+                <div className="flex items-center gap-2">
+                    <Input 
+                        type="date" 
+                        value={fechaDesde} 
+                        onChange={(e) => setFechaDesde(e.target.value)} 
+                        className="w-auto"
+                    />
+                    <span className="text-sm text-slate-500">hasta</span>
+                    <Input 
+                        type="date" 
+                        value={fechaHasta} 
+                        onChange={(e) => setFechaHasta(e.target.value)} 
+                        className="w-auto"
+                    />
+                    {(busqueda || fechaDesde || fechaHasta) && (
+                        <Button 
+                            variant="ghost" 
+                            onClick={() => {
+                                setBusqueda("");
+                                setFechaDesde("");
+                                setFechaHasta("");
+                            }}
+                        >
+                            Limpiar
+                        </Button>
+                    )}
+                </div>
             </div>
 
-            <Table>
-                <TableHeader><TableRow>
-                    <TableHead>Pago</TableHead><TableHead>Factura</TableHead><TableHead>Usuario</TableHead><TableHead>Vehículo</TableHead><TableHead>Fecha</TableHead>
-                    <TableHead>Monto</TableHead><TableHead>Método</TableHead><TableHead>Referencia</TableHead><TableHead>Estado</TableHead>
-                </TableRow></TableHeader>
-                <TableBody>
-                    {cargando && <TableRow><TableCell colSpan={9}>Cargando...</TableCell></TableRow>}
-                    {!cargando && pagosFiltrados.length === 0 && <TableRow><TableCell colSpan={9}>No hay pagos registrados</TableCell></TableRow>}
-                    {pagosFiltrados.map((pago) => (
-                        <TableRow key={pago.idPago}>
-                            <TableCell className="font-medium">#{pago.idPago}</TableCell>
-                            <TableCell>#{pago.idFactura}</TableCell>
-                            <TableCell>{nombreUsuarioPago(pago.idFactura)}</TableCell>
-                            <TableCell>{placaVehiculoPago(pago.idFactura)}</TableCell>
-                            <TableCell>{formatearFecha(pago.fecha)}</TableCell>
-                            <TableCell>{formatoMoneda(pago.monto)}</TableCell>
-                            <TableCell>{pago.metodoPago}</TableCell>
-                            <TableCell>{pago.referencia || "-"}</TableCell>
-                            <TableCell><Badge variant="secondary">{pago.estado}</Badge></TableCell>
-                        </TableRow>
-                    ))}
-                </TableBody>
-            </Table>
+            <div className="bg-white rounded-xl shadow-sm border border-slate-200/80 overflow-hidden">
+                <Table>
+                    <TableHeader className="bg-slate-50/50"><TableRow>
+                        <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Pago</TableHead>
+                        <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Factura</TableHead>
+                        <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Usuario</TableHead>
+                        <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Vehículo</TableHead>
+                        <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Fecha</TableHead>
+                        <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Monto</TableHead>
+                        <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Método</TableHead>
+                        <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Referencia</TableHead>
+                        <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Estado</TableHead>
+                    </TableRow></TableHeader>
+                    <TableBody>
+                        {cargando && <TableRow><TableCell colSpan={9}>Cargando...</TableCell></TableRow>}
+                        {!cargando && pagosFiltrados.length === 0 && <TableRow><TableCell colSpan={9}>No hay pagos registrados</TableCell></TableRow>}
+                        {pagosFiltrados.map((pago) => {
+                            const fechaF = formatearFechaObj(pago.fecha);
+                            return (
+                                <TableRow key={pago.idPago}>
+                                    <TableCell><span className="font-mono bg-slate-100 text-slate-700 px-2 py-1 rounded-md text-xs font-medium">#{pago.idPago}</span></TableCell>
+                                    <TableCell>#{pago.idFactura}</TableCell>
+                                    <TableCell>{nombreUsuarioPago(pago.idFactura)}</TableCell>
+                                    <TableCell>{placaVehiculoPago(pago.idFactura)}</TableCell>
+                                    <TableCell>
+                                        <div className="flex flex-col">
+                                            <span>{fechaF.dia}</span>
+                                            {fechaF.hora && <span className="text-xs text-muted-foreground">{fechaF.hora}</span>}
+                                        </div>
+                                    </TableCell>
+                                    <TableCell className="font-mono font-bold text-emerald-600">{formatoMoneda(pago.monto)}</TableCell>
+                                    <TableCell>{pago.metodoPago}</TableCell>
+                                    <TableCell>{pago.referencia || "-"}</TableCell>
+                                    <TableCell><Badge variant="secondary">{pago.estado}</Badge></TableCell>
+                                </TableRow>
+                            );
+                        })}
+                    </TableBody>
+                </Table>
+            </div>
 
             {puedeCrear && <Dialog open={dialogAbierto} onOpenChange={setDialogAbierto}>
                 <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
