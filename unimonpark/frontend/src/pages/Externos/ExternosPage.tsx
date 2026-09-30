@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
+import { Search } from "lucide-react";
 
 import { actualizarExterno, crearExterno, eliminarExterno, listarExternos } from "@/api/externos";
 import { obtenerMensajeError } from "@/api/client";
@@ -38,6 +39,7 @@ export default function ExternosPage() {
     const [cargando, setCargando] = useState(true);
     const [dialogAbierto, setDialogAbierto] = useState(false);
     const [externoEditando, setExternoEditando] = useState<Externo | null>(null);
+    const [busqueda, setBusqueda] = useState("");
 
     const form = useForm<ExternoFormValues>({
         resolver: zodResolver(externoSchema),
@@ -118,48 +120,70 @@ export default function ExternosPage() {
         }
     }
 
+    const externosFiltrados = externos.filter(e => 
+        e.numeroDocumento.includes(busqueda) || 
+        e.nombres.toLowerCase().includes(busqueda.toLowerCase()) || 
+        e.apellidos.toLowerCase().includes(busqueda.toLowerCase()) ||
+        (e.empresa && e.empresa.toLowerCase().includes(busqueda.toLowerCase()))
+    );
+
     return (
         <div className="flex flex-col gap-4">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                 <div>
-                    <h2 className="text-2xl font-bold">Usuarios Externos</h2>
-                    <p className="text-sm text-muted-foreground">
+                    <h2 className="text-2xl font-bold tracking-tight text-slate-900">Usuarios Externos</h2>
+                    <p className="text-sm text-slate-500 font-normal">
                         Visitantes, contratistas y proveedores no pertenecientes a la nómina institucional.
                     </p>
                 </div>
                 <Button onClick={abrirCrear}>Nuevo externo</Button>
             </div>
 
-            <Table>
-                <TableHeader>
-                    <TableRow>
-                        <TableHead>Documento</TableHead>
-                        <TableHead>Nombre completo</TableHead>
-                        <TableHead>Teléfono</TableHead>
-                        <TableHead>Correo</TableHead>
-                        <TableHead>Empresa / Entidad</TableHead>
-                        <TableHead>Estado</TableHead>
-                        <TableHead className="text-right">Acciones</TableHead>
-                    </TableRow>
-                </TableHeader>
-                <TableBody>
+            <div className="bg-white rounded-xl shadow-sm border border-slate-200/80 overflow-hidden">
+                <div className="p-4 border-b border-slate-200/80">
+                    <div className="relative max-w-sm">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                        <Input 
+                            placeholder="Buscar externo..." 
+                            className="pl-9"
+                            value={busqueda}
+                            onChange={(e) => setBusqueda(e.target.value)}
+                        />
+                    </div>
+                </div>
+
+                <Table>
+                    <TableHeader className="bg-slate-50/50">
+                        <TableRow>
+                            <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Documento</TableHead>
+                            <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Nombre completo</TableHead>
+                            <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Teléfono</TableHead>
+                            <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Correo</TableHead>
+                            <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Empresa / Entidad</TableHead>
+                            <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Estado</TableHead>
+                            <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider text-right">Acciones</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
                     {cargando && (
                         <TableRow>
                             <TableCell colSpan={7}>Cargando...</TableCell>
                         </TableRow>
                     )}
-                    {!cargando && externos.length === 0 && (
+                    {!cargando && externosFiltrados.length === 0 && (
                         <TableRow>
                             <TableCell colSpan={7}>No hay usuarios externos registrados</TableCell>
                         </TableRow>
                     )}
-                    {externos.map((externo) => (
+                    {externosFiltrados.map((externo) => (
                         <TableRow key={externo.idExterno}>
                             <TableCell className="font-medium">
                                 <span className="text-xs text-muted-foreground mr-1">
                                     {externo.tipoDocumento}
                                 </span>
-                                {externo.numeroDocumento}
+                                <span className="bg-slate-100 text-slate-900 font-mono font-bold text-xs px-2.5 py-1 rounded border border-slate-300 tracking-wider inline-block">
+                                    {externo.numeroDocumento}
+                                </span>
                             </TableCell>
                             <TableCell>{`${externo.nombres} ${externo.apellidos}`}</TableCell>
                             <TableCell>{externo.telefono || "-"}</TableCell>
@@ -198,6 +222,7 @@ export default function ExternosPage() {
                     ))}
                 </TableBody>
             </Table>
+            </div>
 
             <Dialog open={dialogAbierto} onOpenChange={setDialogAbierto}>
                 <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
