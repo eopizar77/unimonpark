@@ -36,6 +36,7 @@ export default function RegistroPublicoPage() {
     const [buscando, setBuscando] = useState(false);
     const [enviando, setEnviando] = useState(false);
     const [verificado, setVerificado] = useState(false);
+    const [nombresFaltantes, setNombresFaltantes] = useState(false);
     const [completado, setCompletado] = useState(false);
 
     const form = useForm<z.infer<typeof registroSchema>>({
@@ -86,6 +87,11 @@ export default function RegistroPublicoPage() {
             form.setValue("apellidos", data.apellidos);
             form.setValue("correo", data.correo || "");
             form.setValue("idRol", data.idRol || 7); // Default estudiante
+            if (!data.nombres || !data.apellidos) {
+                setNombresFaltantes(true);
+            } else {
+                setNombresFaltantes(false);
+            }
             setVerificado(true);
             toast.success("¡Datos verificados con la Universidad!");
         } catch (error: any) {
@@ -191,13 +197,13 @@ export default function RegistroPublicoPage() {
                                             <FormField control={form.control} name="nombres" render={({ field }) => (
                                                 <FormItem>
                                                     <FormLabel>Nombres</FormLabel>
-                                                    <FormControl><Input {...field} readOnly className="bg-slate-50 cursor-not-allowed" /></FormControl>
+                                                    <FormControl><Input {...field} readOnly={!nombresFaltantes} className={!nombresFaltantes ? "bg-slate-50 cursor-not-allowed" : ""} placeholder={nombresFaltantes ? "Ingrese sus nombres" : ""} /></FormControl>
                                                 </FormItem>
                                             )} />
                                             <FormField control={form.control} name="apellidos" render={({ field }) => (
                                                 <FormItem>
                                                     <FormLabel>Apellidos</FormLabel>
-                                                    <FormControl><Input {...field} readOnly className="bg-slate-50 cursor-not-allowed" /></FormControl>
+                                                    <FormControl><Input {...field} readOnly={!nombresFaltantes} className={!nombresFaltantes ? "bg-slate-50 cursor-not-allowed" : ""} placeholder={nombresFaltantes ? "Ingrese sus apellidos" : ""} /></FormControl>
                                                 </FormItem>
                                             )} />
                                         </>
