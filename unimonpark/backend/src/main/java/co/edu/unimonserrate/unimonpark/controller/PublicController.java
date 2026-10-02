@@ -70,7 +70,7 @@ public class PublicController {
                 usuario.setApellidos(dto.getApellidos());
                 usuario.setCorreo(dto.getCorreo());
                 usuario.setNombreUsuario(dto.getDocumento());
-                usuario.setContrasena(passwordEncoder.encode(dto.getDocumento())); // Default password
+                usuario.setContrasenaHash(passwordEncoder.encode(dto.getDocumento())); // Default password
                 usuario.setActivo(true);
                 
                 Rol rol = rolRepository.findById(dto.getIdRol())
@@ -80,9 +80,9 @@ public class PublicController {
                 usuario = usuarioRepository.save(usuario);
             }
             
-            // 2. Crear vehículo
+            // 2. Crear vehÃ­culo
             TipoVehiculo tipo = tipoVehiculoRepository.findById(dto.getTipoVehiculoId())
-                    .orElseThrow(() -> new RuntimeException("Tipo de vehículo no encontrado"));
+                    .orElseThrow(() -> new RuntimeException("Tipo de vehÃ­culo no encontrado"));
                     
             Vehiculo vehiculo = new Vehiculo();
             vehiculo.setPlaca(dto.getPlaca() != null ? dto.getPlaca() : "N/A");
@@ -95,9 +95,9 @@ public class PublicController {
             
             vehiculoRepository.save(vehiculo);
             
-            return ResponseEntity.ok(java.util.Map.of("mensaje", "Vehículo registrado exitosamente"));
+            return ResponseEntity.ok(java.util.Map.of("mensaje", "VehÃ­culo registrado exitosamente"));
         } catch (Exception e) {
-            return ResponseEntity.status(500).body(java.util.Map.of("error", "Error registrando vehículo: " + e.getMessage()));
+            return ResponseEntity.status(500).body(java.util.Map.of("error", "Error registrando vehÃ­culo: " + e.getMessage()));
         }
     }
 }

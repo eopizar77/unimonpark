@@ -7,6 +7,7 @@ import co.edu.unimonserrate.unimonpark.entity.Usuario;
 
 public interface UsuarioRepository extends JpaRepository<Usuario, Long>{
 
+    Optional<Usuario> findByDocumento(String documento);
     Optional<Usuario> findByNombreUsuario(String nombreUsuario);
     Optional<Usuario> findByCorreo(String correo);
 }
