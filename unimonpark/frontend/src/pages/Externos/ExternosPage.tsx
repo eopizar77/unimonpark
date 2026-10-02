@@ -5,6 +5,8 @@ import { toast } from "sonner";
 import { Search } from "lucide-react";
 
 import { actualizarExterno, crearExterno, eliminarExterno, listarExternos } from "@/api/externos";
+import { consultarSincronizacion } from "@/api/sincronizacion";
+import { Loader2 } from "lucide-react";
 import { obtenerMensajeError } from "@/api/client";
 import type { Externo, ExternoPayload } from "@/types/externo";
 import { externoSchema, TIPOS_DOCUMENTO, type ExternoFormValues } from "./externoSchema";
@@ -37,6 +39,7 @@ const valoresIniciales: ExternoFormValues = {
 export default function ExternosPage() {
     const [externos, setExternos] = useState<Externo[]>([]);
     const [cargando, setCargando] = useState(true);
+    const [buscandoSync, setBuscandoSync] = useState(false);
     const [dialogAbierto, setDialogAbierto] = useState(false);
     const [externoEditando, setExternoEditando] = useState<Externo | null>(null);
     const [busqueda, setBusqueda] = useState("");
@@ -61,6 +64,27 @@ export default function ExternosPage() {
     useEffect(() => {
         cargarDatos();
     }, []);
+
+    
+    const sincronizarConDB = async (documento: string) => {
+        if (!documento) return;
+        setBuscandoSync(true);
+        try {
+            const data = await consultarSincronizacion(documento);
+            if (!data.esExterno) {
+                toast.warning("Esta persona no es un Tercero. Regístralo en el módulo de Usuarios.");
+            } else {
+                form.setValue("nombres", data.nombres || "");
+                form.setValue("apellidos", data.apellidos || "");
+                // Externos doesn't have correo field in DB by default, but if it does we set it
+                toast.success("Datos sincronizados con la Universidad");
+            }
+        } catch (error: any) {
+            toast.error(error.response?.data?.error || "No se encontró en la base de datos institucional");
+        } finally {
+            setBuscandoSync(false);
+        }
+    };
 
     function abrirCrear() {
         setExternoEditando(null);
@@ -263,7 +287,12 @@ export default function ExternosPage() {
                                     <FormItem>
                                         <FormLabel>Número de documento</FormLabel>
                                         <FormControl>
-                                            <Input {...field} placeholder="Ej: 1020304050" />
+                                            <div className="flex gap-2">
+                                                <Input {...field} placeholder="Ej: 1020304050" />
+                                                <Button type="button" variant="secondary" onClick={() => sincronizarConDB(field.value)} disabled={buscandoSync || !field.value} title="Buscar en BD">
+                                                    {buscandoSync ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
+                                                </Button>
+                                            </div>
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
