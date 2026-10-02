@@ -1,4 +1,4 @@
-import api from "./config";
+import api from "./client";
 
 export interface SincronizacionResponse {
     documento: string;
