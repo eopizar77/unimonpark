@@ -45,8 +45,31 @@ public class PublicController {
     public ResponseEntity<?> sincronizarPorDocumento(@PathVariable String documento) {
         try {
             SincronizacionResponseDTO response = sincronizacionService.buscarPersona(documento);
+            
+            // Si no está en la BD externa, buscar en la BD interna
             if (response == null) {
-                return ResponseEntity.status(404).body(java.util.Map.of("error", "Persona no encontrada en la BD de la Universidad"));
+                Optional<Usuario> usuarioOpt = usuarioRepository.findByDocumento(documento);
+                if (usuarioOpt.isPresent()) {
+                    Usuario u = usuarioOpt.get();
+                    response = new SincronizacionResponseDTO();
+                    response.setDocumento(u.getDocumento());
+                    response.setNombres(u.getNombres());
+                    response.setApellidos(u.getApellidos());
+                    response.setCorreo(u.getCorreo());
+                    response.setIdRol(u.getRol().getIdRol());
+                    response.setEsExterno(false);
+                } else {
+                    return ResponseEntity.status(404).body(java.util.Map.of("error", "Persona no encontrada en la BD de la Universidad ni internamente"));
+                }
+            } else {
+                // Si está en la externa pero le faltan los nombres, buscar si los tenemos internamente
+                if (response.getNombres() == null || response.getNombres().trim().isEmpty()) {
+                    Optional<Usuario> usuarioOpt = usuarioRepository.findByDocumento(documento);
+                    if (usuarioOpt.isPresent()) {
+                        response.setNombres(usuarioOpt.get().getNombres());
+                        response.setApellidos(usuarioOpt.get().getApellidos());
+                    }
+                }
             }
             if (response.getEsExterno()) {
                 return ResponseEntity.status(400).body(java.util.Map.of("error", "Los terceros o externos no pueden usar el autoservicio."));

@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { toast } from "sonner";
 import { Car, Loader2, Search, CheckCircle2 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -37,7 +37,7 @@ export default function RegistroPublicoPage() {
     const [enviando, setEnviando] = useState(false);
     const [verificado, setVerificado] = useState(false);
     const [nombresFaltantes, setNombresFaltantes] = useState(false);
-    const [completado, setCompletado] = useState(false);
+    const navigate = useNavigate();
 
     const form = useForm<z.infer<typeof registroSchema>>({
         resolver: zodResolver(registroSchema),
@@ -129,7 +129,8 @@ export default function RegistroPublicoPage() {
             };
 
             await enviarRegistroPublico(payload);
-            setCompletado(true);
+            toast.success("Vehículo registrado exitosamente");
+            navigate("/login");
         } catch (error: any) {
             toast.error(error.response?.data?.error || "Error registrando vehículo");
         } finally {
@@ -137,20 +138,7 @@ export default function RegistroPublicoPage() {
         }
     };
 
-    if (completado) {
-        return (
-            <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
-                <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 text-center max-w-md w-full">
-                    <CheckCircle2 className="w-16 h-16 text-emerald-500 mx-auto mb-6" />
-                    <h2 className="text-2xl font-bold text-slate-900 mb-2">¡Registro Exitoso!</h2>
-                    <p className="text-slate-600 mb-8">Tu vehículo ha sido registrado en el sistema. Ya puedes ingresar al parqueadero.</p>
-                    <Link to="/login">
-                        <Button className="w-full">Volver al inicio</Button>
-                    </Link>
-                </div>
-            </div>
-        );
-    }
+    
 
     return (
         <div className="min-h-screen bg-slate-50 flex flex-col p-4 md:p-8 items-center justify-center">
@@ -179,7 +167,7 @@ export default function RegistroPublicoPage() {
                                             <FormLabel>Número de Documento (Cédula/TI)</FormLabel>
                                             <FormControl>
                                                 <div className="flex gap-2">
-                                                    <Input {...field} readOnly={verificado} className={verificado ? "bg-slate-50 cursor-not-allowed" : ""} placeholder="Ej: 1019985455" />
+                                                    <Input {...field} readOnly={verificado} className={verificado ? "bg-slate-50 cursor-not-allowed" : ""} placeholder="Ej: 1019985455" onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); buscarDocumento(); } }} />
                                                     {!verificado && (
                                                         <Button type="button" onClick={buscarDocumento} disabled={buscando || !field.value}>
                                                             {buscando ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4 mr-2" />}
