@@ -43,7 +43,7 @@ public class SincronizacionServiceImpl implements SincronizacionService {
             throw new RuntimeException("La base de datos externa no está configurada.");
         }
 
-        String sql = "SELECT documento, nombres, apellidos, email_institucional, email_personal, rol, estado FROM public.users WHERE documento = ?";
+        String sql = "SELECT * FROM public.users WHERE documento = ?";
         List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql, documento);
 
         if (rows.isEmpty()) {
@@ -54,8 +54,24 @@ public class SincronizacionServiceImpl implements SincronizacionService {
         SincronizacionResponseDTO dto = new SincronizacionResponseDTO();
 
         dto.setDocumento((String) persona.get("documento"));
-        dto.setNombres((String) persona.get("nombres"));
-        dto.setApellidos((String) persona.get("apellidos"));
+        
+        String dbNombres = (String) persona.get("nombres");
+        if (dbNombres == null || dbNombres.trim().isEmpty()) {
+            String pNombre = (String) persona.get("primer_nombre");
+            String sNombre = (String) persona.get("segundo_nombre");
+            dbNombres = (pNombre != null ? pNombre : "") + " " + (sNombre != null ? sNombre : "");
+            dbNombres = dbNombres.trim();
+        }
+        dto.setNombres(dbNombres);
+        
+        String dbApellidos = (String) persona.get("apellidos");
+        if (dbApellidos == null || dbApellidos.trim().isEmpty()) {
+            String pApellido = (String) persona.get("primer_apellido");
+            String sApellido = (String) persona.get("segundo_apellido");
+            dbApellidos = (pApellido != null ? pApellido : "") + " " + (sApellido != null ? sApellido : "");
+            dbApellidos = dbApellidos.trim();
+        }
+        dto.setApellidos(dbApellidos);
 
         String emailInst = (String) persona.get("email_institucional");
         String emailPers = (String) persona.get("email_personal");
