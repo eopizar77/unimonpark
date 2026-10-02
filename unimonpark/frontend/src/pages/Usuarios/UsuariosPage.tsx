@@ -5,6 +5,8 @@ import { toast } from "sonner";
 
 import { actualizarUsuario, crearUsuario, eliminarUsuario, listarUsuarios } from "@/api/usuarios";
 import { listarRoles } from "@/api/roles";
+import { consultarSincronizacion } from "@/api/sincronizacion";
+import { Loader2 } from "lucide-react";
 import type { Rol } from "@/types/rol";
 import type { Usuario } from "@/types/usuario";
 import { usuarioSchema, type UsuarioFormValues } from "./usuarioSchema";
@@ -68,6 +70,7 @@ export default function UsuariosPage() {
     const [usuarios, setUsuarios] = useState<Usuario[]>([]);
     const [roles, setRoles] = useState<Rol[]>([]);
     const [cargando, setCargando] = useState(true);
+    const [buscandoSync, setBuscandoSync] = useState(false);
     const [busqueda, setBusqueda] = useState("");
     const [dialogAbierto, setDialogAbierto] = useState(false);
     const [usuarioEditando, setUsuarioEditando] = useState<Usuario | null>(null);
@@ -93,6 +96,28 @@ export default function UsuariosPage() {
     useEffect(() => {
         cargarDatos();
     }, []);
+
+    
+    const sincronizarConDB = async (documento: string) => {
+        if (!documento) return;
+        setBuscandoSync(true);
+        try {
+            const data = await consultarSincronizacion(documento);
+            if (data.esExterno) {
+                toast.warning("Esta persona es un Tercero/Externo. Regístralo en el módulo de Externos.");
+            } else {
+                form.setValue("nombres", data.nombres || "");
+                form.setValue("apellidos", data.apellidos || "");
+                form.setValue("correo", data.correo || "");
+                if (data.idRol) form.setValue("idRol", data.idRol);
+                toast.success("Datos sincronizados con la Universidad");
+            }
+        } catch (error: any) {
+            toast.error(error.response?.data?.error || "No se encontró en la base de datos institucional");
+        } finally {
+            setBuscandoSync(false);
+        }
+    };
 
     function abrirCrear() {
         setUsuarioEditando(null);
@@ -274,7 +299,7 @@ return (
                             <FormField control={form.control} name="documento" render={({ field }) => (
                                 <FormItem>
                                     <FormLabel>Documento</FormLabel>
-                                    <FormControl><Input {...field} /></FormControl>
+                                    <FormControl><div className="flex gap-2"><Input {...field} /><Button type="button" variant="secondary" onClick={() => sincronizarConDB(field.value)} disabled={buscandoSync || !field.value} title="Buscar en BD">{buscandoSync ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}</Button></div></FormControl>
                                     <FormMessage />
                                 </FormItem>
                             )} />
