@@ -16,7 +16,7 @@ public class SincronizacionController {
     private SincronizacionService sincronizacionService;
 
     @GetMapping("/{documento}")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('OPERADOR')")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'GESTION')")
     public ResponseEntity<?> consultarPorDocumento(@PathVariable String documento) {
         try {
             SincronizacionResponseDTO response = sincronizacionService.buscarPersona(documento);
