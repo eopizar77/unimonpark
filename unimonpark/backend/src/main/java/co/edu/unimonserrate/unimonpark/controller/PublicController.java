@@ -7,10 +7,10 @@ import org.springframework.web.bind.annotation.*;
 
 import co.edu.unimonserrate.unimonpark.dto.RegistroPublicoDTO;
 import co.edu.unimonserrate.unimonpark.dto.SincronizacionResponseDTO;
-import co.edu.unimonserrate.unimonpark.model.Usuario;
-import co.edu.unimonserrate.unimonpark.model.Vehiculo;
-import co.edu.unimonserrate.unimonpark.model.Rol;
-import co.edu.unimonserrate.unimonpark.model.TipoVehiculo;
+import co.edu.unimonserrate.unimonpark.entity.Usuario;
+import co.edu.unimonserrate.unimonpark.entity.Vehiculo;
+import co.edu.unimonserrate.unimonpark.entity.Rol;
+import co.edu.unimonserrate.unimonpark.entity.TipoVehiculo;
 import co.edu.unimonserrate.unimonpark.repository.UsuarioRepository;
 import co.edu.unimonserrate.unimonpark.repository.VehiculoRepository;
 import co.edu.unimonserrate.unimonpark.repository.RolRepository;
