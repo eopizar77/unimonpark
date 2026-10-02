@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { toast } from "sonner";
-import { Car, Loader2, Search, ArrowLeft, CheckCircle2 } from "lucide-react";
+import { Car, Loader2, Search, CheckCircle2 } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import { Button } from "@/components/ui/button";
@@ -25,7 +25,7 @@ const registroSchema = z.object({
     marca: z.string().min(1, "La marca es requerida"),
     modelo: z.string().min(1, "El modelo es requerido"),
     color: z.string().min(1, "El color es requerido"),
-}).superRefine((val, ctx) => {
+}).superRefine(() => {
     // Si no es bicicleta, placa es requerida
     // Asumimos que id 3 es Bicicleta o si pasamos el nombre. 
     // Para validación frontend, verificaremos luego, pero por seguridad exigimos placa si viene vacía y no es bici.
@@ -62,9 +62,9 @@ export default function RegistroPublicoPage() {
         // Asumiendo que la API original tiene token, si estamos deslogueados fallará.
         // Crearemos un endpoint público para tipos si falla, o por ahora quemaremos los básicos:
         setTipos([
-            { idTipoVehiculo: 1, nombre: "Carro", descripcion: "" },
-            { idTipoVehiculo: 2, nombre: "Moto", descripcion: "" },
-            { idTipoVehiculo: 3, nombre: "Bicicleta", descripcion: "" }
+            { idTipoVehiculo: 1, nombre: "Carro", descripcion: "", activo: true },
+            { idTipoVehiculo: 2, nombre: "Moto", descripcion: "", activo: true },
+            { idTipoVehiculo: 3, nombre: "Bicicleta", descripcion: "", activo: true }
         ]);
         
         listarTiposVehiculo().then(setTipos).catch(() => {

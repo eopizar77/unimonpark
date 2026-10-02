@@ -3,6 +3,7 @@ import { Toaster } from "@/components/ui/sonner"
 import ForgotPasswordPage from "@/pages/Login/ForgotPasswordPage";
 import ResetPasswordPage from "@/pages/Login/ResetPasswordPage";
 import LoginPage from "@/pages/Login/LoginPage";
+import RegistroPublicoPage from "@/pages/RegistroPublico/RegistroPublicoPage";
 import RolesPage from "@/pages/Roles/RolesPage";
 import TiposVehiculoPage from "@/pages/TiposVehiculo/TiposVehiculoPage";
 import UsuariosPage from "@/pages/Usuarios/UsuariosPage";
