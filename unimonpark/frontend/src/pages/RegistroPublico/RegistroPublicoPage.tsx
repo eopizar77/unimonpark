@@ -173,7 +173,7 @@ export default function RegistroPublicoPage() {
                                             <FormLabel>Número de Documento (Cédula/TI)</FormLabel>
                                             <FormControl>
                                                 <div className="flex gap-2">
-                                                    <Input {...field} disabled={verificado} placeholder="Ej: 1019985455" />
+                                                    <Input {...field} readOnly={verificado} className={verificado ? "bg-slate-50 cursor-not-allowed" : ""} placeholder="Ej: 1019985455" />
                                                     {!verificado && (
                                                         <Button type="button" onClick={buscarDocumento} disabled={buscando || !field.value}>
                                                             {buscando ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4 mr-2" />}
@@ -191,13 +191,13 @@ export default function RegistroPublicoPage() {
                                             <FormField control={form.control} name="nombres" render={({ field }) => (
                                                 <FormItem>
                                                     <FormLabel>Nombres</FormLabel>
-                                                    <FormControl><Input {...field} disabled className="bg-slate-50" /></FormControl>
+                                                    <FormControl><Input {...field} readOnly className="bg-slate-50 cursor-not-allowed" /></FormControl>
                                                 </FormItem>
                                             )} />
                                             <FormField control={form.control} name="apellidos" render={({ field }) => (
                                                 <FormItem>
                                                     <FormLabel>Apellidos</FormLabel>
-                                                    <FormControl><Input {...field} disabled className="bg-slate-50" /></FormControl>
+                                                    <FormControl><Input {...field} readOnly className="bg-slate-50 cursor-not-allowed" /></FormControl>
                                                 </FormItem>
                                             )} />
                                         </>
