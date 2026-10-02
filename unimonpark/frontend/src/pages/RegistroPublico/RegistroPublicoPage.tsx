@@ -18,7 +18,7 @@ const registroSchema = z.object({
     documento: z.string().min(1, "El documento es requerido"),
     nombres: z.string().min(1, "Requerido"),
     apellidos: z.string().min(1, "Requerido"),
-    correo: z.string().email("Correo inválido"),
+    correo: z.string().email("Correo inválido").optional().or(z.literal("")),
     idRol: z.number(),
     tipoVehiculoId: z.string().min(1, "Seleccione un tipo de vehículo"),
     placa: z.string().optional(),
