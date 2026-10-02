@@ -18,6 +18,8 @@ import co.edu.unimonserrate.unimonpark.repository.TipoVehiculoRepository;
 import co.edu.unimonserrate.unimonpark.service.SincronizacionService;
 
 import java.util.Optional;
+import java.time.LocalDateTime;
+import co.edu.unimonserrate.unimonpark.enums.CategoriaPersona;
 
 @RestController
 @RequestMapping("/api/public")
@@ -115,6 +117,13 @@ public class PublicController {
             vehiculo.setUsuario(usuario);
             vehiculo.setTipoVehiculo(tipo);
             vehiculo.setActivo(true);
+            vehiculo.setFechaCreacion(LocalDateTime.now());
+            
+            CategoriaPersona cat = CategoriaPersona.ESTUDIANTE;
+            if (usuario.getRol() != null && usuario.getRol().getIdRol() == 8) {
+                cat = CategoriaPersona.DOCENTE_ADMINISTRATIVO;
+            }
+            vehiculo.setCategoriaPersona(cat);
             
             vehiculoRepository.save(vehiculo);
             
