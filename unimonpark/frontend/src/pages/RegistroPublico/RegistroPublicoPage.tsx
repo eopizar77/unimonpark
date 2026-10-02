@@ -119,7 +119,7 @@ export default function RegistroPublicoPage() {
                 documento: values.documento,
                 nombres: values.nombres,
                 apellidos: values.apellidos,
-                correo: values.correo,
+                correo: values.correo || "",
                 idRol: values.idRol,
                 tipoVehiculoId: parseInt(values.tipoVehiculoId),
                 placa: esBicicleta ? undefined : values.placa,
