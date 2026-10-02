@@ -1,7 +1,7 @@
 import axios from "axios";
 import type { SincronizacionResponse } from "./sincronizacion";
 
-const API_URL = "/api/public";
+const API_URL = (import.meta.env.VITE_API_BASE_URL ?? "http://192.168.10.214:8080/api") + "/public";
 
 // Usamos axios puro sin interceptores para no mandar token JWT
 const publicApi = axios.create({
