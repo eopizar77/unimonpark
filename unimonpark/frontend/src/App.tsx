@@ -29,6 +29,7 @@ function App() {
     <Toaster richColors position="top-right" />
     <Routes>
       <Route path="/login" element={<LoginPage />} />
+            <Route path="/registro-vehiculo" element={<RegistroPublicoPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
       <Route path="/unauthorized" element={<UnauthorizedPage />} />

@@ -84,6 +84,14 @@ export default function LoginPage(){
               ¿Olvidaste tu contraseña?
             </Link>
           </div>
+          <div className="mt-6 pt-6 border-t text-center">
+            <p className="text-sm text-slate-500 mb-4">¿Eres de la comunidad y necesitas registrar tu vehículo?</p>
+            <Link to="/registro-vehiculo" className="w-full">
+              <Button variant="outline" className="w-full border-blue-200 text-blue-700 hover:bg-blue-50">
+                Registrar Vehículo (Autoservicio)
+              </Button>
+            </Link>
+          </div>
         </CardContent>
       </Card>
     </div>
