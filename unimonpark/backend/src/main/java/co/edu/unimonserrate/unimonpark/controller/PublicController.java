@@ -106,11 +106,18 @@ public class PublicController {
             }
             
             // 2. Crear vehÃ­culo
+            // Validar placa existente
+            if (dto.getPlaca() != null && !dto.getPlaca().trim().isEmpty()) {
+                if (vehiculoRepository.existsByPlaca(dto.getPlaca().toUpperCase())) {
+                    return ResponseEntity.status(400).body(java.util.Map.of("error", "La placa " + dto.getPlaca().toUpperCase() + " ya se encuentra registrada en el sistema."));
+                }
+            }
+            
             TipoVehiculo tipo = tipoVehiculoRepository.findById(dto.getTipoVehiculoId())
                     .orElseThrow(() -> new RuntimeException("Tipo de vehÃ­culo no encontrado"));
                     
             Vehiculo vehiculo = new Vehiculo();
-            vehiculo.setPlaca(dto.getPlaca() != null ? dto.getPlaca() : "N/A");
+            vehiculo.setPlaca(dto.getPlaca() != null && !dto.getPlaca().trim().isEmpty() ? dto.getPlaca().toUpperCase() : null);
             vehiculo.setMarca(dto.getMarca());
             vehiculo.setModelo(dto.getModelo());
             vehiculo.setColor(dto.getColor());
