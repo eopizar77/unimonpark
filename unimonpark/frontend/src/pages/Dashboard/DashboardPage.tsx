@@ -1,327 +1,256 @@
-import { useEffect, useState } from "react";
-import { toast } from "sonner";
+﻿import { useEffect, useState, useMemo } from "react";
+import { 
+  Card, 
+  CardContent, 
+  CardHeader, 
+  CardTitle 
+} from "@/components/ui/card";
+import { 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableHead, 
+  TableHeader, 
+  TableRow 
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { listarIngresos } from "@/api/ingresos";
+import { listarMensualidades } from "@/api/mensualidades";
+import { listarMembresias } from "@/api/membresias";
+import { listarVehiculos } from "@/api/vehiculos";
+import type { Ingreso } from "@/types/ingreso";
+import type { Mensualidad } from "@/types/mensualidad";
+import type { Membresia } from "@/types/membresia";
+import type { Vehiculo } from "@/types/vehiculo";
+import { useAuth } from "@/context/AuthContext";
 import {
-  MapPin,
-  CheckCircle2,
-  LogIn,
-  CalendarCheck,
-  AlertTriangle,
-  AlertCircle,
   Car,
   Clock,
-  UserCheck
+  AlertCircle,
+  CheckCircle2,
+  TrendingUp,
+  CreditCard,
+  CalendarDays,
+  LayoutDashboard
 } from "lucide-react";
-
-import { listarEspaciosParqueo } from "@/api/espaciosParqueo";
-import { listarIngresos } from "@/api/ingresos";
-import { listarMembresias } from "@/api/membresias";
-import { listarPenalizaciones } from "@/api/penalizaciones";
-import { listarMensualidades } from "@/api/mensualidades";
-import { listarVehiculos } from "@/api/vehiculos";
-import { listarTiposVehiculo } from "@/api/tiposVehiculo";
-import { listarUsuarios } from "@/api/usuarios";
-import { listarExternos } from "@/api/externos";
-
-import type { EspacioParqueo } from "@/types/espacioParqueo";
-import type { Ingreso } from "@/types/ingreso";
-import type { Membresia } from "@/types/membresia";
-import type { Mensualidad } from "@/types/mensualidad";
-import type { Vehiculo } from "@/types/vehiculo";
-import type { TipoVehiculo } from "@/types/tipoVehiculo";
-import type { Usuario } from "@/types/usuario";
-import type { Externo } from "@/types/externo";
-
-import StatCard from "./StatCard";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { useAuth } from "@/context/AuthContext";
-
-interface AlertaVencimiento {
-  id: string;
-  tipo: "Mensualidad" | "Membresía";
-  placa: string;
-  usuario: string;
-  fechaFin: string;
-  diasRestantes: number;
-}
 
 export default function DashboardPage() {
   const { nombreUsuario } = useAuth();
-  const [cargando, setCargando] = useState(true);
-
-  // Datos base
-  const [espacios, setEspacios] = useState<EspacioParqueo[]>([]);
+  
   const [ingresos, setIngresos] = useState<Ingreso[]>([]);
-  const [membresias, setMembresias] = useState<Membresia[]>([]);
   const [mensualidades, setMensualidades] = useState<Mensualidad[]>([]);
-  const [penalizaciones, setPenalizaciones] = useState(0);
+  const [membresias, setMembresias] = useState<Membresia[]>([]);
   const [vehiculos, setVehiculos] = useState<Vehiculo[]>([]);
-  const [tipos, setTipos] = useState<TipoVehiculo[]>([]);
-  const [usuarios, setUsuarios] = useState<Usuario[]>([]);
-  const [_, setExternos] = useState<Externo[]>([]);
+    const [cargando, setCargando] = useState(true);
 
   useEffect(() => {
-    async function cargar() {
-      setCargando(true);
+    async function cargarDatos() {
       try {
-        const [
-          espaciosData,
-          ingresosData,
-          membresiasData,
-          mensualidadesData,
-          penalizacionesData,
-          vehiculosData,
-          tiposData,
-          usuariosData,
-          externosData,
-        ] = await Promise.all([
-          listarEspaciosParqueo(),
+        const [ing, men, mem, veh] = await Promise.all([
           listarIngresos(),
-          listarMembresias(),
           listarMensualidades(),
-          listarPenalizaciones(),
+          listarMembresias(),
           listarVehiculos(),
-          listarTiposVehiculo(),
-          listarUsuarios(),
-          listarExternos(),
+          null /* removed */
         ]);
-
-        setEspacios(espaciosData);
-        setIngresos(ingresosData);
-        setMembresias(membresiasData);
-        setMensualidades(mensualidadesData);
-        setPenalizaciones(penalizacionesData.filter((p) => p.estado === "PENDIENTE").length);
-        setVehiculos(vehiculosData);
-        setTipos(tiposData);
-        setUsuarios(usuariosData);
-        setExternos(externosData);
-      } catch {
-        toast.error("No se pudo cargar el resumen del parqueadero");
+        setIngresos(ing);
+        setMensualidades(men);
+        setMembresias(mem);
+        setVehiculos(veh);
+              } catch (error) {
+        console.error("Error al cargar datos del dashboard:", error);
       } finally {
         setCargando(false);
       }
     }
-    cargar();
+    cargarDatos();
   }, []);
 
+  const ingresosActivos = useMemo(() => ingresos.filter(i => i.estado === "ACTIVO"), [ingresos]);
+  const ingresosDelDia = useMemo(() => {
+    const hoy = new Date().toISOString().split('T')[0];
+    return ingresos.filter(i => i.fechaIngreso.startsWith(hoy));
+  }, [ingresos]);
+
+  const alertas = useMemo(() => {
+    const hoy = new Date();
+    const alertasGeneradas: any[] = [];
+
+    const verificarVencimiento = (fechaFin: string | undefined, tipo: string, titular: string, placa: string, id: number) => {
+      if (!fechaFin) return;
+      const fin = new Date(fechaFin);
+      const diffTime = fin.getTime() - hoy.getTime();
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+      if (diffDays <= 7) {
+        alertasGeneradas.push({
+          id: `${tipo}-${id}`,
+          tipo,
+          titular,
+          placa,
+          fechaFin: fin.toLocaleDateString("es-CO"),
+          diasRestantes: diffDays
+        });
+      }
+    };
+
+    mensualidades.forEach(m => {
+      if (m.estado === "ACTIVA") {
+        const veh = vehiculos.find(v => v.idVehiculo === m.idVehiculo);
+        verificarVencimiento(m.fechaFin, "Mensualidad", veh?.nombreUsuario || veh?.nombreExterno || "Desconocido", veh?.placa || "N/A", m.idMensualidadUsuario);
+      }
+    });
+
+    membresias.forEach(m => {
+      if (m.activa) {
+        verificarVencimiento(m.fechaFin, "MembresÃ­a", m.nombreTarifa, m.placaVehiculo, m.idMembresia);
+      }
+    });
+
+    return alertasGeneradas.sort((a, b) => a.diasRestantes - b.diasRestantes);
+  }, [mensualidades, membresias, vehiculos]);
+
   if (cargando) {
-    return <p className="text-muted-foreground animate-pulse">Cargando centro de control...</p>;
+    return (
+      <div className="flex h-[80vh] items-center justify-center">
+        <div className="flex flex-col items-center gap-4 text-slate-400">
+          <LayoutDashboard className="h-12 w-12 animate-pulse text-blue-500/50" />
+          <p className="animate-pulse text-lg font-medium">Cargando mÃ©tricas...</p>
+        </div>
+      </div>
+    );
   }
 
-  // --- CÁLCULOS ESTADÍSTICOS ---
-  const espaciosDisponibles = espacios.filter((e) => e.estado === "DISPONIBLE").length;
-  const espaciosOcupados = espacios.filter((e) => e.estado === "OCUPADO").length;
-  const ingresosActivos = ingresos.filter((i) => i.estado === "ACTIVO");
-  const membresiasVigentes = membresias.filter((m) => m.activa).length;
-  const mensualidadesVigentes = mensualidades.filter((m) => m.estado === "ACTIVA").length;
-
-  // --- CONTEO DE VEHÍCULOS ADENTRO POR TIPO ---
-  const ocupacionPorTipo = tipos.map((tipo) => {
-    const vehiculosDeEsteTipo = vehiculos
-      .filter((v) => v.idTipoVehiculo === tipo.idTipoVehiculo)
-      .map((v) => v.idVehiculo);
-
-    const cantidadAdentro = ingresosActivos.filter((i) =>
-      vehiculosDeEsteTipo.includes(i.idVehiculo)
-    ).length;
-
-    return {
-      nombre: tipo.nombre,
-      cantidad: cantidadAdentro,
-    };
-  });
-
-  // --- CONTEO DE EXTERNOS ADENTRO ---
-  const vehiculosDeExternos = vehiculos
-    .filter((v) => v.idExterno !== null || v.nombreExterno !== null)
-    .map((v) => v.idVehiculo);
-    
-  const externosAdentro = ingresosActivos.filter((i) =>
-    vehiculosDeExternos.includes(i.idVehiculo)
-  ).length;
-
-  // --- DETECCIÓN DE ALERTAS DE VENCIMIENTO (Próximos 7 días) ---
-  const hoy = new Date();
-  hoy.setHours(0, 0, 0, 0);
-
-  const alertas: AlertaVencimiento[] = [];
-
-  // Revisar Mensualidades
-  mensualidades.forEach((m) => {
-    if (m.estado === "ACTIVA" && m.fechaFin) {
-      const fechaFin = new Date(m.fechaFin);
-      fechaFin.setHours(0, 0, 0, 0);
-      const diffDias = Math.round((fechaFin.getTime() - hoy.getTime()) / (1000 * 60 * 60 * 24));
-
-      if (diffDias <= 7) {
-        const u = usuarios.find((user) => user.idUsuario === m.idUsuario);
-        alertas.push({
-          id: `mens-${m.idMensualidadUsuario}`,
-          tipo: "Mensualidad",
-          placa: m.placaVehiculo || "Sin placa",
-          usuario: u ? `${u.nombres} ${u.apellidos}` : "Usuario no encontrado",
-          fechaFin: m.fechaFin,
-          diasRestantes: diffDias,
-        });
-      }
-    }
-  });
-
-  // Revisar Membresías
-  membresias.forEach((mem) => {
-    if (mem.activa && mem.fechaFin) {
-      const fechaFin = new Date(mem.fechaFin);
-      fechaFin.setHours(0, 0, 0, 0);
-      const diffDias = Math.round((fechaFin.getTime() - hoy.getTime()) / (1000 * 60 * 60 * 24));
-
-      if (diffDias <= 7) {
-        const veh = vehiculos.find((v) => v.idVehiculo === mem.idVehiculo);
-        const u = veh ? usuarios.find((user) => user.idUsuario === veh.idUsuario) : null;
-        alertas.push({
-          id: `mem-${mem.idMembresia}`,
-          tipo: "Membresía",
-          placa: mem.placaVehiculo || "Sin placa",
-          usuario: u ? `${u.nombres} ${u.apellidos}` : "Titular registrado",
-          fechaFin: mem.fechaFin,
-          diasRestantes: diffDias,
-        });
-      }
-    }
-  });
-
-  // Ordenar de más urgente a menos urgente
-  alertas.sort((a, b) => a.diasRestantes - b.diasRestantes);
-
-  // Fecha bonita para el saludo
-  const fechaActual = hoy.toLocaleDateString("es-CO", { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-
   return (
-    <div className="flex flex-col gap-6 animate-in fade-in duration-500">
-      <div>
-        <h2 className="text-3xl font-bold tracking-tight text-primary">
-          ¡HOLA, {nombreUsuario || "Operario"}! 👋
+    <div className="flex flex-col gap-8 animate-in fade-in duration-700 pb-8">
+      
+      <div className="flex flex-col gap-1">
+        <h2 className="text-3xl font-extrabold tracking-tight text-slate-900">
+          Â¡HOLA, {nombreUsuario?.toUpperCase() || "USUARIO"}! ðŸ‘‹
         </h2>
-        <p className="text-sm text-muted-foreground mt-1 capitalize">
-          {fechaActual} - MONITOREO TIEMPO REAL -- UNIMONPARK --
+        <p className="text-base text-slate-500 font-medium">
+          AquÃ­ tienes el resumen operativo del parqueadero.
         </p>
       </div>
 
-      {/* Tarjetas Principales */}
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
-        <StatCard titulo="Disponibles" valor={espaciosDisponibles} icon={CheckCircle2} />
-        <StatCard titulo="Ocupados" valor={espaciosOcupados} icon={MapPin} />
-        <StatCard
-          titulo="Adentro"
-          valor={ingresosActivos.length}
-          icon={LogIn}
-          descripcion="Ingresos activos"
-        />
-        <StatCard
-          titulo="Externos"
-          valor={externosAdentro}
-          icon={UserCheck}
-          descripcion="Visitantes ahora"
-        />
-        <StatCard
-          titulo="Abonos vigentes"
-          valor={membresiasVigentes + mensualidadesVigentes}
-          icon={CalendarCheck}
-        />
-        <StatCard
-          titulo="Penalizaciones"
-          valor={penalizaciones}
-          icon={AlertTriangle}
-        />
-      </div>
-
-      {/* Grid de Ocupación por Tipo y Alertas */}
-      <div className="grid gap-6 md:grid-cols-3">
-        {/* Distribución por Tipo de Vehículo */}
-        <Card className="md:col-span-1 shadow-sm border-gray-100">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base text-primary">
-              <Car className="h-5 w-5" />
-              OCUPACION POR TIPO
-            </CardTitle>
-            <CardDescription>Vehículos con ingreso activo</CardDescription>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <Card className="shadow-sm border-slate-100 bg-white hover:shadow-md transition-shadow">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-bold text-slate-500 uppercase tracking-wider">Ingresos del DÃ­a</CardTitle>
+            <div className="p-2 bg-blue-50 rounded-lg">
+              <TrendingUp className="h-5 w-5 text-blue-600" />
+            </div>
           </CardHeader>
-          <CardContent className="space-y-5">
-            {ocupacionPorTipo.map((item) => {
-              // Calcular porcentaje visual (sobre el total de ocupados, max 100%)
-              const porcentaje = ingresosActivos.length > 0 ? Math.round((item.cantidad / ingresosActivos.length) * 100) : 0;
-              return (
-                <div key={item.nombre} className="flex flex-col gap-2">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="font-medium text-slate-700">{item.nombre}</span>
-                    <span className="font-bold text-primary">{item.cantidad}</span>
-                  </div>
-                  <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
-                    <div 
-                      className="h-full bg-primary rounded-full transition-all duration-1000" 
-                      style={{ width: `${porcentaje}%` }} 
-                    />
-                  </div>
-                </div>
-              );
-            })}
+          <CardContent>
+            <div className="text-4xl font-extrabold text-slate-900">{ingresosDelDia.length}</div>
+            <p className="text-xs text-slate-500 font-medium mt-1">VehÃ­culos registrados hoy</p>
+          </CardContent>
+        </Card>
+        
+        <Card className="shadow-sm border-slate-100 bg-white hover:shadow-md transition-shadow">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-bold text-slate-500 uppercase tracking-wider">OcupaciÃ³n Actual</CardTitle>
+            <div className="p-2 bg-emerald-50 rounded-lg">
+              <Car className="h-5 w-5 text-emerald-600" />
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="text-4xl font-extrabold text-slate-900">{ingresosActivos.length}</div>
+            <p className="text-xs text-slate-500 font-medium mt-1">VehÃ­culos en el parqueadero</p>
           </CardContent>
         </Card>
 
-        {/* Notificaciones y Vencimientos Próximos */}
-        <Card className="md:col-span-2 shadow-sm border-gray-100">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base text-amber-600 dark:text-amber-500">
-              <AlertCircle className="h-5 w-5" />
-              VENCIMIENTOS PROXIMOS (7 Días)
-            </CardTitle>
-            <CardDescription>
-              Mensualidades y membresías con fecha límite de vencimiento cercana
-            </CardDescription>
+        <Card className="shadow-sm border-slate-100 bg-white hover:shadow-md transition-shadow">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-bold text-slate-500 uppercase tracking-wider">Mensualidades</CardTitle>
+            <div className="p-2 bg-indigo-50 rounded-lg">
+              <CalendarDays className="h-5 w-5 text-indigo-600" />
+            </div>
           </CardHeader>
           <CardContent>
+            <div className="text-4xl font-extrabold text-slate-900">
+              {mensualidades.filter(m => m.estado === "ACTIVA").length}
+            </div>
+            <p className="text-xs text-slate-500 font-medium mt-1">Planes activos actualmente</p>
+          </CardContent>
+        </Card>
+
+        <Card className="shadow-sm border-slate-100 bg-white hover:shadow-md transition-shadow">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-bold text-slate-500 uppercase tracking-wider">MembresÃ­as</CardTitle>
+            <div className="p-2 bg-purple-50 rounded-lg">
+              <CreditCard className="h-5 w-5 text-purple-600" />
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="text-4xl font-extrabold text-slate-900">
+              {membresias.filter(m => m.activa).length}
+            </div>
+            <p className="text-xs text-slate-500 font-medium mt-1">MembresÃ­as vigentes</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid grid-cols-1 gap-6">
+        <Card className="shadow-sm border-slate-100 flex flex-col">
+          <CardHeader className="border-b border-slate-50 bg-slate-50/50 pb-4">
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2 text-base font-bold text-amber-600">
+                <AlertCircle className="h-5 w-5" />
+                Vencimientos PrÃ³ximos (7 DÃ­as)
+              </CardTitle>
+              <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">
+                {alertas.length} Alerta{alertas.length !== 1 && 's'}
+              </Badge>
+            </div>
+          </CardHeader>
+          <CardContent className="p-0 flex-1">
             {alertas.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-8 text-center text-sm text-muted-foreground bg-slate-50/50 rounded-xl border border-dashed border-slate-200">
-                <CheckCircle2 className="h-10 w-10 text-secondary mb-3" />
-                <p className="font-medium text-slate-600">No hay vencimientos en los próximos 7 días</p>
-                <p className="text-xs">Todas las mensualidades y membresías están al día.</p>
+              <div className="flex flex-col items-center justify-center py-16 text-center text-sm text-slate-500 h-full">
+                <CheckCircle2 className="h-12 w-12 text-emerald-400 mb-4" />
+                <p className="font-semibold text-slate-700 text-base">Todo al dÃ­a</p>
+                <p className="text-slate-500 mt-1">No hay mensualidades ni membresÃ­as por vencer pronto.</p>
               </div>
             ) : (
-              <div className="rounded-md border">
+              <div className="overflow-x-auto">
                 <Table>
-                  <TableHeader className="bg-slate-50">
-                    <TableRow>
-                      <TableHead>Titular / Usuario</TableHead>
-                      <TableHead>Placa</TableHead>
-                      <TableHead>Tipo</TableHead>
-                      <TableHead>Fecha Fin</TableHead>
-                      <TableHead className="text-right">Urgencia</TableHead>
+                  <TableHeader>
+                    <TableRow className="hover:bg-transparent">
+                      <TableHead className="text-xs font-semibold uppercase text-slate-500">Titular / Usuario</TableHead>
+                      <TableHead className="text-xs font-semibold uppercase text-slate-500">Placa</TableHead>
+                      <TableHead className="text-xs font-semibold uppercase text-slate-500">Tipo</TableHead>
+                      <TableHead className="text-xs font-semibold uppercase text-slate-500">Fecha Fin</TableHead>
+                      <TableHead className="text-xs font-semibold uppercase text-slate-500 text-right">Estado</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {alertas.map((item) => (
                       <TableRow key={item.id}>
-                        <TableCell className="font-medium text-primary">{item.usuario}</TableCell>
-                        <TableCell>{item.placa}</TableCell>
+                        <TableCell className="font-medium text-slate-800">{item.titular}</TableCell>
                         <TableCell>
-                          <span className="text-xs text-muted-foreground bg-slate-100 px-2 py-1 rounded-md">{item.tipo}</span>
+                           <span className="font-mono font-bold bg-slate-100 text-slate-800 px-2 py-1 rounded text-xs">
+                             {item.placa}
+                           </span>
                         </TableCell>
-                        <TableCell>{item.fechaFin}</TableCell>
+                        <TableCell>
+                          <span className="text-xs font-medium text-slate-500">{item.tipo}</span>
+                        </TableCell>
+                        <TableCell className="text-slate-600">{item.fechaFin}</TableCell>
                         <TableCell className="text-right">
                           {item.diasRestantes < 0 && (
-                            <Badge variant="destructive" className="bg-red-500">Vencida</Badge>
+                            <Badge className="bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 shadow-none">Vencida</Badge>
                           )}
                           {item.diasRestantes === 0 && (
-                            <Badge variant="destructive" className="bg-red-500">Vence HOY</Badge>
+                            <Badge className="bg-red-500 text-white hover:bg-red-600 shadow-none animate-pulse">Vence HOY</Badge>
                           )}
                           {item.diasRestantes > 0 && item.diasRestantes <= 3 && (
-                            <Badge className="bg-amber-500 hover:bg-amber-600 text-white border-none">
-                              En {item.diasRestantes} días
+                            <Badge className="bg-amber-100 text-amber-800 border border-amber-200 hover:bg-amber-200 shadow-none">
+                              En {item.diasRestantes} dÃ­as
                             </Badge>
                           )}
                           {item.diasRestantes > 3 && (
-                            <Badge variant="secondary" className="bg-slate-100 text-slate-600 hover:bg-slate-200">
-                              En {item.diasRestantes} días
+                            <Badge variant="secondary" className="bg-slate-100 text-slate-600 hover:bg-slate-200 shadow-none">
+                              En {item.diasRestantes} dÃ­as
                             </Badge>
                           )}
                         </TableCell>
@@ -335,28 +264,26 @@ export default function DashboardPage() {
         </Card>
       </div>
 
-      {/* Tabla de Actividad Reciente */}
-      <Card className="shadow-sm border-gray-100">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-base text-primary">
-            <Clock className="h-5 w-5" />
-            Últimos Ingresos Registrados
+      <Card className="shadow-sm border-slate-100">
+        <CardHeader className="border-b border-slate-50 bg-slate-50/50 pb-4">
+          <CardTitle className="flex items-center gap-2 text-base font-bold text-slate-800">
+            <Clock className="h-5 w-5 text-slate-500" />
+            Ãšltimos Ingresos Registrados
           </CardTitle>
-          <CardDescription>Actividad reciente en el control de acceso</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-0">
           {ingresos.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No hay ingresos registrados aún.</p>
+            <div className="py-12 text-center text-sm text-slate-500">No hay ingresos registrados aÃºn.</div>
           ) : (
-            <div className="rounded-md border">
+            <div className="overflow-x-auto">
               <Table>
-                <TableHeader className="bg-slate-50">
-                  <TableRow>
-                    <TableHead>Fecha y Hora</TableHead>
-                    <TableHead>Vehículo / Placa</TableHead>
-                    <TableHead>Tipo Propietario</TableHead>
-                    <TableHead>Tipo Ingreso</TableHead>
-                    <TableHead>Estado</TableHead>
+                <TableHeader>
+                  <TableRow className="hover:bg-transparent">
+                    <TableHead className="text-xs font-semibold uppercase text-slate-500 pl-6">Fecha y Hora</TableHead>
+                    <TableHead className="text-xs font-semibold uppercase text-slate-500">VehÃ­culo / Placa</TableHead>
+                    <TableHead className="text-xs font-semibold uppercase text-slate-500">Tipo Propietario</TableHead>
+                    <TableHead className="text-xs font-semibold uppercase text-slate-500">Modo</TableHead>
+                    <TableHead className="text-xs font-semibold uppercase text-slate-500 pr-6">Estado</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -366,28 +293,42 @@ export default function DashboardPage() {
                     
                     return (
                       <TableRow key={ingreso.idIngreso}>
-                        <TableCell className="text-slate-600">{new Date(ingreso.fechaIngreso).toLocaleString("es-CO")}</TableCell>
-                        <TableCell className="font-medium text-primary">
-                          {veh ? `${veh.placa || "Bicicleta"} - ${veh.marca || ""}` : "Vehículo"}
+                        <TableCell className="text-slate-600 pl-6">
+                           <div className="flex flex-col">
+                             <span className="font-medium text-slate-800">
+                               {new Date(ingreso.fechaIngreso).toLocaleDateString("es-CO", { day: '2-digit', month: 'short', year: 'numeric' })}
+                             </span>
+                             <span className="text-xs text-slate-500">
+                               {new Date(ingreso.fechaIngreso).toLocaleTimeString("es-CO", { hour: '2-digit', minute: '2-digit' })}
+                             </span>
+                           </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex flex-col items-start gap-1">
+                              <span className="bg-slate-100 text-slate-900 font-mono font-bold text-xs px-2 py-1 rounded border border-slate-200 inline-block">
+                                  {veh?.placa || "N/A"}
+                              </span>
+                              <span className="text-xs text-slate-500">{veh?.marca || "VehÃ­culo"}</span>
+                          </div>
                         </TableCell>
                         <TableCell>
                           {esExterno ? (
-                            <Badge variant="outline" className="bg-secondary/20 text-secondary-foreground border-secondary/30">
-                              Visitante Externo
+                            <Badge variant="outline" className="bg-slate-50 text-slate-600 border-slate-200">
+                              Visitante
                             </Badge>
                           ) : (
-                            <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
+                            <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
                               Institucional
                             </Badge>
                           )}
                         </TableCell>
                         <TableCell>
-                          <span className="text-xs font-medium px-2 py-1 bg-slate-100 rounded-md">
+                          <span className="text-xs font-medium px-2.5 py-1 bg-slate-100 text-slate-600 rounded-md">
                             {ingreso.tipoIngreso}
                           </span>
                         </TableCell>
-                        <TableCell>
-                          <Badge className={ingreso.estado === "ACTIVO" ? "bg-secondary text-secondary-foreground" : "bg-slate-200 text-slate-700"}>
+                        <TableCell className="pr-6">
+                          <Badge className={ingreso.estado === "ACTIVO" ? "bg-emerald-50 text-emerald-700 hover:bg-emerald-100 shadow-none border border-emerald-200" : "bg-slate-100 text-slate-600 shadow-none border border-slate-200"}>
                             {ingreso.estado}
                           </Badge>
                         </TableCell>
@@ -403,3 +344,5 @@ export default function DashboardPage() {
     </div>
   );
 }
+
+
