@@ -79,7 +79,7 @@ export default function VehiculosPage() {
             setExternos(externosData);
             setTipos(tiposData);
         } catch {
-            toast.error("No se pudieron cargar los vehÃƒÂ­culos");
+            toast.error("No se pudieron cargar los vehículos");
         } finally {
             setCargando(false);
         }
@@ -115,7 +115,7 @@ export default function VehiculosPage() {
 
     async function onSubmit(valores: VehiculoFormValues) {
         if (!esBicicleta && !valores.placa?.trim()) {
-            toast.error("La placa es obligatoria para este tipo de vehÃƒÂ­culo");
+            toast.error("La placa es obligatoria para este tipo de vehículo");
             return;
         }
 
@@ -134,25 +134,25 @@ export default function VehiculosPage() {
         try {
             if (vehiculoEditando) {
                 await actualizarVehiculo(vehiculoEditando.idVehiculo, payload);
-                toast.success("VehÃƒÂ­culo actualizado correctamente");
+                toast.success("Vehículo actualizado correctamente");
             } else {
                 await crearVehiculo(payload);
-                toast.success("VehÃƒÂ­culo creado correctamente");
+                toast.success("Vehículo creado correctamente");
             }
             setDialogAbierto(false);
             await cargarDatos();
         } catch (error: unknown) {
-            toast.error(obtenerMensajeError(error, "OcurriÃƒÂ³ un error al guardar el vehÃƒÂ­culo"));
+            toast.error(obtenerMensajeError(error, "Ocurrió un error al guardar el vehículo"));
         }
     }
 
     async function handleEliminar(id: number) {
         try {
             await eliminarVehiculo(id);
-            toast.success("VehÃƒÂ­culo eliminado");
+            toast.success("Vehículo eliminado");
             await cargarDatos();
         } catch {
-            toast.error("No se pudo eliminar el vehÃƒÂ­culo");
+            toast.error("No se pudo eliminar el vehículo");
         }
     }
 
@@ -258,9 +258,9 @@ export default function VehiculosPage() {
                             </AlertDialogTrigger>
                             <AlertDialogContent>
                                 <AlertDialogHeader>
-                                    <AlertDialogTitle>Ã‚Â¿Eliminar este vehÃƒÂ­culo?</AlertDialogTitle>
+                                    <AlertDialogTitle>¿Eliminar este vehículo?</AlertDialogTitle>
                                     <AlertDialogDescription>
-                                        Esta acciÃƒÂ³n no se puede deshacer. Se eliminarÃƒÂ¡ el vehÃƒÂ­culo "{vehiculo.placa || "sin placa"}".
+                                        Esta acción no se puede deshacer. Se eliminará el vehículo "{vehiculo.placa || "sin placa"}".
                                     </AlertDialogDescription>
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>
@@ -281,9 +281,9 @@ export default function VehiculosPage() {
         <div className="flex flex-col gap-4">
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                 <div>
-                    <h2 className="text-2xl font-bold tracking-tight text-slate-900">VehÃƒÂ­culos</h2>
+                    <h2 className="text-2xl font-bold tracking-tight text-slate-900">Vehículos</h2>
                     <p className="text-sm text-slate-500 font-normal">
-                        GestiÃƒÂ³n de automotores y bicicletas pertenecientes a usuarios institucionales o visitantes externos.
+                        Gestión de automotores y bicicletas pertenecientes a usuarios institucionales o visitantes externos.
                     </p>
                 </div>
                 <Button onClick={abrirCrear}>Nuevo vehículo</Button>
@@ -385,7 +385,7 @@ export default function VehiculosPage() {
                                 />
                             )}
 
-                            {/* Tipo de VehÃƒÂ­culo */}
+                            {/* Tipo de Vehículo */}
                             <FormField
                                 control={form.control}
                                 name="idTipoVehiculo"
@@ -425,7 +425,7 @@ export default function VehiculosPage() {
                                         <Select onValueChange={field.onChange} value={field.value ?? ""}>
                                             <FormControl>
                                                 <SelectTrigger>
-                                                    <SelectValue placeholder="Selecciona una categorÃƒÂ­a" />
+                                                    <SelectValue placeholder="Selecciona una categoría" />
                                                 </SelectTrigger>
                                             </FormControl>
                                             <SelectContent>
