@@ -355,7 +355,15 @@ export default function SalidasPage() {
                 </Table>
             </div>
 
-            {puedeCrear && <Dialog open={dialogAbierto} onOpenChange={setDialogAbierto}>
+            {puedeCrear && (
+    <Button 
+        className="md:hidden fixed bottom-6 right-6 h-14 w-14 rounded-full bg-blue-600 hover:bg-blue-700 text-white shadow-xl z-[90] flex items-center justify-center transition-transform active:scale-95" 
+        onClick={abrirCrear}
+    >
+        <Plus className="h-6 w-6" />
+    </Button>
+)}
+{puedeCrear && <Dialog open={dialogAbierto} onOpenChange={setDialogAbierto}>
                 <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
                     <DialogHeader><DialogTitle>Registrar salida</DialogTitle></DialogHeader>
                     <Form {...form}>
