@@ -1,4 +1,4 @@
-export interface Membresia {
+﻿export interface Membresia {
   idMembresia: number;
   idVehiculo: number;
   placaVehiculo: string;
@@ -13,4 +13,8 @@ export interface Membresia {
 export type MembresiaPayload = {
   idVehiculo: number;
   idTarifa: number;
+  fechaInicio?: string;
+  fechaFin?: string;
+  montoPagadoManual?: number | null;
 };
+

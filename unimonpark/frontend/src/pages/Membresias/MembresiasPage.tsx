@@ -107,11 +107,19 @@ export default function MembresiasPage() {
 
   async function onSubmit(valores: MembresiaFormValues) {
     try {
+      const payload = { ...valores };
+      if (payload.fechaInicio && payload.fechaInicio.length === 10) {
+        payload.fechaInicio += "T00:00:00";
+      }
+      if (payload.fechaFin && payload.fechaFin.length === 10) {
+        payload.fechaFin += "T23:59:59";
+      }
+
       if (membresiaEditando) {
-          await editarMembresia(membresiaEditando.idMembresia, valores);
+          await editarMembresia(membresiaEditando.idMembresia, payload);
           toast.success("Membresía actualizada correctamente");
       } else {
-          await crearMembresia(valores);
+          await crearMembresia(payload);
           toast.success("Membresía creada correctamente");
       }
       setDialogAbierto(false);
@@ -300,7 +308,7 @@ export default function MembresiasPage() {
                   <FormItem>
                     <FormLabel>Inicio (Histórico Opcional)</FormLabel>
                     <FormControl>
-                      <Input type="datetime-local" {...field} />
+                      <Input type="date" {...field} />
                     </FormControl>
                   </FormItem>
                 )} />
@@ -308,7 +316,7 @@ export default function MembresiasPage() {
                   <FormItem>
                     <FormLabel>Fin (Opcional)</FormLabel>
                     <FormControl>
-                      <Input type="datetime-local" {...field} />
+                      <Input type="date" {...field} />
                     </FormControl>
                   </FormItem>
                 )} />
