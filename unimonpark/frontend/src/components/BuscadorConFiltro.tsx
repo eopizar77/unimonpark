@@ -53,8 +53,8 @@ export function BuscadorConFiltro<T>({
     const coincidencias = texto.trim() === ""
         ? items
         : items.filter((item) => {
-            const etiqueta = obtenerEtiqueta(item).toLowerCase();
-            const terminos = obtenerTerminosBusqueda ? obtenerTerminosBusqueda(item).toLowerCase() : "";
+            const etiqueta = String(obtenerEtiqueta(item) || "").toLowerCase();
+            const terminos = obtenerTerminosBusqueda ? String(obtenerTerminosBusqueda(item) || "").toLowerCase() : "";
             const busqueda = texto.toLowerCase();
             return etiqueta.includes(busqueda) || terminos.includes(busqueda);
         });

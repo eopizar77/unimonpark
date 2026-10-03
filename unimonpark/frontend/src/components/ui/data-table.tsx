@@ -10,7 +10,7 @@ import {
 import type {
   ColumnDef,
   SortingState,
-  ColumnFiltersState,
+  
 } from "@tanstack/react-table";
 
 import {
@@ -39,7 +39,7 @@ export function DataTable<TData, TValue>({
   searchPlaceholder = "Buscar...",
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([])
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
+  const [globalFilter, setGlobalFilter] = React.useState("")
 
   const table = useReactTable({
     data,
@@ -48,11 +48,11 @@ export function DataTable<TData, TValue>({
     getPaginationRowModel: getPaginationRowModel(),
     onSortingChange: setSorting,
     getSortedRowModel: getSortedRowModel(),
-    onColumnFiltersChange: setColumnFilters,
+    onGlobalFilterChange: setGlobalFilter,
     getFilteredRowModel: getFilteredRowModel(),
     state: {
       sorting,
-      columnFilters,
+      globalFilter,
     },
   })
 
@@ -64,9 +64,9 @@ export function DataTable<TData, TValue>({
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                 <Input
                   placeholder={searchPlaceholder}
-                  value={(table.getColumn(searchKey)?.getFilterValue() as string) ?? ""}
+                  value={globalFilter ?? ""}
                   onChange={(event) =>
-                    table.getColumn(searchKey)?.setFilterValue(event.target.value)
+                    setGlobalFilter(event.target.value)
                   }
                   className="pl-9 bg-white border-slate-300 focus:border-blue-500 focus:ring-blue-500/20"
                 />
@@ -146,3 +146,4 @@ export function DataTable<TData, TValue>({
     </div>
   )
 }
+
