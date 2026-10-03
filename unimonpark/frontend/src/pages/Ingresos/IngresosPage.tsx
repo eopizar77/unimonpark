@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
@@ -174,7 +174,7 @@ export default function IngresosPage() {
                     )}
                 </div>
                 <span className="text-xs text-slate-500 font-normal ml-[3.25rem]">
-                    {vehiculo.placa ? (vehiculo.marca || "VehÃƒÆ’Ã‚Â­culo") : "Bicicleta"}
+                    {vehiculo.placa ? (vehiculo.marca || "Vehículo") : "Bicicleta"}
                 </span>
             </div>
         );

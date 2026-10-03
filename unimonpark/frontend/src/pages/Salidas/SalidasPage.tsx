@@ -1,4 +1,4 @@
-﻿import { Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -114,7 +114,7 @@ export default function SalidasPage() {
 
     async function onSubmit(valores: SalidaFormValues) {
     if (!esBicicletaSalida && !membresiaActiva && !valores.idTarifa) {
-        toast.error("Selecciona una tarifa para este vehÃƒÆ’Ã‚Â­culo");
+        toast.error("Selecciona una tarifa para este vehículo");
         return;
     }
     const idTarifaFinal: number | null = (esBicicletaSalida || membresiaActiva) ? null : ((valores.idTarifa as number | null) ?? null);
@@ -137,7 +137,7 @@ export default function SalidasPage() {
     }
 
     function identificadorVehiculo(vehiculo: Vehiculo | undefined, ingreso: Ingreso | undefined) {
-        const idBase = vehiculo?.placa ? vehiculo.placa : (ingreso?.numeroFicha ? `${ingreso.numeroFicha}` : "VehÃ­culo");
+        const idBase = vehiculo?.placa ? vehiculo.placa : (ingreso?.numeroFicha ? `${ingreso.numeroFicha}` : "Vehículo");
         const propietario = vehiculo ? (vehiculo.nombreUsuario || (vehiculo.nombreExterno ? `${vehiculo.nombreExterno} (Ext)` : "")) : "";
         return propietario ? `${idBase} ${propietario}` : idBase;
     }
@@ -198,15 +198,15 @@ export default function SalidasPage() {
         ? membresias.find(m => m.idVehiculo === vehiculoSeleccionado.idVehiculo && m.activa)
         : undefined;
 
-    // Tarifas que aplican al vehÃƒÆ’Ã‚Â­culo del ingreso seleccionado (por tipo de vehÃƒÆ’Ã‚Â­culo + categorÃƒÆ’Ã‚Â­a de persona).
+    // Tarifas que aplican al vehículo del ingreso seleccionado (por tipo de vehículo + categoría de persona).
     const tarifasSugeridas = vehiculoSeleccionado
         ? tarifas.filter((tarifa) => tarifa.activo
             && tarifa.idTipoVehiculo === vehiculoSeleccionado.idTipoVehiculo
             && (tarifa.categoriaPersona === vehiculoSeleccionado.categoriaPersona || tarifa.categoriaPersona == null))
         : [];
 
-    // Preselecciona automÃƒÆ’Â¡ticamente la primera tarifa sugerida cuando cambia el ingreso elegido.
-    // Las bicicletas no requieren tarifa (el ingreso es gratuito), asÃƒÆ’Ã‚Â­ que se deja en null.
+    // Preselecciona automáticamente la primera tarifa sugerida cuando cambia el ingreso elegido.
+    // Las bicicletas no requieren tarifa (el ingreso es gratuito), así que se deja en null.
     useEffect(() => {
         if (esBicicletaSalida || membresiaActiva) {
             form.setValue("idTarifa", null);
@@ -252,7 +252,7 @@ export default function SalidasPage() {
             <div className="flex items-center justify-between flex-wrap gap-2">
                 <div>
                     <h2 className="text-2xl font-bold tracking-tight text-slate-900">Salidas</h2>
-                    <p className="text-sm text-slate-500 font-normal">Registro histÃ³rico de salidas y cobros</p>
+                    <p className="text-sm text-slate-500 font-normal">Registro histórico de salidas y cobros</p>
                 </div>
                 {puedeCrear && <Button onClick={abrirCrear}>Registrar salida</Button>}
             </div>
@@ -261,7 +261,7 @@ export default function SalidasPage() {
                 <div className="p-4 border-b border-slate-100 flex flex-col sm:flex-row gap-3 bg-slate-50/30">
                     <Input 
                         type="search" 
-                        placeholder="Buscar por placa, vehÃ­culo o ingreso o cÃ©dula..." 
+                        placeholder="Buscar por placa, vehículo o ingreso o cédula..." 
                         className="w-full sm:max-w-[300px] bg-white" 
                         value={busqueda} 
                         onChange={(e) => setBusqueda(e.target.value)} 
@@ -298,7 +298,7 @@ export default function SalidasPage() {
                     <TableHeader className="bg-slate-50/50">
                         <TableRow>
                             <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Fecha de Salida</TableHead>
-                            <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Ingreso / VehÃ­culo</TableHead>
+                            <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Ingreso / Vehículo</TableHead>
                             <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Tipo ingreso</TableHead>
                             <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Tarifa / modalidad</TableHead>
                             <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Tiempo</TableHead>
@@ -326,7 +326,7 @@ export default function SalidasPage() {
                                         const ingreso = ingresos.find(i => i.idIngreso === salida.idIngreso);
                                         const vehiculo = vehiculos.find(v => v.idVehiculo === ingreso?.idVehiculo);
                                         const tipoVehiculo = tipos.find(t => t.idTipoVehiculo === vehiculo?.idTipoVehiculo);
-                                        const idBase = vehiculo?.placa ? vehiculo.placa : (ingreso?.numeroFicha ? `${ingreso.numeroFicha}` : "VehÃ­culo");
+                                        const idBase = vehiculo?.placa ? vehiculo.placa : (ingreso?.numeroFicha ? `${ingreso.numeroFicha}` : "Vehículo");
                                         
                                         return (
                                             <div className="flex flex-col gap-1">
@@ -370,7 +370,7 @@ export default function SalidasPage() {
                     <Form {...form}>
                         <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-4">
                             <FormField control={form.control} name="idIngreso" render={({ field }) => (
-                                <FormItem><FormLabel>VehÃ­culo (busca por placa o ficha)</FormLabel><FormControl>
+                                <FormItem><FormLabel>Vehículo (busca por placa o ficha)</FormLabel><FormControl>
                                     <BuscadorConFiltro
                                         items={ingresosActivos}
                                         valorSeleccionado={field.value || null}
@@ -392,7 +392,7 @@ export default function SalidasPage() {
 
                             {membresiaActiva ? (
                                 <div className="rounded-lg border border-blue-500/50 bg-blue-500/10 px-2.5 py-2 text-sm text-blue-700 font-medium">
-                                    Usuario con membresÃ­a mensual activa vÃ¡lida hasta {formatearFecha(membresiaActiva.fechaFin)}. El sistema generarÃ¡ salida gratuita (valor $0).
+                                    Usuario con membresía mensual activa válida hasta {formatearFecha(membresiaActiva.fechaFin)}. El sistema generará salida gratuita (valor $0).
                                 </div>
                             ) : esBicicletaSalida ? (
                                 <div className="rounded-lg border border-emerald-500/50 bg-emerald-500/10 px-2.5 py-2 text-sm text-emerald-700">
@@ -401,7 +401,7 @@ export default function SalidasPage() {
                             ) : (
                                 <FormField control={form.control} name="idTarifa" render={({ field }) => (
     <FormItem>
-        <FormLabel>Tarifa (sugerida segÃºn el vehÃ­culo)</FormLabel>
+        <FormLabel>Tarifa (sugerida según el vehículo)</FormLabel>
         <FormControl>
             <select
                 className="h-8 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm"
@@ -410,14 +410,14 @@ export default function SalidasPage() {
                 disabled={!ingresoSeleccionado || tarifasSugeridas.length === 0}
             >
                 <option value="" disabled>
-                    {!ingresoSeleccionado ? "Primero selecciona un ingreso" : tarifasSugeridas.length === 0 ? "No hay tarifas para este vehÃ­culo" : "Selecciona una tarifa"}
+                    {!ingresoSeleccionado ? "Primero selecciona un ingreso" : tarifasSugeridas.length === 0 ? "No hay tarifas para este vehículo" : "Selecciona una tarifa"}
                 </option>
                 {tarifasSugeridas.map((tarifa) => <option key={tarifa.idTarifa} value={tarifa.idTarifa}>{tarifa.nombre} - {formatoMoneda(tarifa.valorHora ?? 0)}</option>)}
             </select>
         </FormControl>
         {ingresoSeleccionado && tarifasSugeridas.length === 0 && (
             <p className="rounded-lg border border-destructive/50 bg-destructive/10 px-2.5 py-2 text-sm text-destructive">
-                No hay tarifa configurada para este vehÃ­culo. Configura una tarifa antes de registrar la salida.
+                No hay tarifa configurada para este vehículo. Configura una tarifa antes de registrar la salida.
             </p>
         )}
         <FormMessage />
@@ -440,7 +440,7 @@ export default function SalidasPage() {
                             {ingresoSeleccionado && <div className="rounded-lg border bg-muted/30 p-3 text-sm">
                                 <p><strong>Ingreso:</strong> {formatearFecha(ingresoSeleccionado.fechaIngreso)}</p>
                                 <p><strong>Tiempo calculado:</strong> {minutosCalculados ?? "-"} minutos</p>
-                                <p className="text-muted-foreground">El tiempo y el valor final serÃ¡n calculados por el sistema al registrar la salida.</p>
+                                <p className="text-muted-foreground">El tiempo y el valor final serán calculados por el sistema al registrar la salida.</p>
                             </div>}
                             <FormField control={form.control} name="observaciones" render={({ field }) => (
                                 <FormItem><FormLabel>Observaciones</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
