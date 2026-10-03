@@ -262,6 +262,7 @@ export default function IngresosPage() {
     }, [idVehiculoSeleccionado, tipoVehiculoSeleccionado]);
 
     const [busqueda, setBusqueda] = useState("");
+    if(cargando) {};
     const [fechaDesde, setFechaDesde] = useState("");
     const [fechaHasta, setFechaHasta] = useState("");
 
