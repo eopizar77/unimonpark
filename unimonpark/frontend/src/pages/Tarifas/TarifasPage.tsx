@@ -252,7 +252,7 @@ export default function TarifasPage() {
 
               <FormField control={form.control} name="categoriaPersona" render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Categoría de persona</FormLabel>
+                  <FormLabel>Categoría</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value ?? ""}>
                     <FormControl>
                       <SelectTrigger>

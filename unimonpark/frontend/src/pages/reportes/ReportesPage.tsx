@@ -292,7 +292,7 @@ function ReporteFacturacion({
             <Input className="h-9 border-slate-300 rounded-md px-3 text-sm" type="date" value={fechaHasta} onChange={(e) => setFechaHasta(e.target.value)} />
           </div>
           <div>
-            <Label>Categoría de persona</Label>
+            <Label>Categoría</Label>
             <select
               className="h-9 border-slate-300 rounded-md px-3 text-sm border bg-transparent"
               value={categoria}

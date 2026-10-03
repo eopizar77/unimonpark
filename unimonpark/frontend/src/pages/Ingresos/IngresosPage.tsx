@@ -396,7 +396,7 @@ export default function IngresosPage() {
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                         <Input 
                             type="search" 
-                            placeholder="Buscar por placa, ficha o usuario o cÃ©dula..." 
+                            placeholder="Buscar por placa, ficha o usuario o cédula..." 
                             className="pl-10 pr-4 py-2 border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm w-full" 
                             value={busqueda} 
                             onChange={(e) => setBusqueda(e.target.value)} 

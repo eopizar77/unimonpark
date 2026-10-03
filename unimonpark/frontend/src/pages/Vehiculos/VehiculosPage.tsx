@@ -286,7 +286,7 @@ export default function VehiculosPage() {
                         GestiÃƒÂ³n de automotores y bicicletas pertenecientes a usuarios institucionales o visitantes externos.
                     </p>
                 </div>
-                <Button onClick={abrirCrear}>Nuevo vehÃƒÂ­culo</Button>
+                <Button onClick={abrirCrear}>Nuevo vehículo</Button>
             </div>
 
             <div className="bg-white rounded-xl shadow-sm border border-slate-200/80 overflow-hidden">
@@ -296,7 +296,7 @@ export default function VehiculosPage() {
             <Dialog open={dialogAbierto} onOpenChange={setDialogAbierto}>
                 <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
                     <DialogHeader>
-                        <DialogTitle>{vehiculoEditando ? "Editar vehÃƒÂ­culo" : "Nuevo vehÃƒÂ­culo"}</DialogTitle>
+                        <DialogTitle>{vehiculoEditando ? "Editar vehículo" : "Nuevo vehículo"}</DialogTitle>
                     </DialogHeader>
                     <Form {...form}>
                         <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4 sm:grid-cols-2">
@@ -391,7 +391,7 @@ export default function VehiculosPage() {
                                 name="idTipoVehiculo"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Tipo de vehÃƒÂ­culo</FormLabel>
+                                        <FormLabel>Tipo de vehículo</FormLabel>
                                         <FormControl>
                                             <select
                                                 className="h-8 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm"
@@ -421,7 +421,7 @@ export default function VehiculosPage() {
                                 name="categoriaPersona"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>CategorÃƒÂ­a de persona</FormLabel>
+                                        <FormLabel>Categoría</FormLabel>
                                         <Select onValueChange={field.onChange} value={field.value ?? ""}>
                                             <FormControl>
                                                 <SelectTrigger>
