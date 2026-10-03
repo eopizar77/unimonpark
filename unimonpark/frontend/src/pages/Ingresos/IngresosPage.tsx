@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
@@ -28,7 +28,8 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { type ColumnDef } from "@tanstack/react-table";
+import { DataTable } from "@/components/ui/data-table";
 import { useAuth } from "@/context/AuthContext";
 import { Search, MapPin } from "lucide-react";
 
@@ -287,8 +288,96 @@ export default function IngresosPage() {
             if (fechaIng > hasta) cumpleFechas = false;
         }
 
-        return cumpleTexto && cumpleFechas;
-    });
+        return cumpleTexto && cumpleFechas;    });
+
+    const columns: ColumnDef<Ingreso>[] = [
+        {
+            accessorKey: "fechaIngreso",
+            header: "Fecha de Ingreso",
+            cell: ({ row }) => {
+                const ingreso = row.original;
+                const fecha = new Date(ingreso.fechaIngreso);
+                const dateStr = Number.isNaN(fecha.getTime()) ? ingreso.fechaIngreso : fecha.toLocaleDateString("es-CO", { day: '2-digit', month: 'short', year: 'numeric' });
+                const timeStr = Number.isNaN(fecha.getTime()) ? "" : fecha.toLocaleTimeString("es-CO", { hour: '2-digit', minute: '2-digit', hour12: true });
+                return (
+                    <div>
+                        <div className="text-sm font-medium text-slate-900">{dateStr}</div>
+                        <div className="text-xs text-slate-500">{timeStr}</div>
+                    </div>
+                );
+            }
+        },
+        {
+            id: "identificador",
+            header: "Identificación",
+            accessorFn: (ingreso) => {
+                const vehiculo = vehiculos.find(v => v.idVehiculo === ingreso.idVehiculo);
+                return vehiculo?.placa || ingreso.numeroFicha || "S/N";
+            },
+            cell: ({ row, getValue }) => {
+                const ingreso = row.original;
+                const vehiculo = vehiculos.find(v => v.idVehiculo === ingreso.idVehiculo);
+                const isBici = !vehiculo?.placa;
+                const identificador = getValue() as string;
+                const subtext = isBici ? "Bicicleta" : (vehiculo?.marca || "Vehículo");
+                return (
+                    <div className="flex flex-col items-start gap-1">
+                        <span className="bg-slate-100 text-slate-900 font-mono text-lg font-bold px-2.5 py-1 rounded border border-slate-300 tracking-wider inline-block">
+                            {identificador}
+                        </span>
+                        <span className="text-xs text-slate-500 font-normal">{subtext}</span>
+                    </div>
+                );
+            }
+        },
+        {
+            id: "conductor",
+            header: "Conductor",
+            accessorFn: (ingreso) => obtenerNombreConductor(ingreso.idVehiculo).toLowerCase(),
+            cell: ({ getValue }) => (
+                <div className="text-sm font-medium text-slate-800 capitalize">
+                    {getValue() as string}
+                </div>
+            )
+        },
+        {
+            id: "ubicacion",
+            header: "Ubicación",
+            accessorFn: (ingreso) => descripcionEspacio(ingreso.idEspacioParqueo),
+            cell: ({ getValue }) => (
+                <span className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-700 bg-slate-100 px-2.5 py-1 rounded-md">
+                    <MapPin className="h-3 w-3 text-slate-500" />
+                    {getValue() as string}
+                </span>
+            )
+        },
+        {
+            accessorKey: "lecturaInicialKm",
+            header: "Lectura (Km)",
+            cell: ({ row }) => {
+                const valor = row.original.lecturaInicialKm;
+                return <div className="text-sm text-slate-600">{valor ? `${valor} km` : <span className="text-slate-400">N/A</span>}</div>;
+            }
+        },
+        {
+            accessorKey: "estado",
+            header: "Estado",
+            cell: ({ row }) => {
+                const estado = row.original.estado;
+                const isActive = estado.toLowerCase() === "activo";
+                return (
+                    <Badge className={isActive ? "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100" : "bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200"} variant="outline">
+                        {estado}
+                    </Badge>
+                );
+            }
+        },
+        {
+            id: "acciones",
+            header: "Acciones",
+            cell: () => null
+        }
+    ];
 
     return (
         <div className="flex flex-col gap-6 p-4 md:p-6">
@@ -344,70 +433,7 @@ export default function IngresosPage() {
                         )}
                     </div>
                 </div>
-                <Table>
-                    <TableHeader className="bg-slate-50/50">
-                        <TableRow>
-                            <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Fecha de Ingreso</TableHead>
-                            <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Identificación</TableHead>
-                            <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider hidden md:table-cell">Conductor</TableHead>
-                            <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Ubicación</TableHead>
-                            <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider hidden lg:table-cell">Lectura (Km)</TableHead>
-                            <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Estado</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {cargando && <TableRow><TableCell colSpan={6} className="text-center py-4">Cargando...</TableCell></TableRow>}
-                        {!cargando && ingresosFiltrados.length === 0 && <TableRow><TableCell colSpan={6} className="text-center py-4">No hay ingresos registrados</TableCell></TableRow>}
-                        {ingresosFiltrados.map((ingreso) => {
-                            const fecha = new Date(ingreso.fechaIngreso);
-                            const dateStr = Number.isNaN(fecha.getTime()) ? ingreso.fechaIngreso : fecha.toLocaleDateString("es-CO", { day: '2-digit', month: 'short', year: 'numeric' });
-                            const timeStr = Number.isNaN(fecha.getTime()) ? "" : fecha.toLocaleTimeString("es-CO", { hour: '2-digit', minute: '2-digit', hour12: true });
-
-                            const vehiculo = vehiculos.find(v => v.idVehiculo === ingreso.idVehiculo);
-                            const isBici = !vehiculo?.placa;
-                            const identificador = vehiculo?.placa || ingreso.numeroFicha || "S/N";
-                            const subtext = isBici ? "Bicicleta" : (vehiculo?.marca || "VehÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­culo");
-
-                            const isActive = ingreso.estado.toLowerCase() === "activo";
-
-                            return (
-                                <TableRow key={ingreso.idIngreso}>
-                                    <TableCell>
-                                        <div className="text-sm font-medium text-slate-900">{dateStr}</div>
-                                        <div className="text-xs text-slate-500">{timeStr}</div>
-                                    </TableCell>
-                                    <TableCell>
-                                        <div className="flex flex-col items-start gap-1">
-                                            <span className="bg-slate-100 text-slate-900 font-mono font-bold text-xs px-2.5 py-1 rounded border border-slate-300 tracking-wider inline-block">
-                                                {identificador}
-                                            </span>
-                                            <span className="text-xs text-slate-500 font-normal">{subtext}</span>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell className="hidden md:table-cell">
-                                        <div className="text-sm font-medium text-slate-800 capitalize">
-                                            {obtenerNombreConductor(ingreso.idVehiculo).toLowerCase()}
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>
-                                        <span className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-700 bg-slate-100 px-2.5 py-1 rounded-md">
-                                            <MapPin className="h-3 w-3 text-slate-500" />
-                                            {descripcionEspacio(ingreso.idEspacioParqueo)}
-                                        </span>
-                                    </TableCell>
-                                    <TableCell className="hidden lg:table-cell text-sm text-slate-600">
-                                        {ingreso.lecturaInicialKm ? `${ingreso.lecturaInicialKm} km` : <span className="text-slate-400">N/A</span>}
-                                    </TableCell>
-                                    <TableCell>
-                                        <Badge className={isActive ? "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100" : "bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200"} variant="outline">
-                                            {ingreso.estado}
-                                        </Badge>
-                                    </TableCell>
-                                </TableRow>
-                            );
-                        })}
-                    </TableBody>
-                </Table>
+                <DataTable columns={columns} data={ingresosFiltrados} searchKey="identificador" searchPlaceholder="Buscar..." />
             </div>
 
             {puedeCrear && <Dialog open={dialogAbierto} onOpenChange={setDialogAbierto}>
@@ -483,3 +509,5 @@ export default function IngresosPage() {
         </div>
     );
 }
+
+
