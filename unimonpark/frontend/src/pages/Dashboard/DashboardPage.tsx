@@ -1,4 +1,4 @@
-﻿import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { 
   Card, 
   CardContent, 
@@ -41,7 +41,7 @@ export default function DashboardPage() {
   const [mensualidades, setMensualidades] = useState<Mensualidad[]>([]);
   const [membresias, setMembresias] = useState<Membresia[]>([]);
   const [vehiculos, setVehiculos] = useState<Vehiculo[]>([]);
-    const [cargando, setCargando] = useState(true);
+  const [cargando, setCargando] = useState(true);
 
   useEffect(() => {
     async function cargarDatos() {
@@ -50,14 +50,13 @@ export default function DashboardPage() {
           listarIngresos(),
           listarMensualidades(),
           listarMembresias(),
-          listarVehiculos(),
-          null /* removed */
+          listarVehiculos()
         ]);
         setIngresos(ing);
         setMensualidades(men);
         setMembresias(mem);
         setVehiculos(veh);
-              } catch (error) {
+      } catch (error) {
         console.error("Error al cargar datos del dashboard:", error);
       } finally {
         setCargando(false);
@@ -103,7 +102,7 @@ export default function DashboardPage() {
 
     membresias.forEach(m => {
       if (m.activa) {
-        verificarVencimiento(m.fechaFin, "MembresÃ­a", m.nombreTarifa, m.placaVehiculo, m.idMembresia);
+        verificarVencimiento(m.fechaFin, "Membresía", m.nombreTarifa, m.placaVehiculo, m.idMembresia);
       }
     });
 
@@ -115,7 +114,7 @@ export default function DashboardPage() {
       <div className="flex h-[80vh] items-center justify-center">
         <div className="flex flex-col items-center gap-4 text-slate-400">
           <LayoutDashboard className="h-12 w-12 animate-pulse text-blue-500/50" />
-          <p className="animate-pulse text-lg font-medium">Cargando mÃ©tricas...</p>
+          <p className="animate-pulse text-lg font-medium">Cargando métricas...</p>
         </div>
       </div>
     );
@@ -126,37 +125,37 @@ export default function DashboardPage() {
       
       <div className="flex flex-col gap-1">
         <h2 className="text-3xl font-extrabold tracking-tight text-slate-900">
-          Â¡HOLA, {nombreUsuario?.toUpperCase() || "USUARIO"}! ðŸ‘‹
+          ¡HOLA, {nombreUsuario?.toUpperCase() || "USUARIO"}! 👋
         </h2>
         <p className="text-base text-slate-500 font-medium">
-          AquÃ­ tienes el resumen operativo del parqueadero.
+          Aquí tienes el resumen operativo del parqueadero.
         </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <Card className="shadow-sm border-slate-100 bg-white hover:shadow-md transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-bold text-slate-500 uppercase tracking-wider">Ingresos del DÃ­a</CardTitle>
+            <CardTitle className="text-sm font-bold text-slate-500 uppercase tracking-wider">Ingresos del DÍA</CardTitle>
             <div className="p-2 bg-blue-50 rounded-lg">
               <TrendingUp className="h-5 w-5 text-blue-600" />
             </div>
           </CardHeader>
           <CardContent>
             <div className="text-4xl font-extrabold text-slate-900">{ingresosDelDia.length}</div>
-            <p className="text-xs text-slate-500 font-medium mt-1">VehÃ­culos registrados hoy</p>
+            <p className="text-xs text-slate-500 font-medium mt-1">Vehículos registrados hoy</p>
           </CardContent>
         </Card>
         
         <Card className="shadow-sm border-slate-100 bg-white hover:shadow-md transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-bold text-slate-500 uppercase tracking-wider">OcupaciÃ³n Actual</CardTitle>
+            <CardTitle className="text-sm font-bold text-slate-500 uppercase tracking-wider">Ocupación Actual</CardTitle>
             <div className="p-2 bg-emerald-50 rounded-lg">
               <Car className="h-5 w-5 text-emerald-600" />
             </div>
           </CardHeader>
           <CardContent>
             <div className="text-4xl font-extrabold text-slate-900">{ingresosActivos.length}</div>
-            <p className="text-xs text-slate-500 font-medium mt-1">VehÃ­culos en el parqueadero</p>
+            <p className="text-xs text-slate-500 font-medium mt-1">Vehículos en el parqueadero</p>
           </CardContent>
         </Card>
 
@@ -177,7 +176,7 @@ export default function DashboardPage() {
 
         <Card className="shadow-sm border-slate-100 bg-white hover:shadow-md transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-bold text-slate-500 uppercase tracking-wider">MembresÃ­as</CardTitle>
+            <CardTitle className="text-sm font-bold text-slate-500 uppercase tracking-wider">Membresías</CardTitle>
             <div className="p-2 bg-purple-50 rounded-lg">
               <CreditCard className="h-5 w-5 text-purple-600" />
             </div>
@@ -186,7 +185,7 @@ export default function DashboardPage() {
             <div className="text-4xl font-extrabold text-slate-900">
               {membresias.filter(m => m.activa).length}
             </div>
-            <p className="text-xs text-slate-500 font-medium mt-1">MembresÃ­as vigentes</p>
+            <p className="text-xs text-slate-500 font-medium mt-1">Membresías vigentes</p>
           </CardContent>
         </Card>
       </div>
@@ -197,7 +196,7 @@ export default function DashboardPage() {
             <div className="flex items-center justify-between">
               <CardTitle className="flex items-center gap-2 text-base font-bold text-amber-600">
                 <AlertCircle className="h-5 w-5" />
-                Vencimientos PrÃ³ximos (7 DÃ­as)
+                Vencimientos Próximos (7 Días)
               </CardTitle>
               <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">
                 {alertas.length} Alerta{alertas.length !== 1 && 's'}
@@ -208,8 +207,8 @@ export default function DashboardPage() {
             {alertas.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16 text-center text-sm text-slate-500 h-full">
                 <CheckCircle2 className="h-12 w-12 text-emerald-400 mb-4" />
-                <p className="font-semibold text-slate-700 text-base">Todo al dÃ­a</p>
-                <p className="text-slate-500 mt-1">No hay mensualidades ni membresÃ­as por vencer pronto.</p>
+                <p className="font-semibold text-slate-700 text-base">Todo al día</p>
+                <p className="text-slate-500 mt-1">No hay mensualidades ni membresías por vencer pronto.</p>
               </div>
             ) : (
               <div className="overflow-x-auto">
@@ -245,12 +244,12 @@ export default function DashboardPage() {
                           )}
                           {item.diasRestantes > 0 && item.diasRestantes <= 3 && (
                             <Badge className="bg-amber-100 text-amber-800 border border-amber-200 hover:bg-amber-200 shadow-none">
-                              En {item.diasRestantes} dÃ­as
+                              En {item.diasRestantes} días
                             </Badge>
                           )}
                           {item.diasRestantes > 3 && (
                             <Badge variant="secondary" className="bg-slate-100 text-slate-600 hover:bg-slate-200 shadow-none">
-                              En {item.diasRestantes} dÃ­as
+                              En {item.diasRestantes} días
                             </Badge>
                           )}
                         </TableCell>
@@ -268,19 +267,19 @@ export default function DashboardPage() {
         <CardHeader className="border-b border-slate-50 bg-slate-50/50 pb-4">
           <CardTitle className="flex items-center gap-2 text-base font-bold text-slate-800">
             <Clock className="h-5 w-5 text-slate-500" />
-            Ãšltimos Ingresos Registrados
+            Últimos Ingresos Registrados
           </CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           {ingresos.length === 0 ? (
-            <div className="py-12 text-center text-sm text-slate-500">No hay ingresos registrados aÃºn.</div>
+            <div className="py-12 text-center text-sm text-slate-500">No hay ingresos registrados aún.</div>
           ) : (
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow className="hover:bg-transparent">
                     <TableHead className="text-xs font-semibold uppercase text-slate-500 pl-6">Fecha y Hora</TableHead>
-                    <TableHead className="text-xs font-semibold uppercase text-slate-500">VehÃ­culo / Placa</TableHead>
+                    <TableHead className="text-xs font-semibold uppercase text-slate-500">Vehículo / Placa</TableHead>
                     <TableHead className="text-xs font-semibold uppercase text-slate-500">Tipo Propietario</TableHead>
                     <TableHead className="text-xs font-semibold uppercase text-slate-500">Modo</TableHead>
                     <TableHead className="text-xs font-semibold uppercase text-slate-500 pr-6">Estado</TableHead>
@@ -308,7 +307,7 @@ export default function DashboardPage() {
                               <span className="bg-slate-100 text-slate-900 font-mono font-bold text-xs px-2 py-1 rounded border border-slate-200 inline-block">
                                   {veh?.placa || "N/A"}
                               </span>
-                              <span className="text-xs text-slate-500">{veh?.marca || "VehÃ­culo"}</span>
+                              <span className="text-xs text-slate-500">{veh?.marca || "Vehículo"}</span>
                           </div>
                         </TableCell>
                         <TableCell>
@@ -344,5 +343,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-
-
