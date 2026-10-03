@@ -1,4 +1,5 @@
-﻿import { useEffect, useState } from "react";
+﻿import { BuscadorConFiltro } from "@/components/BuscadorConFiltro";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
@@ -78,7 +79,7 @@ export default function VehiculosPage() {
             setExternos(externosData);
             setTipos(tiposData);
         } catch {
-            toast.error("No se pudieron cargar los vehÃ­culos");
+            toast.error("No se pudieron cargar los vehÃƒÂ­culos");
         } finally {
             setCargando(false);
         }
@@ -114,7 +115,7 @@ export default function VehiculosPage() {
 
     async function onSubmit(valores: VehiculoFormValues) {
         if (!esBicicleta && !valores.placa?.trim()) {
-            toast.error("La placa es obligatoria para este tipo de vehÃ­culo");
+            toast.error("La placa es obligatoria para este tipo de vehÃƒÂ­culo");
             return;
         }
 
@@ -133,25 +134,25 @@ export default function VehiculosPage() {
         try {
             if (vehiculoEditando) {
                 await actualizarVehiculo(vehiculoEditando.idVehiculo, payload);
-                toast.success("VehÃ­culo actualizado correctamente");
+                toast.success("VehÃƒÂ­culo actualizado correctamente");
             } else {
                 await crearVehiculo(payload);
-                toast.success("VehÃ­culo creado correctamente");
+                toast.success("VehÃƒÂ­culo creado correctamente");
             }
             setDialogAbierto(false);
             await cargarDatos();
         } catch (error: unknown) {
-            toast.error(obtenerMensajeError(error, "OcurriÃ³ un error al guardar el vehÃ­culo"));
+            toast.error(obtenerMensajeError(error, "OcurriÃƒÂ³ un error al guardar el vehÃƒÂ­culo"));
         }
     }
 
     async function handleEliminar(id: number) {
         try {
             await eliminarVehiculo(id);
-            toast.success("VehÃ­culo eliminado");
+            toast.success("VehÃƒÂ­culo eliminado");
             await cargarDatos();
         } catch {
-            toast.error("No se pudo eliminar el vehÃ­culo");
+            toast.error("No se pudo eliminar el vehÃƒÂ­culo");
         }
     }
 
@@ -257,9 +258,9 @@ export default function VehiculosPage() {
                             </AlertDialogTrigger>
                             <AlertDialogContent>
                                 <AlertDialogHeader>
-                                    <AlertDialogTitle>Â¿Eliminar este vehÃ­culo?</AlertDialogTitle>
+                                    <AlertDialogTitle>Ã‚Â¿Eliminar este vehÃƒÂ­culo?</AlertDialogTitle>
                                     <AlertDialogDescription>
-                                        Esta acciÃ³n no se puede deshacer. Se eliminarÃ¡ el vehÃ­culo "{vehiculo.placa || "sin placa"}".
+                                        Esta acciÃƒÂ³n no se puede deshacer. Se eliminarÃƒÂ¡ el vehÃƒÂ­culo "{vehiculo.placa || "sin placa"}".
                                     </AlertDialogDescription>
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>
@@ -280,12 +281,12 @@ export default function VehiculosPage() {
         <div className="flex flex-col gap-4">
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                 <div>
-                    <h2 className="text-2xl font-bold tracking-tight text-slate-900">VehÃ­culos</h2>
+                    <h2 className="text-2xl font-bold tracking-tight text-slate-900">VehÃƒÂ­culos</h2>
                     <p className="text-sm text-slate-500 font-normal">
-                        GestiÃ³n de automotores y bicicletas pertenecientes a usuarios institucionales o visitantes externos.
+                        GestiÃƒÂ³n de automotores y bicicletas pertenecientes a usuarios institucionales o visitantes externos.
                     </p>
                 </div>
-                <Button onClick={abrirCrear}>Nuevo vehÃ­culo</Button>
+                <Button onClick={abrirCrear}>Nuevo vehÃƒÂ­culo</Button>
             </div>
 
             <div className="bg-white rounded-xl shadow-sm border border-slate-200/80 overflow-hidden">
@@ -295,7 +296,7 @@ export default function VehiculosPage() {
             <Dialog open={dialogAbierto} onOpenChange={setDialogAbierto}>
                 <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
                     <DialogHeader>
-                        <DialogTitle>{vehiculoEditando ? "Editar vehÃ­culo" : "Nuevo vehÃ­culo"}</DialogTitle>
+                        <DialogTitle>{vehiculoEditando ? "Editar vehÃƒÂ­culo" : "Nuevo vehÃƒÂ­culo"}</DialogTitle>
                     </DialogHeader>
                     <Form {...form}>
                         <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4 sm:grid-cols-2">
@@ -343,26 +344,15 @@ export default function VehiculosPage() {
                                         <FormItem className="sm:col-span-2">
                                             <FormLabel>Usuario Institucional</FormLabel>
                                             <FormControl>
-                                                <select
-                                                    className="h-8 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm"
-                                                    value={field.value || ""}
-                                                    onChange={(event) =>
-                                                        field.onChange(
-                                                            event.target.value ? Number(event.target.value) : null
-                                                        )
-                                                    }
-                                                >
-                                                    <option value="" disabled>
-                                                        Selecciona un usuario
-                                                    </option>
-                                                    {usuarios
-                                                        .filter((usuario) => usuario.activo || usuario.idUsuario === field.value)
-                                                        .map((usuario) => (
-                                                            <option key={usuario.idUsuario} value={usuario.idUsuario}>
-                                                                {usuario.nombres} {usuario.apellidos} ({usuario.documento})
-                                                            </option>
-                                                        ))}
-                                                </select>
+                                                <BuscadorConFiltro
+                                                    items={usuarios.filter(u => u.activo || u.idUsuario === field.value)}
+                                                    valorSeleccionado={field.value || null}
+                                                    obtenerId={(u) => u.idUsuario}
+                                                    obtenerEtiqueta={(u) => `${u.nombres} ${u.apellidos} (${u.documento})`}
+                                                    obtenerTerminosBusqueda={(u) => String(u.documento || "")}
+                                                    onSeleccionar={(id) => field.onChange(id)}
+                                                    placeholder="Selecciona o busca un usuario..."
+                                                />
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
@@ -379,26 +369,15 @@ export default function VehiculosPage() {
                                         <FormItem className="sm:col-span-2">
                                             <FormLabel>Visitante Externo</FormLabel>
                                             <FormControl>
-                                                <select
-                                                    className="h-8 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm"
-                                                    value={field.value || ""}
-                                                    onChange={(event) =>
-                                                        field.onChange(
-                                                            event.target.value ? Number(event.target.value) : null
-                                                        )
-                                                    }
-                                                >
-                                                    <option value="" disabled>
-                                                        Selecciona un externo
-                                                    </option>
-                                                    {externos
-                                                        .filter((ext) => ext.activo || ext.idExterno === field.value)
-                                                        .map((ext) => (
-                                                            <option key={ext.idExterno} value={ext.idExterno}>
-                                                                {ext.nombres} {ext.apellidos} - {ext.tipoDocumento} {ext.numeroDocumento} {ext.empresa ? `(${ext.empresa})` : ""}
-                                                            </option>
-                                                        ))}
-                                                </select>
+                                                <BuscadorConFiltro
+                                                    items={externos.filter(e => e.activo || e.idExterno === field.value)}
+                                                    valorSeleccionado={field.value || null}
+                                                    obtenerId={(e) => e.idExterno}
+                                                    obtenerEtiqueta={(e) => `${e.nombres} ${e.apellidos} - ${e.numeroDocumento} ${e.empresa ? `(${e.empresa})` : ""}`}
+                                                    obtenerTerminosBusqueda={(e) => String(e.numeroDocumento || "")}
+                                                    onSeleccionar={(id) => field.onChange(id)}
+                                                    placeholder="Selecciona o busca un externo..."
+                                                />
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
@@ -406,13 +385,13 @@ export default function VehiculosPage() {
                                 />
                             )}
 
-                            {/* Tipo de VehÃ­culo */}
+                            {/* Tipo de VehÃƒÂ­culo */}
                             <FormField
                                 control={form.control}
                                 name="idTipoVehiculo"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Tipo de vehÃ­culo</FormLabel>
+                                        <FormLabel>Tipo de vehÃƒÂ­culo</FormLabel>
                                         <FormControl>
                                             <select
                                                 className="h-8 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm"
@@ -436,17 +415,17 @@ export default function VehiculosPage() {
                                 )}
                             />
 
-                            {/* CategorÃ­a de Persona */}
+                            {/* CategorÃƒÂ­a de Persona */}
                             <FormField
                                 control={form.control}
                                 name="categoriaPersona"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>CategorÃ­a de persona</FormLabel>
+                                        <FormLabel>CategorÃƒÂ­a de persona</FormLabel>
                                         <Select onValueChange={field.onChange} value={field.value ?? ""}>
                                             <FormControl>
                                                 <SelectTrigger>
-                                                    <SelectValue placeholder="Selecciona una categorÃ­a" />
+                                                    <SelectValue placeholder="Selecciona una categorÃƒÂ­a" />
                                                 </SelectTrigger>
                                             </FormControl>
                                             <SelectContent>
@@ -546,4 +525,6 @@ export default function VehiculosPage() {
         </div>
     );
 }
+
+
 
