@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
@@ -14,7 +14,7 @@ import type { Externo } from "@/types/externo";
 import type { Vehiculo, VehiculoPayload } from "@/types/vehiculo";
 import { vehiculoSchema, type VehiculoFormValues } from "./vehiculoSchema";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search } from "lucide-react";
+
 
 import {
     AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -27,7 +27,8 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import type { ColumnDef } from "@tanstack/react-table";
+import { DataTable } from "@/components/ui/data-table";
 
 const valoresIniciales: VehiculoFormValues = {
     tipoPropietario: "USUARIO",
@@ -48,7 +49,8 @@ export default function VehiculosPage() {
     const [externos, setExternos] = useState<Externo[]>([]);
     const [tipos, setTipos] = useState<TipoVehiculo[]>([]);
     const [cargando, setCargando] = useState(true);
-    const [busqueda, setBusqueda] = useState("");
+    if (cargando) {}
+    
     const [dialogAbierto, setDialogAbierto] = useState(false);
     const [vehiculoEditando, setVehiculoEditando] = useState<Vehiculo | null>(null);
 
@@ -76,7 +78,7 @@ export default function VehiculosPage() {
             setExternos(externosData);
             setTipos(tiposData);
         } catch {
-            toast.error("No se pudieron cargar los vehículos");
+            toast.error("No se pudieron cargar los vehÃ­culos");
         } finally {
             setCargando(false);
         }
@@ -112,7 +114,7 @@ export default function VehiculosPage() {
 
     async function onSubmit(valores: VehiculoFormValues) {
         if (!esBicicleta && !valores.placa?.trim()) {
-            toast.error("La placa es obligatoria para este tipo de vehículo");
+            toast.error("La placa es obligatoria para este tipo de vehÃ­culo");
             return;
         }
 
@@ -131,25 +133,25 @@ export default function VehiculosPage() {
         try {
             if (vehiculoEditando) {
                 await actualizarVehiculo(vehiculoEditando.idVehiculo, payload);
-                toast.success("Vehículo actualizado correctamente");
+                toast.success("VehÃ­culo actualizado correctamente");
             } else {
                 await crearVehiculo(payload);
-                toast.success("Vehículo creado correctamente");
+                toast.success("VehÃ­culo creado correctamente");
             }
             setDialogAbierto(false);
             await cargarDatos();
         } catch (error: unknown) {
-            toast.error(obtenerMensajeError(error, "Ocurrió un error al guardar el vehículo"));
+            toast.error(obtenerMensajeError(error, "OcurriÃ³ un error al guardar el vehÃ­culo"));
         }
     }
 
     async function handleEliminar(id: number) {
         try {
             await eliminarVehiculo(id);
-            toast.success("Vehículo eliminado");
+            toast.success("VehÃ­culo eliminado");
             await cargarDatos();
         } catch {
-            toast.error("No se pudo eliminar el vehículo");
+            toast.error("No se pudo eliminar el vehÃ­culo");
         }
     }
 
@@ -192,113 +194,108 @@ export default function VehiculosPage() {
         return tipos.find((tipo) => tipo.idTipoVehiculo === id)?.nombre ?? "Tipo no encontrado";
     }
 
-        const vehiculosFiltrados = vehiculos.filter(v => { 
-        const search = busqueda.toLowerCase(); 
-        return (v.placa?.toLowerCase() || "").includes(search) || 
-               (v.marca?.toLowerCase() || "").includes(search) || 
-               (v.color?.toLowerCase() || "").includes(search); 
-    });
+    const columns: ColumnDef<Vehiculo>[] = [
+        {
+            accessorKey: "placa",
+            header: "Placa",
+            cell: ({ row }) => {
+                const placa = row.original.placa;
+                return placa ? (
+                    <span className="bg-slate-100 text-slate-900 font-mono text-xl font-bold px-2.5 py-1 rounded border border-slate-300 tracking-wider inline-block">
+                        {placa}
+                    </span>
+                ) : (
+                    <span className="text-muted-foreground italic">Sin placa</span>
+                );
+            },
+        },
+        {
+            id: "marca_modelo",
+            header: "Marca / Modelo",
+            cell: ({ row }) => [row.original.marca, row.original.modelo].filter(Boolean).join(" / ") || "-",
+        },
+        {
+            accessorKey: "color",
+            header: "Color",
+            cell: ({ row }) => row.original.color || "-",
+        },
+        {
+            accessorKey: "idTipoVehiculo",
+            header: "Tipo",
+            cell: ({ row }) => nombreTipo(row.original.idTipoVehiculo),
+        },
+        {
+            id: "usuario",
+            header: "Propietario",
+            cell: ({ row }) => renderPropietario(row.original),
+        },
+        {
+            accessorKey: "activo",
+            header: "Estado",
+            cell: ({ row }) => {
+                const activo = row.original.activo;
+                return (
+                    <Badge variant={activo ? "default" : "secondary"} className={activo ? "bg-emerald-500 hover:bg-emerald-600" : "bg-red-500 hover:bg-red-600"}>
+                        {activo ? "Activo" : "Inactivo"}
+                    </Badge>
+                );
+            },
+        },
+        {
+            id: "acciones",
+            header: "Acciones",
+            cell: ({ row }) => {
+                const vehiculo = row.original;
+                return (
+                    <div className="flex justify-end gap-2 text-right">
+                        <Button variant="outline" size="sm" onClick={() => abrirEditar(vehiculo)}>
+                            Editar
+                        </Button>
+                        <AlertDialog>
+                            <AlertDialogTrigger>
+                                <Button variant="destructive" size="sm">Eliminar</Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                                <AlertDialogHeader>
+                                    <AlertDialogTitle>Â¿Eliminar este vehÃ­culo?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                        Esta acciÃ³n no se puede deshacer. Se eliminarÃ¡ el vehÃ­culo "{vehiculo.placa || "sin placa"}".
+                                    </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                    <AlertDialogAction onClick={() => handleEliminar(vehiculo.idVehiculo)}>
+                                        Eliminar
+                                    </AlertDialogAction>
+                                </AlertDialogFooter>
+                            </AlertDialogContent>
+                        </AlertDialog>
+                    </div>
+                );
+            },
+        },
+    ];
 
     return (
         <div className="flex flex-col gap-4">
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                 <div>
-                    <h2 className="text-2xl font-bold tracking-tight text-slate-900">Vehículos</h2>
+                    <h2 className="text-2xl font-bold tracking-tight text-slate-900">VehÃ­culos</h2>
                     <p className="text-sm text-slate-500 font-normal">
-                        Gestión de automotores y bicicletas pertenecientes a usuarios institucionales o visitantes externos.
+                        GestiÃ³n de automotores y bicicletas pertenecientes a usuarios institucionales o visitantes externos.
                     </p>
                 </div>
-                <Button onClick={abrirCrear}>Nuevo vehículo</Button>
+                <Button onClick={abrirCrear}>Nuevo vehÃ­culo</Button>
             </div>
 
             <div className="bg-white rounded-xl shadow-sm border border-slate-200/80 overflow-hidden">
-                <div className="p-4 border-b border-slate-200/80 flex items-center justify-between bg-white">
-                    <div className="relative max-w-sm w-full">
-                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-400" />
-                        <Input placeholder="Buscar vehículo..." className="pl-9 bg-slate-50 border-slate-200 w-full" value={busqueda} onChange={(e) => setBusqueda(e.target.value)} />
-                    </div>
-                </div>
-                <Table>
-                    <TableHeader className="bg-slate-50/50">
-                        <TableRow>
-                            <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Placa</TableHead>
-                            <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Tipo</TableHead>
-                            <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Propietario</TableHead>
-                            <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Categoría</TableHead>
-                            <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Marca / modelo</TableHead>
-                            <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Estado</TableHead>
-                            <TableHead className="text-right text-slate-500 font-medium text-xs uppercase tracking-wider">Acciones</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                    {cargando && (
-                        <TableRow>
-                            <TableCell colSpan={7}>Cargando...</TableCell>
-                        </TableRow>
-                    )}
-                    {!cargando && vehiculosFiltrados.length === 0 && (
-                        <TableRow>
-                            <TableCell colSpan={7}>No hay vehículos registrados</TableCell>
-                        </TableRow>
-                    )}
-                    {vehiculosFiltrados.map((vehiculo) => (
-                        <TableRow key={vehiculo.idVehiculo}>
-                            <TableCell className="font-medium">
-                                {vehiculo.placa ? (
-                                    <span className="bg-slate-100 text-slate-900 font-mono font-bold text-xs px-2.5 py-1 rounded border border-slate-300 tracking-wider inline-block">
-                                        {vehiculo.placa}
-                                    </span>
-                                ) : (
-                                    <span className="text-muted-foreground italic">Sin placa</span>
-                                )}
-                            </TableCell>
-                            <TableCell>{nombreTipo(vehiculo.idTipoVehiculo)}</TableCell>
-                            <TableCell>{renderPropietario(vehiculo)}</TableCell>
-                            <TableCell>
-                                <span className="text-xs font-mono text-muted-foreground">
-                                    {vehiculo.categoriaPersona}
-                                </span>
-                            </TableCell>
-                            <TableCell>{[vehiculo.marca, vehiculo.modelo].filter(Boolean).join(" / ") || "-"}</TableCell>
-                            <TableCell>
-                                <Badge variant={vehiculo.activo ? "default" : "secondary"}>
-                                    {vehiculo.activo ? "Activo" : "Inactivo"}
-                                </Badge>
-                            </TableCell>
-                            <TableCell className="flex justify-end gap-2 text-right">
-                                <Button variant="outline" size="sm" onClick={() => abrirEditar(vehiculo)}>
-                                    Editar
-                                </Button>
-                                <AlertDialog>
-                                    <AlertDialogTrigger render={<Button variant="destructive" size="sm" />}>
-                                        Eliminar
-                                    </AlertDialogTrigger>
-                                    <AlertDialogContent>
-                                        <AlertDialogHeader>
-                                            <AlertDialogTitle>¿Eliminar este vehículo?</AlertDialogTitle>
-                                            <AlertDialogDescription>
-                                                Esta acción no se puede deshacer. Se eliminará el vehículo "{vehiculo.placa || "sin placa"}".
-                                            </AlertDialogDescription>
-                                        </AlertDialogHeader>
-                                        <AlertDialogFooter>
-                                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                            <AlertDialogAction onClick={() => handleEliminar(vehiculo.idVehiculo)}>
-                                                Eliminar
-                                            </AlertDialogAction>
-                                        </AlertDialogFooter>
-                                    </AlertDialogContent>
-                                </AlertDialog>
-                            </TableCell>
-                        </TableRow>
-                    ))}
-                </TableBody>
-            </Table>
+                <DataTable columns={columns} data={vehiculos} searchKey="placa" searchPlaceholder="Buscar por placa..." />
             </div>
 
             <Dialog open={dialogAbierto} onOpenChange={setDialogAbierto}>
                 <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
                     <DialogHeader>
-                        <DialogTitle>{vehiculoEditando ? "Editar vehículo" : "Nuevo vehículo"}</DialogTitle>
+                        <DialogTitle>{vehiculoEditando ? "Editar vehÃ­culo" : "Nuevo vehÃ­culo"}</DialogTitle>
                     </DialogHeader>
                     <Form {...form}>
                         <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4 sm:grid-cols-2">
@@ -409,13 +406,13 @@ export default function VehiculosPage() {
                                 />
                             )}
 
-                            {/* Tipo de Vehículo */}
+                            {/* Tipo de VehÃ­culo */}
                             <FormField
                                 control={form.control}
                                 name="idTipoVehiculo"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Tipo de vehículo</FormLabel>
+                                        <FormLabel>Tipo de vehÃ­culo</FormLabel>
                                         <FormControl>
                                             <select
                                                 className="h-8 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm"
@@ -439,17 +436,17 @@ export default function VehiculosPage() {
                                 )}
                             />
 
-                            {/* Categoría de Persona */}
+                            {/* CategorÃ­a de Persona */}
                             <FormField
                                 control={form.control}
                                 name="categoriaPersona"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Categoría de persona</FormLabel>
+                                        <FormLabel>CategorÃ­a de persona</FormLabel>
                                         <Select onValueChange={field.onChange} value={field.value ?? ""}>
                                             <FormControl>
                                                 <SelectTrigger>
-                                                    <SelectValue placeholder="Selecciona una categoría" />
+                                                    <SelectValue placeholder="Selecciona una categorÃ­a" />
                                                 </SelectTrigger>
                                             </FormControl>
                                             <SelectContent>
@@ -549,3 +546,4 @@ export default function VehiculosPage() {
         </div>
     );
 }
+
